@@ -1,0 +1,228 @@
+---
+title: "Munic: Alocação dos municípios entre as Agências da SES-BA"
+author: "Eduardo Leoni - SES/BA - IBGE"
+format: 
+  html: default
+lang: pt
+echo: false
+message: false
+warning: false
+cache: false
+params:
+  uf_codigo: 29
+  dist_diaria_km: 110
+  viagens: 1
+  dias_coleta: 2
+  adicional_troca_jurisdicao: 300
+  custo_hora_viagem: 10
+  
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(ggplot2)
+library(gt)
+library(orce)
+library(dplyr)
+agencias_bdo <- mutate(agencias_bdo, 
+                       agencia_nome=to_title_case(agencia_nome, locale="pt"))
+```
+
+```{r setup}
+
+uf_now <- params$uf_codigo
+
+
+
+#plot(10^seq(1,4), (365/sqrt(10^seq(4,7)))*7)
+agencias_now <- agencias_bdo%>%
+  filter(uf_codigo==uf_now)
+
+distancias_ucs <- distancias_agencias_municipios_osrm%>%
+                    left_join(agencias_municipios_diaria,
+                              by = join_by(agencia_codigo, municipio_codigo))%>%
+                    mutate(uc=municipio_codigo)
+                              
+distancias_agencias <- distancias_agencias_osrm
+
+nome_sigba_i <- function(x) to_title_case(gsub("_", " ", x))%>%gsub("\\bnome\\b", "", ., ignore.case=TRUE)
+fmt_nums <- function(...) gt::fmt_number(..., decimals=2, dec_mark = ",", sep_mark = ".", drop_trailing_zeros = TRUE)
+```
+
+
+## Cálculo de custo da coleta presencial nos municípios
+
+Premissas: 
+
+1. Municípios na mesma microrregião ou região metropolitana não pagam diária, a não ser que seja exigida pernoite.
+2. Distâncias maiores que `r params$dist_diaria_km` km pagam diária, mesmo se na jurisdição da agência. 
+3. Coleta presencial dura `r params$dias_coleta` dias. 
+4. Quando há pernoite, são pagas `r calcula_diarias(params$dias_coleta, FALSE)` diárias, e a coleta é feita em `r params$viagens` viagem(ns).
+4. Quando não há pernoite, são feitas `r params$dias_coleta` viagem(ns) (ida e volta).
+5. As viagens tem origem nas agências e destino nos municípios de coleta. **Importante**: o custo de combustível pode ser reduzido significativamente fazendo "roteiros". 
+6. Diárias são calculadas para apenas um funcionário.
+
+
+```{r}
+ucs_now <- municipios_22%>%
+  sf::st_drop_geometry()%>%
+  filter(substr(municipio_codigo,1,2)==uf_now)%>%
+  left_join(agencias_bdo_mun%>%select(agencia_codigo, municipio_codigo))%>%
+  mutate(uc=municipio_codigo)%>%
+  ## com agências intramunicipais tem mais de uma agência associada a município
+  ## vamos deixar só a primeira (em ordem numérica)
+  group_by(municipio_codigo)%>%
+  arrange(agencia_codigo)%>%
+  slice(1)%>%
+  mutate(viagens=params$viagens, dias_coleta=params$dias_coleta)
+
+res <- alocar_ucs(ucs=ucs_now, 
+                  agencias=agencias_now, 
+                  ## treinamento na agência
+                  agencias_treinamento = '292740800', 
+                  distancias_agencias = distancias_agencias, 
+                  distancias_ucs = 
+                    distancias_ucs, 
+                  custo_fixo=0,
+                  dias_treinamento=0,
+                  dist_diaria_km = params$dist_diaria_km,
+                  adicional_troca_jurisdicao = params$adicional_troca_jurisdicao)
+
+ll_municipios <- pontos_municipios_sede%>%
+  #rename(lat=municipio_sede_lat, lon=municipio_sede_lon)%>%
+  left_join(municipios_22%>%sf::st_drop_geometry())
+
+resultado_ucs <- bind_rows(
+  res$resultado_ucs_otimo%>%mutate(plano= "otimo"),
+  res$resultado_ucs_jurisdicao%>%mutate(plano= "jurisdição"))%>%
+  group_by(uc)%>%
+  mutate(mudanca=length(unique(agencia_codigo))>1)
+```
+
+
+```{r}
+j <- res$resultado_ucs_jurisdicao%>%
+  left_join(agencias_bdo%>%sf::st_drop_geometry(), by="agencia_codigo")%>%
+  left_join(assistencias_ba)%>%
+  group_by(assistencia_nome, agencia_nome)%>%
+  mutate(municipios=1)%>%
+  summarise(across(c(municipios, total_diarias, custo_diarias, distancia_total_km, custo_combustivel), sum))
+gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%>%
+  gt::summary_rows(fns = list(fn='sum', label="Total da Assistência"), fmt=~fmt_nums(.))%>%
+  fmt_nums()%>%
+  gt::cols_label_with(fn="nome_sigba_i")%>%
+  gt::grand_summary_rows(fns = list(fn='sum', label="Total da Superintendência")
+                         , fmt = ~fmt_nums(.))
+
+```
+
+
+
+```{r}
+toexport <- res$resultado_ucs_jurisdicao%>%
+  rename(municipio_codigo=uc)%>%
+  left_join(agencias_bdo%>%sf::st_drop_geometry(), by = join_by(agencia_codigo))%>%
+  left_join(municipios_22%>%select(municipio_codigo, municipio_nome), by = join_by(municipio_codigo))%>%
+  left_join(assistencias_ba, by = join_by(agencia_codigo))%>%
+  transmute(
+    assistencia_nome,
+    agencia_codigo, agencia_nome,
+    municipio_nome, municipio_codigo,
+            distancia_km, duracao_horas, diaria, meia_diaria, trechos, total_diarias, custo_diarias, distancia_total_km, custo_combustivel, custo_horas_viagem, custo_deslocamento)
+export_dir <- file.path(here::here("vignettes", "articles", "munic"))
+dir.create(export_dir, recursive = TRUE, showWarnings = FALSE)
+export_path <- file.path(export_dir,paste0("munic_", params$uf_codigo, "_", format(Sys.time(), "%Y%m%d_%H"), ".xlsx"))
+toexport_l <- lapply(toexport%>%split(.$assistencia_nome), function(x) janitor::remove_constant(x))
+sigba::excel(toexport_l, filename = export_path)
+```
+
+## Dados por município 
+
+Disponíveis no arquivo `r basename(export_path)`.
+
+
+## Opcional: Sugestões de alteração de agência de coleta.
+
+O custo de deslocamento inclui as diárias, combustível, e custo adicional por hora de viagem correspondente a R$`r params$custo_hora_viagem` por hora. Só são listadas trocas que economizariam no mínimo R$`r params$adicional_troca_jurisdicao` no custo de deslocamento para o município.
+
+Observação: Se houver interesse em alguma dessas trocas de agência de coleta será necessário recalcular os custos apresentados anteriormente.
+
+```{r }
+mudancas <- ll_municipios%>%
+  sf::st_drop_geometry()%>%
+  inner_join(resultado_ucs%>%filter(mudanca), by=c("municipio_codigo"="uc"))%>%
+  left_join(agencias_bdo%>%select(agencia_codigo, 
+                                  agencia_nome,
+                                  agencia_lat,
+                                  agencia_lon))%>%
+  mutate(uc_lat=municipio_sede_lat, uc_lon=municipio_sede_lon)
+
+
+
+gt(
+  mudancas%>%
+    select(agencia_nome, municipio_nome, distancia_km, custo_deslocamento, plano)%>%
+    tidyr::pivot_wider(names_from = c("plano"), id_cols = c("municipio_nome"), values_from=c("agencia_nome", "distancia_km", "custo_deslocamento"))#%>%arrange(agencia_nome_otimo)
+  )%>%
+  fmt_nums()%>%
+  gt::cols_label_with(fn="nome_sigba_i")
+
+
+
+if (nrow(mudancas)>0) {
+  mudancas_l <- mudancas%>%group_split(municipio_nome)
+  for (i in seq_along(mudancas_l)) {
+    dnow <- mudancas_l[[i]]%>%
+      arrange(custo_deslocamento)%>%
+      mutate(title=glue::glue("{municipio_nome}:\n.  de {agencia_nome[2]}\n   para {agencia_nome[1]}"),
+    subtitle=glue::glue("{agencia_nome}: {round(distancia_km)} km (R$ {round(custo_deslocamento)})"))
+    p <- map_uc_agencias(dnow) +
+      geom_label(aes(x=municipio_sede_lon, y=municipio_sede_lat, label=municipio_nome), data=dnow[1,], size=3) +
+      geom_label(aes(x=agencia_lon, y=agencia_lat, label=agencia_nome), data=dnow, size=3) +
+    theme_minimal() +
+      labs(title = dnow$title[1], caption = paste(dnow$subtitle, collapse='\n'), x="",y="")+
+      guides(color="none")
+    print(p)
+  }
+}
+
+```
+  
+
+
+# Apêndice Técnico
+
+O que temos é um problema de alocação ótima de Unidades Primárias de Amostragem (UPAs) a agências, com o objetivo de minimizar os custos totais, incluindo custos de deslocamento e custos fixos associados a cada agência. O modelo de otimização é baseado extensamente em "The Warehouse Location Problem", de Dirk Schumacher, https://dirkschumacher.github.io/ompr/articles/problem-warehouse-location.html. Trata-se de um problema comum em logística que busca determinar a melhor localização para instalações de modo a minimizar custos.
+
+Tendo a localização das UPAs e a localização das agências, a tarefa é decidir que agências incluir/treinar/contratar, e que UPAs vão ser alocadas a quais agências.
+
+Ou seja, temos que decidir, ao mesmo tempo, (1) que agências treinar, e (2) distribuição de UPAs por agência. 
+
+Começamos com um conjunto de UPAs $U = \{1 \ldots n\}$ e um conjunto de possíveis agências $A = \{1 \ldots m\}$ que poderiam ser treinadas. Além disso, temos uma função de custo que nos fornece o custo de deslocamento de uma agência até uma UPA. Ademais, há um custo fixo (incluindo custo de treinamento, entre outros) associado a cada agência, caso ela seja selecionada para a coleta. Agências com número pequeno de UPAs podem ser inviáveis.  Agências no interior com número grande de UPAs podem também ser inviáveis. A solução tem que ter no mínimo min_upas=$`r params$min_upa_agencia`$ e no máximo  $`r params$max_upa_agencia`$ por agência treinada. Observação, ao se permitir a coleta "semi-centralizada", não há limite para número de UPAs nas agências listadas.
+
+Para modelar esta situação, utilizamos duas variáveis de decisão:
+
+- $x_{i,j}$: variável binária que é 1 se a UPA $i$ é alocada à agência $j$, e 0 caso contrário.
+
+- $y_j$: variável binária que é 1 se a agência $j$ é selecionada para realizar a coleta, e 0 caso contrário.
+
+
+
+
+$$
+\begin{equation*}
+\begin{array}{ll@{}ll}
+\text{minimizar}  & \displaystyle\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\operatorname{custo\_deslocamento}_{i,j} \cdot x_{i, j} +  \sum\limits_{j=1}^{m}\operatorname{custo\_fixo}_{j} \cdot y_{j}& &\\
+\text{satisfazendo} & \displaystyle\sum\limits_{j=1}^{m}   x_{i, j} = 1  & i=1 ,\ldots, n&\\
+                  & \displaystyle x_{i, j} \leq y_j,  & i=1 ,\ldots, n & j=1 ,\ldots, m&\\
+                 &                                                x_{i,j} \in \{0,1\} &i=1 ,\ldots, n, & j=1 ,\ldots, m \\
+                 &                                                y_{j} \in \{0,1\} &j=1 ,\ldots, m& \\
+                 &                                                \operatorname{(opcional)} \sum\limits_{i=1}^{n}{x}_{i,j} >= ( \operatorname{min\_upas} \cdot y_{j})  & j=1 ,\ldots, m&
+                 \\
+                 &                                                \operatorname{(opcional)} \sum\limits_{i=1}^{n}{x}_{i,j} <=  \operatorname{max\_upas}_{j}  & j=1 ,\ldots, m&
+\end{array}
+\end{equation*}
+$$

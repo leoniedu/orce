@@ -1,0 +1,5 @@
+*.html
+*.R
+articles/munic/*
+articles/munic_rmd_files/*
+/.quarto/

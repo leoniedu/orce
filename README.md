@@ -1,0 +1,13 @@
+# orce:  <span style="color:red">O</span>timização da <span style="color:red">R</span>ede de <span style="color:red">C</span>oleta <span style="color:red">E</span>statística
+
+The `orce` package is an R package designed to optimize the allocation of primary sampling units (PSUs), such as census tracts or health facilities, to IBGE (Brazilian Institute of Geography and Statistics) agencies. This allocation process is crucial for efficient and cost-effective data collection in large-scale surveys and censuses. The package addresses several challenges inherent to this process, including:
+
+1. **Routing and Geocoding**: Determining the optimal routes between PSUs and agencies requires accurate location data. The `orce` package leverages the CNEFE (National Register of Addresses for Statistical Purposes) database to obtain precise coordinates for each PSU, prioritizing high-density areas within census tracts to ensure accessibility and representativeness. The `ponto_setor_densidade` function aids in identifying these representative locations.
+
+2. **Allocation Optimization**: The core of the `orce` package is its allocation optimization algorithm. It employs mixed-integer linear programming to minimize the overall cost of data collection, considering factors like travel distances, travel time, and fixed agency costs. The `alocar_upas` function implements this optimization, allowing for flexible constraints on agency capacity and location preferences.
+
+3. **Cost Calculation**: Accurately estimating the cost of data collection involves more than just distances and travel time. The `orce` package incorporates knowledge of administrative boundaries to determine whether "diárias" (travel allowances) are applicable. This nuanced cost calculation ensures that the optimization results reflect the true financial implications of different allocation scenarios.
+
+4. **Flexibility and Adaptability**: The `orce` package offers various customization options to accommodate the specific needs of different surveys and data collection efforts. Users can define parameters such as fuel costs, hourly travel costs, vehicle fuel efficiency, and agency-specific constraints. The package also supports sequential allocation across multiple time periods (e.g., quarters), allowing for dynamic adjustments to the allocation plan.
+
+In summary, the `orce` package provides a powerful and versatile solution for optimizing the allocation of PSUs to IBGE agencies. By addressing challenges related to routing, geocoding, allocation optimization, and cost calculation, it enables efficient and cost-effective data collection strategies. Its flexibility and adaptability make it a valuable tool for a wide range of survey and census operations in Brazil. 
