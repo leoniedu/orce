@@ -1,0 +1,33 @@
+---
+title: "Technical details of the optimization procedure"
+---
+
+We are faced with an optimal allocation problem, where we need to assign Primary Sampling Units (PSUs) to agencies in a way that minimizes total costs, including travel costs and fixed costs associated with each agency. This optimization model is largely based on "The Warehouse Location Problem" by Dirk Schumacher. It's a common problem in logistics that seeks to determine the best location for facilities to minimize costs.
+
+Given the locations of the PSUs and the potential agencies, the task is to decide which agencies to include/train/hire, and which PSUs will be allocated to which agencies.
+
+In other words, we have to decide simultaneously: (1) which agencies to activate, and (2) the distribution of PSUs per agency.
+
+We start with a set of PSUs $U = \{1 \ldots n\}$ and a set of potential agencies $A = \{1 \ldots m\}$ that could be activated. We also have a cost function that provides the travel cost from an agency to a PSU. In addition, there is a fixed cost (including training costs, among others) associated with each agency if it is selected for data collection. Agencies with a small number of PSUs may be unfeasible. Agencies in the countryside with a large number of PSUs may also be unfeasible. The solution must have at least *min_upas* and at most *max_upas* per activated agency. Note that when allowing "semi-centralized" collection, there is no limit to the number of PSUs in the listed agencies.
+
+To model this situation, we use two decision variables:
+
+- $x_{i,j}$: a binary variable that is 1 if PSU $i$ is allocated to agency $j$, and 0 otherwise.
+
+- $y_j$: a binary variable that is 1 if agency $j$ is selected to perform the collection, and 0 otherwise.
+
+$$
+\begin{equation*}
+\begin{array}{ll@{}ll}
+\text{minimize}  & \displaystyle\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\operatorname{travel\_cost}_{i,j} \cdot x_{i, j} +  \sum\limits_{j=1}^{m}\operatorname{fixed\_cost}_{j} \cdot y_{j}& &\\
+\text{subject to} & \displaystyle\sum\limits_{j=1}^{m}   x_{i, j} = 1  & i=1 ,\ldots, n&\\
+                  & \displaystyle x_{i, j} \leq y_j,  & i=1 ,\ldots, n & j=1 ,\ldots, m&\\
+                 &                                                x_{i,j} \in \{0,1\} &i=1 ,\ldots, n, & j=1 ,\ldots, m \\
+                 &                                                y_{j} \in \{0,1\} &j=1 ,\ldots, m& \\
+                 &                                                \operatorname{(optional)} \sum\limits_{i=1}^{n}{x}_{i,j} >= ( \operatorname{min\_upas} \cdot y_{j})  & j=1 ,\ldots, m&
+                 \\
+                 &                                                \operatorname{(optional)} \sum\limits_{i=1}^{n}{x}_{i,j} <=  \operatorname{max\_upas}_{j}  & j=1 ,\ldots, m&
+\end{array}
+\end{equation*}
+$$ 
+The optimization procedure is implemented in the *alocar_uc* function.

@@ -3,7 +3,8 @@ pkgdown: 2.1.0
 pkgdown_sha: ~
 articles:
   articles/munic_rmd: munic_rmd.html
-last_built: 2024-09-06T20:37Z
+  articles/Technical-details-of-the-optimization-procedure: Technical-details-of-the-optimization-procedure.html
+last_built: 2024-09-07T01:58Z
 urls:
   reference: https://leoniedu.github.io/orce/reference
   article: https://leoniedu.github.io/orce/articles

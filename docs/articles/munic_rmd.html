@@ -34,6 +34,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/munic_rmd.html">Munic: Alocação dos municípios entre as Agências da SES-BA</a></li>
+    <li><a class="dropdown-item" href="../articles/Technical-details-of-the-optimization-procedure.html">Technical details of the optimization procedure</a></li>
   </ul>
 </li>
       </ul>
@@ -84,9 +85,9 @@ SES/BA - IBGE</h4>
 <span></span>
 <span><span class="va">nome_sigba_i</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="../reference/to_title_case.html">to_title_case</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"_"</span>, <span class="st">" "</span>, <span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"\\bnome\\b"</span>, <span class="st">""</span>, <span class="va">.</span>, ignore.case<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">fmt_nums</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">...</span><span class="op">)</span> <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/fmt_number.html" class="external-link">fmt_number</a></span><span class="op">(</span><span class="va">...</span>, decimals<span class="op">=</span><span class="fl">2</span>, dec_mark <span class="op">=</span> <span class="st">","</span>, sep_mark <span class="op">=</span> <span class="st">"."</span>, drop_trailing_zeros <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="cálculo-de-custo-da-coleta-presencial-nos-municípios">Cálculo de custo da coleta presencial nos municípios<a class="anchor" aria-label="anchor" href="#c%C3%A1lculo-de-custo-da-coleta-presencial-nos-munic%C3%ADpios"></a>
-</h3>
+<div class="section level2">
+<h2 id="cálculo-de-custo-da-coleta-presencial-nos-municípios">Cálculo de custo da coleta presencial nos municípios<a class="anchor" aria-label="anchor" href="#c%C3%A1lculo-de-custo-da-coleta-presencial-nos-munic%C3%ADpios"></a>
+</h2>
 <p>Premissas:</p>
 <ol style="list-style-type: decimal">
 <li>Municípios na mesma microrregião ou região metropolitana não pagam
@@ -94,7 +95,7 @@ diária, a não ser que seja exigida pernoite.</li>
 <li>Distâncias maiores que 110 km pagam diária, mesmo se na jurisdição
 da agência.</li>
 <li>Coleta presencial dura 2 dias.</li>
-<li>Quando há pernoite, são pagas 1.5 diárias, e a coleta é feita em 1
+<li>Quando há pernoite, são pagas 1,5 diárias, e a coleta é feita em 1
 viagem(ns).</li>
 <li>Quando não há pernoite, são feitas 2 viagem(ns) (ida e volta).</li>
 <li>As viagens tem origem nas agências e destino nos municípios de
@@ -135,7 +136,7 @@ reduzido significativamente fazendo “roteiros”.</li>
 <span></span>
 <span><span class="va">resultado_ucs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span></span>
 <span>  <span class="va">res</span><span class="op">$</span><span class="va">resultado_ucs_otimo</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>plano<span class="op">=</span> <span class="st">"otimo"</span><span class="op">)</span>,</span>
-<span>  <span class="va">res</span><span class="op">$</span><span class="va">resultado_ucs_jurisdicao</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>plano<span class="op">=</span> <span class="st">"jurisdição"</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="va">res</span><span class="op">$</span><span class="va">resultado_ucs_jurisdicao</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>plano<span class="op">=</span> <span class="st">"jurisdicao"</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">uc</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>mudanca<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">agencia_codigo</span><span class="op">)</span><span class="op">)</span><span class="op">&gt;</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -1105,17 +1106,16 @@ reduzido significativamente fazendo “roteiros”.</li>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">export_dir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">export_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">export_dir</span>,<span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"munic_"</span>, <span class="va">params</span><span class="op">$</span><span class="va">uf_codigo</span>, <span class="st">"_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"%Y%m%d_%H"</span><span class="op">)</span>, <span class="st">".xlsx"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">toexport_l</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">toexport</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://rdrr.io/r/base/split.html" class="external-link">split</a></span><span class="op">(</span><span class="va">.</span><span class="op">$</span><span class="va">assistencia_nome</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu">janitor</span><span class="fu">::</span><span class="fu"><a href="https://sfirke.github.io/janitor/reference/remove_constant.html" class="external-link">remove_constant</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">sigba</span><span class="fu">::</span><span class="fu">excel</span><span class="op">(</span><span class="va">toexport_l</span>, filename <span class="op">=</span> <span class="va">export_path</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required package: openxlsx</span></span></code></pre></div>
+<span><span class="co">#sigba::excel(toexport_l, filename = export_path)</span></span></code></pre></div>
 </div>
-<div class="section level3">
-<h3 id="dados-por-município">Dados por município<a class="anchor" aria-label="anchor" href="#dados-por-munic%C3%ADpio"></a>
-</h3>
-<p>Disponíveis no arquivo munic_29_20240906_17.xlsx.</p>
+<div class="section level2">
+<h2 id="dados-por-município">Dados por município<a class="anchor" aria-label="anchor" href="#dados-por-munic%C3%ADpio"></a>
+</h2>
+<p>Disponíveis no arquivo munic_29_20240906_22.xlsx.</p>
 </div>
-<div class="section level3">
-<h3 id="opcional-sugestões-de-alteração-de-agência-de-coleta-">Opcional: Sugestões de alteração de agência de coleta.<a class="anchor" aria-label="anchor" href="#opcional-sugest%C3%B5es-de-altera%C3%A7%C3%A3o-de-ag%C3%AAncia-de-coleta-"></a>
-</h3>
+<div class="section level2">
+<h2 id="opcional-sugestões-de-alteração-de-agência-de-coleta-">Opcional: Sugestões de alteração de agência de coleta.<a class="anchor" aria-label="anchor" href="#opcional-sugest%C3%B5es-de-altera%C3%A7%C3%A3o-de-ag%C3%AAncia-de-coleta-"></a>
+</h2>
 <p>O custo de deslocamento inclui as diárias, combustível, e custo
 adicional por hora de viagem correspondente a R$10 por hora. Só são
 listadas trocas que economizariam no mínimo R$300 no custo de
@@ -1596,84 +1596,84 @@ anteriormente.</p>
 <thead><tr class="gt_col_headings">
 <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="Municipio ">Municipio </th>
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="Agencia  Otimo">Agencia  Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="Agencia  Jurisdição">Agencia  Jurisdição</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="Agencia  Jurisdicao">Agencia  Jurisdicao</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Distancia Km Otimo">Distancia Km Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Distancia Km Jurisdição">Distancia Km Jurisdição</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Distancia Km Jurisdicao">Distancia Km Jurisdicao</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Otimo">Custo Deslocamento Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Jurisdição">Custo Deslocamento Jurisdição</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Jurisdicao">Custo Deslocamento Jurisdicao</th>
     </tr></thead>
 <tbody class="gt_table_body">
 <tr>
 <td headers="municipio_nome" class="gt_row gt_left">Barra</td>
 <td headers="agencia_nome_otimo" class="gt_row gt_left">Xique-Xique</td>
-<td headers="agencia_nome_jurisdição" class="gt_row gt_left">Ibotirama</td>
+<td headers="agencia_nome_jurisdicao" class="gt_row gt_left">Ibotirama</td>
 <td headers="distancia_km_otimo" class="gt_row gt_right">88,02</td>
-<td headers="distancia_km_jurisdição" class="gt_row gt_right">163,01</td>
+<td headers="distancia_km_jurisdicao" class="gt_row gt_right">163,01</td>
 <td headers="custo_deslocamento_otimo" class="gt_row gt_right">266,05</td>
-<td headers="custo_deslocamento_jurisdição" class="gt_row gt_right">748,31</td>
+<td headers="custo_deslocamento_jurisdicao" class="gt_row gt_right">748,31</td>
 </tr>
 <tr>
 <td headers="municipio_nome" class="gt_row gt_left">Condeúba</td>
 <td headers="agencia_nome_otimo" class="gt_row gt_left">Brumado</td>
-<td headers="agencia_nome_jurisdição" class="gt_row gt_left">Vitória da Conquista</td>
+<td headers="agencia_nome_jurisdicao" class="gt_row gt_left">Vitória da Conquista</td>
 <td headers="distancia_km_otimo" class="gt_row gt_right">105,24</td>
-<td headers="distancia_km_jurisdição" class="gt_row gt_right">152,6</td>
+<td headers="distancia_km_jurisdicao" class="gt_row gt_right">152,6</td>
 <td headers="custo_deslocamento_otimo" class="gt_row gt_right">330,58</td>
-<td headers="custo_deslocamento_jurisdição" class="gt_row gt_right">733,02</td>
+<td headers="custo_deslocamento_jurisdicao" class="gt_row gt_right">733,02</td>
 </tr>
 <tr>
 <td headers="municipio_nome" class="gt_row gt_left">Mirante</td>
 <td headers="agencia_nome_otimo" class="gt_row gt_left">Poções</td>
-<td headers="agencia_nome_jurisdição" class="gt_row gt_left">Jequié</td>
+<td headers="agencia_nome_jurisdicao" class="gt_row gt_left">Jequié</td>
 <td headers="distancia_km_otimo" class="gt_row gt_right">65,8</td>
-<td headers="distancia_km_jurisdição" class="gt_row gt_right">130,9</td>
+<td headers="distancia_km_jurisdicao" class="gt_row gt_right">130,9</td>
 <td headers="custo_deslocamento_otimo" class="gt_row gt_right">207,12</td>
-<td headers="custo_deslocamento_jurisdição" class="gt_row gt_right">701,18</td>
+<td headers="custo_deslocamento_jurisdicao" class="gt_row gt_right">701,18</td>
 </tr>
 <tr>
 <td headers="municipio_nome" class="gt_row gt_left">Nordestina</td>
 <td headers="agencia_nome_otimo" class="gt_row gt_left">Euclides da Cunha</td>
-<td headers="agencia_nome_jurisdição" class="gt_row gt_left">Conceição do Coité</td>
+<td headers="agencia_nome_jurisdicao" class="gt_row gt_left">Conceição do Coité</td>
 <td headers="distancia_km_otimo" class="gt_row gt_right">103,35</td>
-<td headers="distancia_km_jurisdição" class="gt_row gt_right">133,52</td>
+<td headers="distancia_km_jurisdicao" class="gt_row gt_right">133,52</td>
 <td headers="custo_deslocamento_otimo" class="gt_row gt_right">316,04</td>
-<td headers="custo_deslocamento_jurisdição" class="gt_row gt_right">705,52</td>
+<td headers="custo_deslocamento_jurisdicao" class="gt_row gt_right">705,52</td>
 </tr>
 <tr>
 <td headers="municipio_nome" class="gt_row gt_left">Piatã</td>
 <td headers="agencia_nome_otimo" class="gt_row gt_left">Seabra</td>
-<td headers="agencia_nome_jurisdição" class="gt_row gt_left">Livramento de Nossa Senhora</td>
+<td headers="agencia_nome_jurisdicao" class="gt_row gt_left">Livramento de Nossa Senhora</td>
 <td headers="distancia_km_otimo" class="gt_row gt_right">99,74</td>
-<td headers="distancia_km_jurisdição" class="gt_row gt_right">112,92</td>
+<td headers="distancia_km_jurisdicao" class="gt_row gt_right">112,92</td>
 <td headers="custo_deslocamento_otimo" class="gt_row gt_right">311,38</td>
-<td headers="custo_deslocamento_jurisdição" class="gt_row gt_right">677,4</td>
+<td headers="custo_deslocamento_jurisdicao" class="gt_row gt_right">677,4</td>
 </tr>
 <tr>
 <td headers="municipio_nome" class="gt_row gt_left">Piripá</td>
 <td headers="agencia_nome_otimo" class="gt_row gt_left">Brumado</td>
-<td headers="agencia_nome_jurisdição" class="gt_row gt_left">Vitória da Conquista</td>
+<td headers="agencia_nome_jurisdicao" class="gt_row gt_left">Vitória da Conquista</td>
 <td headers="distancia_km_otimo" class="gt_row gt_right">96,25</td>
-<td headers="distancia_km_jurisdição" class="gt_row gt_right">122,56</td>
+<td headers="distancia_km_jurisdicao" class="gt_row gt_right">122,56</td>
 <td headers="custo_deslocamento_otimo" class="gt_row gt_right">317,4</td>
-<td headers="custo_deslocamento_jurisdição" class="gt_row gt_right">687,17</td>
+<td headers="custo_deslocamento_jurisdicao" class="gt_row gt_right">687,17</td>
 </tr>
 <tr>
 <td headers="municipio_nome" class="gt_row gt_left">Presidente Jânio Quadros</td>
 <td headers="agencia_nome_otimo" class="gt_row gt_left">Brumado</td>
-<td headers="agencia_nome_jurisdição" class="gt_row gt_left">Vitória da Conquista</td>
+<td headers="agencia_nome_jurisdicao" class="gt_row gt_left">Vitória da Conquista</td>
 <td headers="distancia_km_otimo" class="gt_row gt_right">61,98</td>
-<td headers="distancia_km_jurisdição" class="gt_row gt_right">122,58</td>
+<td headers="distancia_km_jurisdicao" class="gt_row gt_right">122,58</td>
 <td headers="custo_deslocamento_otimo" class="gt_row gt_right">209,95</td>
-<td headers="custo_deslocamento_jurisdição" class="gt_row gt_right">690,6</td>
+<td headers="custo_deslocamento_jurisdicao" class="gt_row gt_right">690,6</td>
 </tr>
 <tr>
 <td headers="municipio_nome" class="gt_row gt_left">Riachão das Neves</td>
 <td headers="agencia_nome_otimo" class="gt_row gt_left">Barreiras</td>
-<td headers="agencia_nome_jurisdição" class="gt_row gt_left">Santa Rita de Cássia</td>
+<td headers="agencia_nome_jurisdicao" class="gt_row gt_left">Santa Rita de Cássia</td>
 <td headers="distancia_km_otimo" class="gt_row gt_right">54,21</td>
-<td headers="distancia_km_jurisdição" class="gt_row gt_right">113,92</td>
+<td headers="distancia_km_jurisdicao" class="gt_row gt_right">113,92</td>
 <td headers="custo_deslocamento_otimo" class="gt_row gt_right">160,5</td>
-<td headers="custo_deslocamento_jurisdição" class="gt_row gt_right">671,8</td>
+<td headers="custo_deslocamento_jurisdicao" class="gt_row gt_right">671,8</td>
 </tr>
 </tbody>
 </table>
@@ -1699,75 +1699,526 @@ anteriormente.</p>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p><img src="munic_rmd_files/figure-html/unnamed-chunk-5-1.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-5-2.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-5-3.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-5-4.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-5-5.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-5-6.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-5-7.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-5-8.png" width="700"></p>
+<div class="section level3">
+<h3 id="resumo-da-otimização">Resumo da otimização<a class="anchor" aria-label="anchor" href="#resumo-da-otimiza%C3%A7%C3%A3o"></a>
+</h3>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">resultado_ucs</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/transmute.html" class="external-link">transmute</a></span><span class="op">(</span><span class="va">agencia_codigo</span>, <span class="va">custo_diarias</span>, <span class="va">custo_combustivel</span>, <span class="va">custo_horas_viagem</span>, total<span class="op">=</span><span class="va">custo_deslocamento</span>, <span class="va">plano</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">plano</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/where.html" class="external-link">where</a></span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span>, <span class="va">sum</span><span class="op">)</span>, n_agencias<span class="op">=</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/n_distinct.html" class="external-link">n_distinct</a></span><span class="op">(</span><span class="va">agencia_codigo</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols<span class="op">=</span><span class="op">-</span><span class="va">plano</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from<span class="op">=</span><span class="va">plano</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>reducao<span class="op">=</span><span class="va">jurisdicao</span><span class="op">-</span><span class="va">otimo</span>,</span>
+<span>         reducao_pct<span class="op">=</span><span class="fl">1</span><span class="op">-</span><span class="va">otimo</span><span class="op">/</span><span class="va">jurisdicao</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">resumo_planos</span></span>
+<span><span class="va">resumo_planos</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/gt.html" class="external-link">gt</a></span><span class="op">(</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/fmt_number.html" class="external-link">fmt_number</a></span><span class="op">(</span>decimals<span class="op">=</span><span class="fl">0</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/fmt_percent.html" class="external-link">fmt_percent</a></span><span class="op">(</span>decimals<span class="op">=</span><span class="fl">1</span>, columns <span class="op">=</span> <span class="va">reducao_pct</span><span class="op">)</span></span></code></pre></div>
+<div id="fdpbcyvkgu" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#fdpbcyvkgu table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#fdpbcyvkgu thead, #fdpbcyvkgu tbody, #fdpbcyvkgu tfoot, #fdpbcyvkgu tr, #fdpbcyvkgu td, #fdpbcyvkgu th {
+  border-style: none;
+}
+
+#fdpbcyvkgu p {
+  margin: 0;
+  padding: 0;
+}
+
+#fdpbcyvkgu .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#fdpbcyvkgu .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#fdpbcyvkgu .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#fdpbcyvkgu .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#fdpbcyvkgu .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#fdpbcyvkgu .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#fdpbcyvkgu .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#fdpbcyvkgu .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#fdpbcyvkgu .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#fdpbcyvkgu .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#fdpbcyvkgu .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#fdpbcyvkgu .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#fdpbcyvkgu .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#fdpbcyvkgu .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#fdpbcyvkgu .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fdpbcyvkgu .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#fdpbcyvkgu .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#fdpbcyvkgu .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#fdpbcyvkgu .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fdpbcyvkgu .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#fdpbcyvkgu .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fdpbcyvkgu .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#fdpbcyvkgu .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fdpbcyvkgu .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#fdpbcyvkgu .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#fdpbcyvkgu .gt_left {
+  text-align: left;
+}
+
+#fdpbcyvkgu .gt_center {
+  text-align: center;
+}
+
+#fdpbcyvkgu .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#fdpbcyvkgu .gt_font_normal {
+  font-weight: normal;
+}
+
+#fdpbcyvkgu .gt_font_bold {
+  font-weight: bold;
+}
+
+#fdpbcyvkgu .gt_font_italic {
+  font-style: italic;
+}
+
+#fdpbcyvkgu .gt_super {
+  font-size: 65%;
+}
+
+#fdpbcyvkgu .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#fdpbcyvkgu .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#fdpbcyvkgu .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#fdpbcyvkgu .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#fdpbcyvkgu .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#fdpbcyvkgu .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#fdpbcyvkgu .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#fdpbcyvkgu .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#fdpbcyvkgu div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+<table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead><tr class="gt_col_headings">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="name">name</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="jurisdicao">jurisdicao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="otimo">otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="reducao">reducao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="reducao_pct">reducao_pct</th>
+    </tr></thead>
+<tbody class="gt_table_body">
+<tr>
+<td headers="name" class="gt_row gt_left">custo_diarias</td>
+<td headers="jurisdicao" class="gt_row gt_right">21,608</td>
+<td headers="otimo" class="gt_row gt_right">17,588</td>
+<td headers="reducao" class="gt_row gt_right">4,020</td>
+<td headers="reducao_pct" class="gt_row gt_right">18.6%</td>
+</tr>
+<tr>
+<td headers="name" class="gt_row gt_left">custo_combustivel</td>
+<td headers="jurisdicao" class="gt_row gt_right">49,415</td>
+<td headers="otimo" class="gt_row gt_right">49,772</td>
+<td headers="reducao" class="gt_row gt_right">−357</td>
+<td headers="reducao_pct" class="gt_row gt_right">−0.7%</td>
+</tr>
+<tr>
+<td headers="name" class="gt_row gt_left">custo_horas_viagem</td>
+<td headers="jurisdicao" class="gt_row gt_right">13,677</td>
+<td headers="otimo" class="gt_row gt_right">13,845</td>
+<td headers="reducao" class="gt_row gt_right">−167</td>
+<td headers="reducao_pct" class="gt_row gt_right">−1.2%</td>
+</tr>
+<tr>
+<td headers="name" class="gt_row gt_left">total</td>
+<td headers="jurisdicao" class="gt_row gt_right">84,700</td>
+<td headers="otimo" class="gt_row gt_right">81,204</td>
+<td headers="reducao" class="gt_row gt_right">3,496</td>
+<td headers="reducao_pct" class="gt_row gt_right">4.1%</td>
+</tr>
+<tr>
+<td headers="name" class="gt_row gt_left">n_agencias</td>
+<td headers="jurisdicao" class="gt_row gt_right">50</td>
+<td headers="otimo" class="gt_row gt_right">50</td>
+<td headers="reducao" class="gt_row gt_right">0</td>
+<td headers="reducao_pct" class="gt_row gt_right">0.0%</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="section level2">
-<h2 id="apêndice-técnico">Apêndice Técnico<a class="anchor" aria-label="anchor" href="#ap%C3%AAndice-t%C3%A9cnico"></a>
-</h2>
-<p>O que temos é um problema de alocação ótima de Unidades Primárias de
-Amostragem (UPAs) a agências, com o objetivo de minimizar os custos
-totais, incluindo custos de deslocamento e custos fixos associados a
-cada agência. O modelo de otimização é baseado extensamente em “The
-Warehouse Location Problem”, de Dirk Schumacher, <a href="https://dirkschumacher.github.io/ompr/articles/problem-warehouse-location.html" class="external-link uri">https://dirkschumacher.github.io/ompr/articles/problem-warehouse-location.html</a>.
-Trata-se de um problema comum em logística que busca determinar a melhor
-localização para instalações de modo a minimizar custos.</p>
-<p>Tendo a localização das UPAs e a localização das agências, a tarefa é
-decidir que agências incluir/treinar/contratar, e que UPAs vão ser
-alocadas a quais agências.</p>
-<p>Ou seja, temos que decidir, ao mesmo tempo, (1) que agências treinar,
-e (2) distribuição de UPAs por agência.</p>
-<p>Começamos com um conjunto de UPAs
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>U</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mi>…</mi><mi>n</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">U = \{1 \ldots n\}</annotation></semantics></math>
-e um conjunto de possíveis agências
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><mo>=</mo><mo stretchy="false" form="prefix">{</mo><mn>1</mn><mi>…</mi><mi>m</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">A = \{1 \ldots m\}</annotation></semantics></math>
-que poderiam ser treinadas. Além disso, temos uma função de custo que
-nos fornece o custo de deslocamento de uma agência até uma UPA. Ademais,
-há um custo fixo (incluindo custo de treinamento, entre outros)
-associado a cada agência, caso ela seja selecionada para a coleta.
-Agências com número pequeno de UPAs podem ser inviáveis. Agências no
-interior com número grande de UPAs podem também ser inviáveis. A solução
-tem que ter no mínimo
-min_upas=<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>e</mi><mi>n</mi><mi>o</mi><mi>m</mi><mi>á</mi><mi>x</mi><mi>i</mi><mi>m</mi><mi>o</mi></mrow><annotation encoding="application/x-tex"> e no máximo  </annotation></semantics></math>
-por agência treinada. Observação, ao se permitir a coleta
-“semi-centralizada”, não há limite para número de UPAs nas agências
-listadas.</p>
-<p>Para modelar esta situação, utilizamos duas variáveis de decisão:</p>
-<ul>
-<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>x</mi><mrow><mi>i</mi><mo>,</mo><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">x_{i,j}</annotation></semantics></math>:
-variável binária que é 1 se a UPA
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
-é alocada à agência
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>,
-e 0 caso contrário.</p></li>
-<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>y</mi><mi>j</mi></msub><annotation encoding="application/x-tex">y_j</annotation></semantics></math>:
-variável binária que é 1 se a agência
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>
-é selecionada para realizar a coleta, e 0 caso contrário.</p></li>
-</ul>
-<p><span class="math display">$$
-\begin{equation*}
-\begin{array}{ll@{}ll}
-\text{minimizar}  &amp;
-\displaystyle\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\operatorname{custo\_deslocamento}_{i,j}
-\cdot x_{i, j} +  \sum\limits_{j=1}^{m}\operatorname{custo\_fixo}_{j}
-\cdot y_{j}&amp; &amp;\\
-\text{satisfazendo} &amp; \displaystyle\sum\limits_{j=1}^{m}   x_{i, j}
-= 1  &amp; i=1 ,\ldots, n&amp;\\
-                  &amp; \displaystyle x_{i, j} \leq y_j,  &amp; i=1
-,\ldots, n &amp; j=1 ,\ldots, m&amp;\\
-                 &amp;                                                x_{i,j}
-\in \{0,1\} &amp;i=1 ,\ldots, n, &amp; j=1 ,\ldots, m \\
-                 &amp;                                                y_{j}
-\in \{0,1\} &amp;j=1 ,\ldots, m&amp; \\
-                 &amp;                                                \operatorname{(opcional)}
-\sum\limits_{i=1}^{n}{x}_{i,j} &gt;= ( \operatorname{min\_upas} \cdot
-y_{j})  &amp; j=1 ,\ldots, m&amp;
-                 \\
-                 &amp;                                                \operatorname{(opcional)}
-\sum\limits_{i=1}^{n}{x}_{i,j}
-&lt;=  \operatorname{max\_upas}_{j}  &amp; j=1 ,\ldots, m&amp;
-\end{array}
-\end{equation*}
-$$</span></p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">economia_diarias</span> <span class="op">&lt;-</span> <span class="va">resumo_planos</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">name</span><span class="op">==</span><span class="st">"custo_diarias"</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">reducao_pct</span><span class="op">)</span></span>
+<span><span class="va">economia_combustivel</span> <span class="op">&lt;-</span> <span class="va">resumo_planos</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">name</span><span class="op">==</span><span class="st">"custo_combustivel"</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">reducao_pct</span><span class="op">)</span></span></code></pre></div>
+<p>Utilizando o plano otimizado, com 8 alterações de agência de coleta,
+é possível economizar 19% no valor das diárias, gastando apenas 0,7% a
+mais em combustível.</p>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

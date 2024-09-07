@@ -3,6 +3,7 @@ title: "Munic: Alocação dos municípios entre as Agências da SES-BA"
 author: "Eduardo Leoni - SES/BA - IBGE"
 format: 
   html: default
+  markdown: default
 lang: pt
 echo: false
 message: false
@@ -23,6 +24,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+options(OutDec = ",")
 library(ggplot2)
 library(gt)
 library(orce)
@@ -97,7 +99,7 @@ ll_municipios <- pontos_municipios_sede%>%
 
 resultado_ucs <- bind_rows(
   res$resultado_ucs_otimo%>%mutate(plano= "otimo"),
-  res$resultado_ucs_jurisdicao%>%mutate(plano= "jurisdição"))%>%
+  res$resultado_ucs_jurisdicao%>%mutate(plano= "jurisdicao"))%>%
   group_by(uc)%>%
   mutate(mudanca=length(unique(agencia_codigo))>1)
 ```
@@ -136,7 +138,7 @@ export_dir <- file.path(here::here("vignettes", "articles", "munic"))
 dir.create(export_dir, recursive = TRUE, showWarnings = FALSE)
 export_path <- file.path(export_dir,paste0("munic_", params$uf_codigo, "_", format(Sys.time(), "%Y%m%d_%H"), ".xlsx"))
 toexport_l <- lapply(toexport%>%split(.$assistencia_nome), function(x) janitor::remove_constant(x))
-sigba::excel(toexport_l, filename = export_path)
+#sigba::excel(toexport_l, filename = export_path)
 ```
 
 ## Dados por município 
@@ -191,38 +193,25 @@ if (nrow(mudancas)>0) {
 
 ```
   
+### Resumo da otimização 
 
+```{r}
+resultado_ucs%>%
+  transmute(agencia_codigo, custo_diarias, custo_combustivel, custo_horas_viagem, total=custo_deslocamento, plano)%>%
+  group_by(plano)%>%
+  summarise(across(where(is.numeric), sum), n_agencias=n_distinct(agencia_codigo))%>%
+  tidyr::pivot_longer(cols=-plano)%>%
+  tidyr::pivot_wider(names_from=plano)%>%
+  mutate(reducao=jurisdicao-otimo,
+         reducao_pct=1-otimo/jurisdicao) -> resumo_planos
+resumo_planos%>%
+  gt::gt()%>%
+  gt::fmt_number(decimals=0)%>%
+  gt::fmt_percent(decimals=1, columns = reducao_pct)
 
-# Apêndice Técnico
+economia_diarias <- resumo_planos%>%filter(name=="custo_diarias")%>%pull(reducao_pct)
+economia_combustivel <- resumo_planos%>%filter(name=="custo_combustivel")%>%pull(reducao_pct)
+```
+ 
+ Utilizando o plano otimizado, com `r nrow(mudancas)/2` alterações de agência de coleta, é possível economizar `r round(economia_diarias*100)`% no valor das diárias, gastando apenas `r -round(economia_combustivel*100,1)`% a mais em combustível.
 
-O que temos é um problema de alocação ótima de Unidades Primárias de Amostragem (UPAs) a agências, com o objetivo de minimizar os custos totais, incluindo custos de deslocamento e custos fixos associados a cada agência. O modelo de otimização é baseado extensamente em "The Warehouse Location Problem", de Dirk Schumacher, https://dirkschumacher.github.io/ompr/articles/problem-warehouse-location.html. Trata-se de um problema comum em logística que busca determinar a melhor localização para instalações de modo a minimizar custos.
-
-Tendo a localização das UPAs e a localização das agências, a tarefa é decidir que agências incluir/treinar/contratar, e que UPAs vão ser alocadas a quais agências.
-
-Ou seja, temos que decidir, ao mesmo tempo, (1) que agências treinar, e (2) distribuição de UPAs por agência. 
-
-Começamos com um conjunto de UPAs $U = \{1 \ldots n\}$ e um conjunto de possíveis agências $A = \{1 \ldots m\}$ que poderiam ser treinadas. Além disso, temos uma função de custo que nos fornece o custo de deslocamento de uma agência até uma UPA. Ademais, há um custo fixo (incluindo custo de treinamento, entre outros) associado a cada agência, caso ela seja selecionada para a coleta. Agências com número pequeno de UPAs podem ser inviáveis.  Agências no interior com número grande de UPAs podem também ser inviáveis. A solução tem que ter no mínimo min_upas=$`r params$min_upa_agencia`$ e no máximo  $`r params$max_upa_agencia`$ por agência treinada. Observação, ao se permitir a coleta "semi-centralizada", não há limite para número de UPAs nas agências listadas.
-
-Para modelar esta situação, utilizamos duas variáveis de decisão:
-
-- $x_{i,j}$: variável binária que é 1 se a UPA $i$ é alocada à agência $j$, e 0 caso contrário.
-
-- $y_j$: variável binária que é 1 se a agência $j$ é selecionada para realizar a coleta, e 0 caso contrário.
-
-
-
-
-$$
-\begin{equation*}
-\begin{array}{ll@{}ll}
-\text{minimizar}  & \displaystyle\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m}\operatorname{custo\_deslocamento}_{i,j} \cdot x_{i, j} +  \sum\limits_{j=1}^{m}\operatorname{custo\_fixo}_{j} \cdot y_{j}& &\\
-\text{satisfazendo} & \displaystyle\sum\limits_{j=1}^{m}   x_{i, j} = 1  & i=1 ,\ldots, n&\\
-                  & \displaystyle x_{i, j} \leq y_j,  & i=1 ,\ldots, n & j=1 ,\ldots, m&\\
-                 &                                                x_{i,j} \in \{0,1\} &i=1 ,\ldots, n, & j=1 ,\ldots, m \\
-                 &                                                y_{j} \in \{0,1\} &j=1 ,\ldots, m& \\
-                 &                                                \operatorname{(opcional)} \sum\limits_{i=1}^{n}{x}_{i,j} >= ( \operatorname{min\_upas} \cdot y_{j})  & j=1 ,\ldots, m&
-                 \\
-                 &                                                \operatorname{(opcional)} \sum\limits_{i=1}^{n}{x}_{i,j} <=  \operatorname{max\_upas}_{j}  & j=1 ,\ldots, m&
-\end{array}
-\end{equation*}
-$$
