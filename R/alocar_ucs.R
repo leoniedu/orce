@@ -50,19 +50,18 @@ alocar_ucs <- function(ucs,
                        custo_hora_viagem = 10,
                        kml = 10,
                        valor_diaria = 335,
-                       custo_fixo = 500,
-                       dias_treinamento = 5.5,
+                       custo_fixo = 0,
+                       dias_treinamento = 0,
                        dist_diaria_km = 100,
                        agencias_treinadas = NULL,
                        agencias_treinamento = NULL,
                        distancias_ucs,
-                       distancias_agencias,
+                       distancias_agencias=NULL,
                        min_uc_agencia = 1,
                        max_uc_agencia = NULL,
                        semi_centralizada = NULL,
                        adicional_troca_jurisdicao = 0,
-                       resultado_completo = FALSE
-) {
+                       resultado_completo = FALSE) {
   # Import required libraries explicitly
   requireNamespace("dplyr")
   require("ompr")
@@ -76,12 +75,13 @@ alocar_ucs <- function(ucs,
   checkmate::assert_number(valor_diaria, lower = 0)
   checkmate::assert_number(custo_fixo, lower = 0)
   checkmate::assert_number(dias_treinamento, lower = 0)
+  checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
+  checkmate::assert_character(distancias_agencias, null.ok=dias_treinamento == 0)
   checkmate::assert_number(dist_diaria_km, lower = 0)
   checkmate::assert_integerish(min_uc_agencia, lower = 1)
   checkmate::assert_number(max_uc_agencia, lower = 1, null.ok = TRUE)
   checkmate::assert_character(semi_centralizada, null.ok = TRUE)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
-  checkmate::assert_character(agencias_treinamento)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc')%in%names(distancias_ucs)))
   checkmate::assertTRUE(all(c('dias_coleta', 'viagens')%in%names(ucs)))
   # Setting max_uc_agencia to infinity if not provided
@@ -100,23 +100,29 @@ alocar_ucs <- function(ucs,
   agencias_sel <- tibble::tibble(agencia_codigo=unique(agencias$agencia_codigo))|>
     dplyr::mutate(j=1:n())
 
-  # Seleciona agência de treinamento mais próxima das agências de coleta
-  agencias_t <- agencias_jurisdicao |>
+    # Seleciona agência de treinamento mais próxima das agências de coleta
+  agencias_t <- agencias |>
     sf::st_drop_geometry()|>
-    dplyr::ungroup() |>
-    dplyr::left_join(distancias_agencias |>
-                       dplyr::select(agencia_codigo_orig, agencia_codigo_dest, distancia_km, duracao_horas)|>
-                       dplyr::filter(agencia_codigo_dest %in% agencias_treinamento) |>
-                       dplyr::rename(agencia_codigo_treinamento=agencia_codigo_dest),
-                     by = c("agencia_codigo" = "agencia_codigo_orig")) |>
-    dplyr::group_by(agencia_codigo) |>
-    dplyr::arrange(distancia_km) |>
-    dplyr::slice(1) |>
-    dplyr::rename(
-      distancia_km_agencia_treinamento = distancia_km,
-      duracao_horas_agencia_treinamento_km = duracao_horas
-    ) |>
     dplyr::ungroup()
+  if (dias_treinamento>0) {
+    agencias_t <- agencias_t|>
+      dplyr::left_join(distancias_agencias |>
+                         dplyr::select(agencia_codigo_orig, agencia_codigo_dest, distancia_km, duracao_horas)|>
+                         dplyr::filter(agencia_codigo_dest %in% agencias_treinamento) |>
+                         dplyr::rename(agencia_codigo_treinamento=agencia_codigo_dest),
+                       by = c("agencia_codigo" = "agencia_codigo_orig")) |>
+      dplyr::group_by(agencia_codigo) |>
+      dplyr::arrange(distancia_km) |>
+      dplyr::slice(1) |>
+      dplyr::rename(
+        distancia_km_agencia_treinamento = distancia_km,
+        duracao_horas_agencia_treinamento_km = duracao_horas
+      ) |>
+      dplyr::ungroup()
+  } else {
+    agencias_t <- agencias_t |>
+      dplyr::mutate(distancia_km_agencia_treinamento=NA_real_, duracao_horas_agencia_treinamento_km=NA_real_)
+  }
 
 
   # No minimum UCs required for trained agencies
