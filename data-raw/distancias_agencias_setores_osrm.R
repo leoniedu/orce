@@ -5,7 +5,7 @@ source(here::here("R/calcula_distancias.R"))
 #source(here::here("R/add_coordinates.R"))
 load(here::here("data/agencias_bdo.rda"))
 load(here::here("data/pontos_setores.rda"))
-load(here::here("data/pontos_municipios_sede.rda"))
+load(here::here("data/municipios_22.rda"))
 amostra_mestra <- readRDS("~/gitlab/pof2024ba/data-raw/amostra_mestra.rds")
 amostra_pof <- readxl::read_excel("~/gitlab/pof2024ba/data-raw/Alocação_trimestre_POF2425_1907.xls")%>%
   rename_ibge()
@@ -23,7 +23,7 @@ agencias_uf <- agencias_bdo%>%
 
 distancias_amostra_toget_1 <- pontos_setores%>%
   inner_join(amostra_uf, by=c("setor"))
-distancias_amostra_toget_2 <- pontos_municipios_sede%>%
+distancias_amostra_toget_2 <- municipios_22%>%
   inner_join(amostra_uf%>%
                anti_join(distancias_amostra_toget_1,by=c("setor"))%>%
                mutate(municipio_codigo=substr(upa,1,7)))
@@ -32,7 +32,7 @@ distancias_amostra_toget <- rbind(
   distancias_amostra_toget_1%>%
     transmute(setor,ponto_origem="pontos_setores", setor_lat=setor_cnefe_lat, setor_lon=setor_cnefe_lon),
   distancias_amostra_toget_2%>%
-    transmute(setor,ponto_origem="pontos_municipios_sede", setor_lat=municipio_sede_lat,setor_lon=municipio_sede_lon)
+    transmute(setor,ponto_origem="municipios_22", setor_lat=municipio_sede_lat,setor_lon=municipio_sede_lon)
 )
 
 distancias_amostra_1 <- calcula_distancias(distancias_amostra_toget, agencias_uf, nmax = 5000)

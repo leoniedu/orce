@@ -3,7 +3,7 @@ library(dplyr)
 
 load(here::here("data/agencias_bdo.rda"))
 load(here::here("data/agencias_mun.rda"))
-load(here::here("data/pontos_municipios_sede.rda"))
+load(here::here("data/municipios_22.rda"))
 load(here::here("data/municipios_codigos.rda"))
 
 source(here::here("R/calcula_distancias.R"))
@@ -20,7 +20,7 @@ distancias_list <- vector(mode="list", length = length(ufs))
 names(distancias_list) <- ufs
 for (j in ufs) {
   print(j)
-  distancias_list[[as.character(j)]] <- calcula_distancias(origens = agencias_bdo%>%filter(uf_codigo==j), destinos=pontos_municipios_sede%>%filter(substr(municipio_codigo,1,2)==j))
+  distancias_list[[as.character(j)]] <- calcula_distancias(origens = agencias_bdo%>%filter(uf_codigo==j), destinos=municipios_22%>%filter(substr(municipio_codigo,1,2)==j))
 }
 patch <- FALSE
 if (patch) {
@@ -65,9 +65,8 @@ agencias_municipios_diaria <- distancias_agencias_municipios_diaria_0%>%
   select(agencia_codigo,municipio_codigo, diaria_municipio)
 
 
-load(here::here("data/pontos_municipios_sede.rda"))
 load(here::here("data/pontos_municipios.rda"))
-a_m <- pontos_municipios_sede%>%arrange(municipio_codigo)
+a_m <- municipios_22%>%arrange(municipio_codigo)
 b_m <- pontos_municipios%>%arrange(municipio_codigo)
 stopifnot(all(a_m$municipio_codigo==b_m$municipio_codigo))
 checa_ll_municipio <- sf::st_distance(a_m,b_m, by_element = TRUE)
