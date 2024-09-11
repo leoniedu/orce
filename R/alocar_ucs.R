@@ -76,7 +76,7 @@ alocar_ucs <- function(ucs,
   checkmate::assert_number(custo_fixo, lower = 0)
   checkmate::assert_number(dias_treinamento, lower = 0)
   checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
-  checkmate::assert_character(distancias_agencias, null.ok=dias_treinamento == 0)
+  checkmate::assert_data_frame(distancias_agencias, null.ok=dias_treinamento == 0)
   checkmate::assert_number(dist_diaria_km, lower = 0)
   checkmate::assert_integerish(min_uc_agencia, lower = 1)
   checkmate::assert_number(max_uc_agencia, lower = 1, null.ok = TRUE)
@@ -142,6 +142,7 @@ alocar_ucs <- function(ucs,
     ) + {{valor_diaria}}*{{dias_treinamento}}*treinamento_com_diaria
     custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
   }
+
   agencias_t$fixed_cost <- custo_fixo + custo_treinamento
 
 
@@ -150,7 +151,7 @@ alocar_ucs <- function(ucs,
     dplyr::inner_join(agencias_t, by="agencia_codigo")|>
     dplyr::mutate(max_uc_agencia=rep(max_uc_agencia, dplyr::n()))
   if (length(semi_centralizada) > 0) {
-    agencias_sel <- agencias_sel|>dplyr::mutate(z=if_else(agencia_codigo%in% semi_centralizada, Inf, z))
+    agencias_sel <- agencias_sel|>dplyr::mutate(max_uc_agencia=if_else(agencia_codigo%in% semi_centralizada, Inf, max_uc_agencia))
   }
 
   # Combining UC and agency information
@@ -244,7 +245,7 @@ alocar_ucs <- function(ucs,
   if(is.finite({{max_uc_agencia}})) {
     model <- model|>
       # constraint com número máximo de UCs por agência
-      add_constraint(sum_over(x[i, j], i = 1:n) <= z[j], j = 1:m)
+      add_constraint(sum_over(x[i, j], i = 1:n) <= agencias_sel$max_uc_agencia[j], j = 1:m)
   }
 
   # Solve the model using GLPK solver
@@ -256,6 +257,7 @@ alocar_ucs <- function(ucs,
     ompr::get_solution(x[i, j]) |>
     dplyr::filter(value > .9) |>
     dplyr::select(i, j)
+
   resultado_ucs_otimo <- matching|>
     dplyr::left_join(dist_uc_agencias|>select(-agencia_codigo_jurisdicao), by=c('i', 'j'))|>
     dplyr::select(-i, -j)
@@ -265,14 +267,14 @@ alocar_ucs <- function(ucs,
 
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo'))|>
-    dplyr::group_by(agencia_codigo)|>
+    dplyr::group_by(pick(any_of(c('agencia_codigo', 'fixed_cost', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km'))))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
     dplyr::ungroup()|>
     dplyr::select(-j)
 
   resultado_agencias_jurisdicao <- agencias_t|>
     dplyr::inner_join(resultado_ucs_jurisdicao, by = c('agencia_codigo'))|>
-    dplyr::group_by(agencia_codigo)|>
+    dplyr::group_by(pick(any_of(c('agencia_codigo', 'fixed_cost', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km'))))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
     dplyr::ungroup()
 
