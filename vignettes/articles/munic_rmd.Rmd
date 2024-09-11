@@ -1,5 +1,5 @@
 ---
-title: "Otimizando a Coleta de Dados do IBGE: O Pacote R 'orce'"
+title: "Otimizando a Coleta de Dados do IBGE com o Pacote R 'orce'"
 author: "Eduardo Leoni - SES/BA - IBGE"
 format: 
   html: default
@@ -16,6 +16,7 @@ params:
   custo_hora_viagem: 10
   custo_fixo: 0
   valor_diaria: 335
+  adicional_troca_jurisdicao: 100
 ---
 
 
@@ -29,14 +30,14 @@ library(ggplot2)
 library(gt)
 library(orce)
 library(dplyr)
-fmt_nums <- function(x) {
+fmt_nums <- function(x, decimal_pct=1, decimal_currency=0, decimal_num=2) {
   x%>%
-    gt::fmt_number(decimals=2, dec_mark = ",", sep_mark = ".", drop_trailing_zeros = TRUE)%>%
-    gt::fmt_currency(currency="BRL", decimals = 0, columns = starts_with("custo_"), dec_mark = ",")%>%
-    gt::fmt_percent(decimals = 1, columns = ends_with("_pct"),dec_mark = ",", )
+    gt::fmt_number(decimals=decimal_num, dec_mark = ",", sep_mark = ".", drop_trailing_zeros = TRUE)%>%
+    gt::fmt_currency(currency="BRL", decimals = decimal_currency, columns = starts_with("custo_"), dec_mark = ",", sep_mark=".")%>%
+    gt::fmt_percent(decimals = decimal_pct, columns = ends_with("_pct"),dec_mark = ",", sep_mark="." )
 }
-print_gt <- function(x) {
-  x <- x%>%fmt_nums()
+print_gt <- function(x, ...) {
+  x <- x%>%fmt_nums(...)
   output_type <- knitr::opts_knit$get("rmarkdown.pandoc.to")
   if (interactive()|(length(output_type)==0)) return(x)
   if (output_type=="markdown") {
@@ -47,38 +48,51 @@ print_gt <- function(x) {
     style_nodes <- xml2::xml_find_all(xml_doc, "//style")
     xml2::xml_remove(style_nodes)
     # Convert the modified XML back to HTML and print
-    htmltools::HTML(as.character(xml_doc))
+    return(htmltools::HTML(as.character(xml_doc)))
   }
+  return(x)
 }
-gt1 <- function(...) gt::gt(...)|>print_gt()
+gt1 <- function(..., decimal_pct=1, decimal_currency=0, decimal_num=2) gt::gt(...)|>print_gt(decimal_pct=decimal_pct, decimal_currency=decimal_currency, decimal_num=decimal_num)
+
+
+report_plans <- function(r) {
+  r1 <- r$resultado_agencias_otimo%>%left_join(agencias_bdo)%>%select(agencia_nome, n_upas=n_ucs, total_diarias, custo_diarias, custo_combustivel, distancia_total_km)
+  r2 <- r$resultado_agencias_jurisdicao%>%left_join(agencias_bdo)%>%select(agencia_nome, n_upas=n_ucs, total_diarias, custo_diarias, custo_combustivel, distancia_total_km)
+  
+  rr <- r1%>%full_join(r2, by="agencia_nome", suffix=c("_otimo","_jurisdicao"))%>%
+    select(agencia_nome, sort(names(.)))
+  
+  gt::gt(rr%>%sf::st_drop_geometry() )%>%gt::grand_summary_rows(fns=list(fn='sum', label="Total Superintendência"), columns = where(is.numeric),fmt = ~fmt_nums(.x, decimal_num = 0, decimal_currency = 0))%>%print_gt(decimal_num = 0, decimal_currency = 0)
+}
 ```
 
 # Introdução
 
-O pacote `orce` é uma ferramenta projetada para otimizar a alocação de Unidades de Coleta (UC), como setores censitários ou estabelecimentos de saúde, às agências do IBGE. Este processo de alocação é crucial para garantir a eficiência e a economicidade na coleta de dados em pesquisas e censos de grande escala. O pacote aborda os desafios inerentes a este processo, desde o roteamento e geocodificação até a otimização da alocação e cálculo de custos, oferecendo flexibilidade para atender às necessidades específicas de diferentes projetos.
+O pacote orce é uma ferramenta poderosa projetada para otimizar a alocação de Unidades de Coleta (UCs), como setores censitários ou estabelecimentos de saúde, às agências do IBGE. Essa alocação eficiente é fundamental para garantir a coleta de dados de forma econômica e eficaz em pesquisas e censos de grande escala, como o Censo Demográfico.
+
+Imagine o desafio de coletar dados em milhares de domicílios espalhados por um vasto território. O orce entra em ação para ajudar a definir a melhor estratégia, garantindo que cada equipe do IBGE visite os locais certos, minimizando o tempo de deslocamento e os custos envolvidos.
 
 ## Principais Características
 
-1.  **Roteamento e Geocodificação Precisos:**
+1.  **Roteamento e Geocodificação:**
 
     *   Utiliza o banco de dados do CNEFE para obter coordenadas geográficas precisas para cada UC, garantindo a acurácia no cálculo de distâncias e rotas.
     *   A função `ponto_setor_densidade` auxilia na identificação de locais representativos dentro dos setores censitários, priorizando áreas de alta densidade populacional para facilitar o acesso e garantir que o algorítimo de roteamento tenha destinos/origens válidos.
 
 2.  **Otimização Avançada da Alocação:**
 
-    *   Implementa um algoritmo de otimização baseado em programação linear inteira mista para minimizar o custo total da coleta de dados.
-    *   Considera fatores como distâncias de viagem, tempo de viagem, custos fixos das agências e a necessidade de pagamento de diárias.
-    *   A função `alocar_upas` permite a configuração de restrições flexíveis na capacidade da agência e nas preferências de localização, adaptando-se às necessidades específicas de cada projeto.
+    *   O orce implementa um algoritmo inteligente que encontra a melhor forma de distribuir as UCs entre as agências do IBGE, levando em conta diversos fatores, como a distância entre os locais, o tempo de viagem, os custos fixos de cada agência e a necessidade de pagar diárias aos pesquisadores.
+    *  A função principal, alocar_upas permite que você personalize as restrições, como a capacidade de cada agência e as preferências de localização, para que a alocação se adapte às necessidades específicas do seu projeto.
 
 3.  **Cálculo de Custos Detalhados:**
 
-    *   Incorpora o conhecimento das fronteiras administrativas para determinar a necessidade de pagamento de diárias, garantindo a precisão no cálculo dos custos totais.
-    *   Considera outros custos relevantes, como combustível e tempo de viagem, para fornecer uma estimativa completa dos gastos envolvidos na coleta de dados.
+    *   O pacote considera as fronteiras administrativas para determinar quando é necessário pagar diárias aos pesquisadores, garantindo que os custos totais sejam calculados com precisão.
+    *   Outros custos importantes, como combustível e tempo de viagem, também são levados em conta para fornecer uma estimativa completa dos gastos da coleta de dados.
 
 4.  **Flexibilidade e Adaptabilidade:**
 
-    *   Permite a personalização de diversos parâmetros, como custos de combustível, custos de viagem por hora, eficiência de combustível do veículo e restrições específicas da agência.
-    *   Adapta-se a diferentes tipos de pesquisas e esforços de coleta de dados, oferecendo uma solução versátil para otimizar a alocação de  UCs em diversas situações.
+    *   O orce permite que você personalize vários parâmetros, como o custo do combustível, o custo por hora de viagem, o consumo de combustível por quilômetro e as restrições específicas de cada agência.
+    *   Essa flexibilidade garante que o pacote possa ser adaptado a diferentes tipos de pesquisas e necessidades de coleta de dados, tornando-o uma ferramenta versátil para o IBGE.
 
 ## Impacto e Aplicações
 
@@ -105,11 +119,11 @@ Para enfrentar esse desafio, o pacote `orce` utiliza algoritmos avançados de ot
 ```{r, include = FALSE}
 params_se <- params
 params_se$uf_sigla <- "ES"
-params_se$adicional_troca_jurisdicao <- 100
 #params_se$ignora_diaria_municipio <- FALSE
 ufnow <- ufs%>%filter(uf_sigla==params_se$uf_sigla)
 agencias_now <- mutate(agencias_bdo%>%filter(uf_codigo==ufnow$uf_codigo), 
                        agencia_nome=to_title_case(agencia_nome, locale="pt"))
+ufs <- ufs%>%mutate(uf_nome=to_title_case(uf_nome, locale = "pt"))
 
 mnow <- municipios_22%>%
   filter(uf_sigla==params_se$uf_sigla)%>%
@@ -288,7 +302,7 @@ toexport_l <- lapply(toexport%>%split(.$assistencia_nome), function(x) janitor::
 ```{r}
 mnow%>%
   left_join(res$resultado_ucs_jurisdicao, by=c("municipio_codigo"="uc", "agencia_codigo"))%>%
-  select(municipio_nome, agencia_nome, custo_diarias, custo_combustivel)%>%
+  transmute(municipio_nome, agencia_nome=to_title_case(agencia_nome, locale="pt"), custo_diarias, custo_combustivel)%>%
   sf::st_drop_geometry()%>%
   arrange(desc(custo_diarias+custo_combustivel))%>%
   head(10)%>%
@@ -312,7 +326,6 @@ res$ucs_agencias_todas%>%
   transmute(agencia_nome=glue::glue("{agencia_nome} {if_else(jurisdicao, '(Jurisdição)', '')}"), distancia_km, custo_diarias, custo_combustivel)%>%
   arrange(custo_diarias+custo_combustivel)%>%
   gt::gt()|>
-  gt::fmt_currency(currency = "BRL", decimals = 0, columns = starts_with("custo"))|>
   print_gt()
 ```
 
@@ -335,8 +348,6 @@ res$ucs_agencias_todas%>%
   transmute(municipio_nome, agencia_nome, distancia_km, custo_diarias, custo_combustivel)%>%
   arrange(custo_diarias+custo_combustivel)%>%
   gt::gt()|>
-  gt::fmt_number(decimals=0)|>
-  gt::fmt_currency(currency = "BRL", decimals = 0, columns=starts_with("custo"))|>
   print_gt()
 
 ```
@@ -360,13 +371,11 @@ mudancas <- resultado_ucs%>%
   ungroup()
 
 if (nrow(mudancas)>0) {
-  
   gt(
     mudancas%>%
       select(agencia_nome, municipio_nome, distancia_km, custo_deslocamento, plano)%>%
       tidyr::pivot_wider(names_from = c("plano"), id_cols = c("municipio_nome"), values_from=c("agencia_nome", "distancia_km", "custo_deslocamento"))#%>%arrange(agencia_nome_otimo)
   )%>%
-    fmt_number(decimals=0)%>%
     gt::cols_label_with(fn="nome_sigba_i")|>
     print_gt()
 }
@@ -406,12 +415,16 @@ resultado_ucs%>%
   mutate(reducao=jurisdicao-otimo,
          reducao_pct=1-otimo/jurisdicao) -> resumo_planos
 
+```
+
+```{r}
 resumo_planos%>%
   gt::gt()%>%
-  gt::fmt_number(decimals=0)%>%
-  gt::fmt_percent(decimals=1, columns = reducao_pct)%>%
   print_gt()
+```
 
+
+```{r}
 economia_diarias <- resumo_planos%>%filter(name=="custo_diarias")%>%pull(reducao_pct)
 economia_combustivel <- resumo_planos%>%filter(name=="custo_combustivel")%>%pull(reducao_pct)
 if (economia_combustivel > 0) {
@@ -446,7 +459,214 @@ economia_combustivel_str <-   glue::glue("{round(economia_combustivel*100,1)}% a
 
 ```
 
+```{r}
+ufs_sem_missing_dist <- distancias_agencias_municipios_osrm%>%
+  group_by(uf_codigo=substr(agencia_codigo,1,2))%>%
+  filter(all(!is.na(distancia_km)))%>%
+  distinct(uf_codigo)%>%
+  pull(uf_codigo)%>%sort()
+ufs_sem_missing_dist <- ufs_sem_missing_dist[ufs_sem_missing_dist!=53]
+```
 
+
+### Resultados para outras Superintendências Estaduais^[Foram excluídas Superintendências Estaduais onde não há rotas rodoviárias para todos os municípios: `r paste(setdiff(ufs$uf_codigo, ufs_sem_missing_dist), collapse=", ")`]
+
+
+
+```{r}
+filter_uf <- function(x) {
+  x%>%
+    filter(substr(agencia_codigo,1,2)==ufnow$uf_codigo, 
+           !agencia_codigo%in%c("130420300","130140700"),
+           !municipio_codigo%in%c("1300300", "1301001", "1301407", "1301951", "1303106", "1304203"))
+}
+
+
+res_ufs <- vector(mode = "list", length = length(ufs_sem_missing_dist))
+names(res_ufs) <- as.character(ufs_sem_missing_dist)
+for (uf_codigo_now in ufs_sem_missing_dist) {
+  params_uf <- params
+  ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
+  distancias_ucs <- distancias_agencias_municipios_osrm%>%
+    left_join(agencias_municipios_diaria_now,
+              by = join_by(agencia_codigo, municipio_codigo))%>%
+    mutate(uc=municipio_codigo)%>%
+    filter_uf()
+  stopifnot(nrow(distancias_ucs%>%filter(is.na(distancia_km)))==0)
+  
+  ucs_now <- distancias_ucs%>%
+    distinct(municipio_codigo)%>%
+    left_join(agencias_bdo_mun%>%select(agencia_codigo, municipio_codigo))%>%
+    mutate(uc=municipio_codigo)%>%
+    ## com agências intramunicipais tem mais de uma agência associada a município
+    ## vamos deixar só a primeira (em ordem numérica)
+    group_by(municipio_codigo)%>%
+    arrange(agencia_codigo)%>%
+    slice(1)%>%
+    mutate(viagens=params_se$viagens, dias_coleta=params_se$dias_coleta)%>%
+    filter_uf()
+  
+  cnames <- names(params_uf)%>%intersect(args(alocar_ucs)%>%as.list%>%names())
+  args_alocar_ucs <- params_uf[cnames]
+  args_alocar_ucs$agencias <- NULL
+  args_alocar_ucs$distancias_ucs <- distancias_ucs
+  args_alocar_ucs$ucs <- ucs_now
+  args_alocar_ucs$resultado_completo <- TRUE
+  res <- do.call(what = alocar_ucs, 
+                 args=args_alocar_ucs)
+  
+  resultado_ucs <- bind_rows(
+    res$resultado_ucs_otimo%>%mutate(plano= "otimo"),
+    res$resultado_ucs_jurisdicao%>%mutate(plano= "jurisdicao"))%>%
+    group_by(uc)%>%
+    mutate(mudanca=length(unique(agencia_codigo))>1)
+  
+  
+  resultado_ucs%>%
+    transmute(agencia_codigo, custo_diarias, custo_combustivel, custo_horas_viagem, total=custo_deslocamento, plano)%>%
+    group_by(plano)%>%
+    summarise(across(where(is.numeric), sum), n_agencias=n_distinct(agencia_codigo))%>%
+    tidyr::pivot_longer(cols=-plano)%>%
+    tidyr::pivot_wider(names_from=plano)%>%
+    mutate(reducao=jurisdicao-otimo,
+           reducao_pct=1-otimo/jurisdicao,uf_codigo=uf_codigo_now) -> resumo_planos
+  res_ufs[[as.character(uf_codigo_now)]] <- resumo_planos
+}
+
+res_ufs_df <- bind_rows(res_ufs)%>%filter(name=="total")%>%left_join(ufs)
+
+res_ufs_df%>%
+  ungroup%>%
+  select(regiao_nome, uf_nome, jurisdicao, otimo, reducao, reducao_pct)%>%
+  arrange(regiao_nome, desc(reducao))%>%
+  group_by(regiao_nome)%>%
+  gt()%>%
+  gt::summary_rows(fns=list(fn="sum", label="Total da Região"), columns = c("jurisdicao", "otimo", "reducao"), fmt = ~fmt_nums(.x, decimal_num = 0))%>%
+  gt::grand_summary_rows(fns=list(fn='sum', label="Total Brasil"), columns = c("jurisdicao", "otimo", "reducao"),fmt = ~fmt_nums(.x, decimal_num = 0))%>%
+  gt::cols_label(uf_nome="", jurisdicao="Jurisdição (R$)", otimo="Ótimo (R$)", reducao="Redução (R$)", reducao_pct="Redução (%)")%>%
+  print_gt(decimal_num=0)
+
+```
+
+
+```{r}
+# ggplot(data = res_ufs_df%>%mutate(uf_nome=forcats::fct_reorder(uf_nome, reducao)), aes(x=reducao, y=uf_nome)) +
+#   geom_point() +
+#   scale_x_continuous(labels=scales::label_currency(prefix = "R$ ", decimal.mark = ",", big.mark = ".")) +
+#   labs(subtitle="Redução total nos custos de descolamento do plano ótimo\nem comparação com a manutenção das agência de jurisdição", x="", y="")
+
+```
+
+
+## Caso 2. Calculando os custos da coleta da POF para a SES/Bahia
+
+
+```{r}
+library(dplyr)
+library(orce)
+uf_codigo_now <- 29
+ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
+## amostra_pof
+load(file.path(pof2024ba:::package$cache_dir, "amostra_preliminar.rda"))
+
+amostra_uf <- amostra_preliminar%>%
+  filter(substr(upa,1,2)==ufnow$uf_codigo)%>%
+  filter(!grepl("^2927408" ,agencia_codigo))%>%
+  distinct(upa, .keep_all = TRUE)%>%
+  rename(uc=upa)%>%
+  mutate(
+    dias_coleta = 10,
+    viagens = 2)#%>%ungroup()%>%slice_sample(n=100)
+
+## distancias upas
+distancias_upas <- readRDS("~/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
+  rename(uc=setor)%>%
+  mutate(municipio_codigo=substr(uc,1,7))%>%
+  left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
+  semi_join(amostra_uf, by="uc")
+
+params_pof <- list(ucs=amostra_uf,
+           dist_diaria_km = 60,
+           custo_litro_combustivel = 6,
+           custo_hora_viagem = 10,
+           kml = 10,
+           valor_diaria = 335,
+           custo_fixo = 18000,
+           dias_treinamento = 11,
+           semi_centralizada = NULL,
+           agencias_treinadas = NULL,
+           agencias_treinamento  = c('292740800'),
+           distancias_ucs=distancias_upas,
+           distancias_agencias=distancias_agencias_osrm,
+           adicional_troca_jurisdicao  = 0,
+           ## experimental: fica bem mais lento
+           min_uc_agencia = 1,
+           max_uc_agencia = NULL)
+r <- do.call(what = alocar_ucs, args = params_pof)
+
+report_plans(r)
+
+
+
+```
+
+#### Reorganizando a jurisdição das agências
+
+```{r}
+params_pof_sem_j <- params_pof
+params_pof_sem_j$distancias_ucs <- params_pof$distancias_ucs%>%mutate(diaria_municipio=FALSE)
+
+r_sem_jurisdicao <- do.call(what = alocar_ucs, args = params_pof_sem_j)
+
+report_plans(r_sem_jurisdicao)
+
+
+```
+
+#### Aumentando a distância sem diária
+
+```{r}
+
+params_pof_dist_80 <- params_pof
+params_pof_dist_80$dist_diaria_km <- 80
+
+r_dist_80 <- do.call(what = alocar_ucs, args = params_pof_dist_80)
+
+report_plans(r_dist_80)
+
+
+```
+
+
+
+#### Máximo de 24 UPAs por agência (~2 UPAs por mês)
+
+
+```{r}
+r24 <- alocar_ucs(ucs=amostra_uf,
+           dist_diaria_km = 60,
+           custo_litro_combustivel = 6,
+           custo_hora_viagem = 10,
+           kml = 10,
+           valor_diaria = 335,
+           custo_fixo = 18000,
+           dias_treinamento = 11,
+           semi_centralizada = NULL,
+           agencias_treinadas = NULL,
+           agencias_treinamento  = c('292740800'),
+           distancias_ucs=distancias_upas,
+           distancias_agencias=distancias_agencias_osrm,
+           adicional_troca_jurisdicao  = 0,
+           ## experimental: fica bem mais lento
+           min_uc_agencia = 1,
+           max_uc_agencia = 24
+)
+
+
+report_plans(r24)
+
+
+```
 
 ***
 
@@ -454,11 +674,15 @@ economia_combustivel_str <-   glue::glue("{round(economia_combustivel*100,1)}% a
 
 ## Apêndice: Detalhes técnicos do problema de otimização
 
-Estamos diante de um problema de alocação ótima, onde precisamos atribuir Unidades de Coleta (UCs) a agências de forma a minimizar os custos totais, incluindo custos de viagem e custos fixos associados a cada agência. Este modelo de otimização é baseado no "Problema de Localização de Armazéns" de Dirk Schumacher. É um problema comum em logística que busca determinar a melhor localização para instalações, com o objetivo de minimizar custos.
+Este apêndice detalha o problema de otimização que o pacote orce resolve, que é a alocação ideal de Unidades de Coleta (UCs) às agências, com o objetivo de minimizar os custos totais, incluindo custos de deslocamento e custos fixos de cada agência. O modelo de otimização é baseado no problema clássico de localização de armazéns.
 
-Dadas as localizações das  UCs e as agências potenciais, a tarefa é decidir quais agências incluir/treinar/contratar e quais  UCs serão alocadas a quais agências.
+### O Desafio
 
-Em outras palavras, temos que decidir simultaneamente: (1) quais agências ativar e (2) a distribuição das  UCs por agência.
+Dadas as localizações das UCs e das agências, a tarefa é decidir quais agências serão utilizadas e como as UPAs serão distribuídas entre elas. Em outras palavras, precisamos decidir simultaneamente:
+
+- Quais agências treinar/contratar.
+- Como alocar as UC a cada agência.
+
 
 Começamos com um conjunto de  UCs $U = \{1 \ldots n\}$ e um conjunto de agências potenciais $A = \{1 \ldots m\}$ que poderiam ser ativadas. Também temos uma função de custo que fornece o custo de viagem de uma agência para uma UC. Além disso, há um custo fixo (incluindo custos de treinamento, entre outros) associado a cada agência, caso ela seja selecionada para a coleta de dados. Agências com um pequeno número de  UCs podem ser inviáveis. Agências no interior com um grande número de  UCs também podem ser inviáveis. A solução deve ter pelo menos *min_upas* e no máximo *max_upas* por agência ativada. Observe que, ao permitir a coleta "semi-centralizada", não há limite para o número de  UCs nas agências listadas.
 
