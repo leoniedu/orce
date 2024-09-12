@@ -41,11 +41,25 @@ eficiência e a economicidade das operações de coleta de dados do IBGE.
 
 # Introdução
 
+A otimização da coleta de dados é um desafio comum em instituições de
+pesquisa que lidam com grandes volumes de informações distribuídas
+geograficamente. No caso do IBGE, a necessidade de otimizar a alocação
+das Unidades de Coleta (UCs) se torna essencial, dada a complexidade
+logística e os elevados custos envolvidos no processo.
+
+As pesquisas MUNIC (Pesquisa de Informações Básicas Municipais) e POF
+(Pesquisa de Orçamentos Familiares) são dois exemplos que ilustram a
+importância dessa otimização. A MUNIC, que coleta dados sobre a gestão e
+estrutura dos municípios brasileiros, e a POF, que investiga os hábitos
+de consumo das famílias brasileiras, envolvem a coleta de dados em
+milhares de domicílios e municípios, gerando altos custos logísticos.
+
 O pacote orce é uma ferramenta projetada para otimizar a alocação de
-Unidades de Coleta (UCs), como setores censitários ou estabelecimentos
-de saúde, às agências do IBGE. A eficiência dessa alocação é fundamental
-para garantir a coleta de dados de forma econômica e eficaz em pesquisas
-e censos de grande escala, como o Censo Demográfico.
+Unidades de Coleta (UCs), como setores censitários, prefeituras de
+municípios ou estabelecimentos de ensino, às agências do IBGE. A
+eficiência dessa alocação é fundamental para garantir a coleta de dados
+de forma econômica e eficaz em pesquisas e censos de grande escala, como
+o Censo Demográfico.
 
 Coletar dados em milhares de domicílios espalhados por um vasto
 território é um grande desafio. O orce entra em ação para ajudar a
@@ -179,7 +193,7 @@ Os dados com as unidades de coleta tem a seguinte estrutura:
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="irghmyqtwa" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="xxirhvkiws" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   uc        agencia_codigo   dias_coleta   viagens
@@ -215,7 +229,7 @@ as unidades da federação.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="dqziykpmnr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="obrfxkbkvh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   agencia_codigo   municipio_codigo   diaria_municipio
@@ -243,7 +257,7 @@ informações sobre as diárias (`agencias_municipios_diaria`).
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="tjfpikmaqm" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="mshqjopwqm" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   agencia_codigo   uc        distancia_km   duracao_horas   diaria_municipio   diaria_pernoite
@@ -274,7 +288,7 @@ Estamos, agora, prontos para calcular os custos de coleta.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="gmxalxugei" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="gbqtsxaumg" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                               Municipios   Total Diarias   Custo Diarias   Distancia Total Km   Custo Combustivel
@@ -301,7 +315,7 @@ Estamos, agora, prontos para calcular os custos de coleta.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="gwyfcsgjyb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="ytbbzubdgi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   municipio_nome           agencia_nome              custo_diarias   custo_combustivel
@@ -334,7 +348,7 @@ responder essa pergunta.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="gwfsgzmaea" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="yizyhabfzs" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   agencia_nome              distancia_km   custo_diarias   custo_combustivel
@@ -366,7 +380,7 @@ diferente da de jurisdição? A resposta é sim!
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="oemdazqjoe" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="stjnhdxfsv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   municipio_nome          agencia_nome              distancia_km   custo_diarias   custo_combustivel
@@ -403,7 +417,7 @@ município.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="sdjhrtckqi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="doiysudtwq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Municipio            Agencia Otimo             Agencia Jurisdicao        Distancia Km Otimo   Distancia Km Jurisdicao   Custo Deslocamento Otimo   Custo Deslocamento Jurisdicao
@@ -440,7 +454,7 @@ município.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="zwnnmgflgt" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="bmkuojjalo" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   name                 jurisdicao   otimo       reducao   reducao_pct
@@ -464,7 +478,7 @@ em combustível.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="twwsbgdkyl" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="mlpdykujfn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                                           Jurisdição (R\$)   Ótimo (R\$)   Redução (R\$)   Redução (%)
@@ -536,7 +550,7 @@ coleta realizada pela supervisão estadual da Pesquisa.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="tfuaxaxndl" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="kstixuthnn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                            n_agencias_jurisdicao   n_ucs_jurisdicao   n_ucs_otimo   custo_total_jurisdicao   custo_total_otimo   custo_deslocamento_jurisdicao   custo_deslocamento_otimo   custo_fixo_jurisdicao   custo_fixo_otimo   total_diarias_jurisdicao   total_diarias_otimo
@@ -595,7 +609,7 @@ para reduzir custos.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="ljvzxlpmim" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="dvldrtbssv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                            n_agencias_jurisdicao   n_ucs_jurisdicao   n_ucs_otimo   custo_total_jurisdicao   custo_total_otimo   custo_deslocamento_jurisdicao   custo_deslocamento_otimo   custo_fixo_jurisdicao   custo_fixo_otimo   total_diarias_jurisdicao   total_diarias_otimo
@@ -650,7 +664,7 @@ responsabilidades das agências nas operações do IBGE, incluindo o Censo.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="backndryot" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="recyswckpp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                            n_agencias_jurisdicao   n_ucs_jurisdicao   n_ucs_otimo   custo_total_jurisdicao   custo_total_otimo   custo_deslocamento_jurisdicao   custo_deslocamento_otimo   custo_fixo_jurisdicao   custo_fixo_otimo   total_diarias_jurisdicao   total_diarias_otimo
@@ -695,7 +709,7 @@ do projeto.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="vklqkbchks" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="vsbuxcbhvk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                            n_agencias_jurisdicao   n_ucs_jurisdicao   n_ucs_otimo   custo_total_jurisdicao   custo_total_otimo   custo_deslocamento_jurisdicao   custo_deslocamento_otimo   custo_fixo_jurisdicao   custo_fixo_otimo   total_diarias_jurisdicao   total_diarias_otimo
@@ -758,7 +772,6 @@ Para modelar essa situação, usamos duas variáveis de decisão:
     for selecionada para realizar a coleta e 0 caso contrário.
 
 $$
-\begin{equation*}
 \begin{array}{ll@{}ll}
 \text{minimizar} & \displaystyle\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m} custo\_de\_viagem_{i,j} \cdot x_{i, j} + \sum\limits_{j=1}^{m} custo\_fixo_{j} \cdot y_{j}& &\\
 \text{sujeito a} & \displaystyle\sum\limits_{j=1}^{m} x_{i, j} = 1 & i=1 ,\ldots, n&\\
@@ -769,7 +782,6 @@ $$
 \\
 & \operatorname{(opcional)} \sum\limits_{i=1}^{n}{x}_{i,j} <= \operatorname{max\_upas}_{j} & j=1 ,\ldots, m&
 \end{array}
-\end{equation*}
 $$
 
 **Explicação:**
