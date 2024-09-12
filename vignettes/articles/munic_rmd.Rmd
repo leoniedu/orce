@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-options(OutDec = ",")
+options(OutDec = ",", scipen=100)
 library(ggplot2)
 library(gt)
 library(orce)
@@ -602,7 +602,7 @@ amostra_uf <- amostra_preliminar%>%
     viagens = 2)#%>%ungroup()%>%slice_sample(n=100)
 
 ## distancias upas
-distancias_upas <- readRDS("~/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
+distancias_upas <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
   rename(uc=setor)%>%
   mutate(municipio_codigo=substr(uc,1,7))%>%
   left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%

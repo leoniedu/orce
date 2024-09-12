@@ -18,7 +18,7 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/munic_rmd.html">Munic: Alocação dos municípios entre as Agências da SES-BA</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/munic_rmd.html">Otimizando a Coleta de Dados do IBGE com o Pacote R 'orce'</a></li>
     <li><a class="dropdown-item" href="../articles/Technical-details-of-the-optimization-procedure.html">Technical details of the optimization procedure</a></li>
   </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -49,13 +49,12 @@
 <span>  custo_hora_viagem <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  kml <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  valor_diaria <span class="op">=</span> <span class="fl">335</span>,</span>
-<span>  custo_fixo <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>  dias_treinamento <span class="op">=</span> <span class="fl">5.5</span>,</span>
-<span>  dist_diaria_km <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>  custo_fixo <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  dias_treinamento <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  agencias_treinadas <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  agencias_treinamento <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">distancias_ucs</span>,</span>
-<span>  <span class="va">distancias_agencias</span>,</span>
+<span>  distancias_agencias <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  min_uc_agencia <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  max_uc_agencia <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  semi_centralizada <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -103,10 +102,6 @@
 
 <dt id="arg-dias-treinamento">dias_treinamento<a class="anchor" aria-label="anchor" href="#arg-dias-treinamento"></a></dt>
 <dd><p>Número de dias/diárias para treinamento. Padrão: 5.5</p></dd>
-
-
-<dt id="arg-dist-diaria-km">dist_diaria_km<a class="anchor" aria-label="anchor" href="#arg-dist-diaria-km"></a></dt>
-<dd><p>Distância mínima (em km) para que seja paga uma diária, no caso de UC na jurisdição da agência. No caso da UC fora da jurisdição da agência, quando a distância for menor do que <code>dist_diaria_km</code>, se paga meia diária, calculada como 1/2 do valor das diárias inteiras. Padrão 100</p></dd>
 
 
 <dt id="arg-agencias-treinadas">agencias_treinadas<a class="anchor" aria-label="anchor" href="#arg-agencias-treinadas"></a></dt>

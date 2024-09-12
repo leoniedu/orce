@@ -11,9 +11,9 @@
 
 <meta name="author" content="Eduardo Leoni" />
 
-<meta name="date" content="2024-09-09" />
+<meta name="date" content="2024-09-12" />
 
-<title>orce</title>
+<title>README.knit</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,32 +350,29 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">orce</h1>
-<h4 class="author">Eduardo Leoni</h4>
-<h4 class="date">2024-09-09</h4>
 
 </div>
 
 
 <div id="orce-otimização-da-rede-de-coleta-estatística-optimizing-statistical-data-collection-networks" class="section level1">
-<h1>orce: <span style="color:red">O</span>timização da <span style="color:red">R</span>ede de <span style="color:red">C</span>oleta
-<span style="color:red">E</span>statística (Optimizing statistical data
+<h1><code>orce</code>: <span style="color:red">O</span>timização da
+<span style="color:red">R</span>ede de <span style="color:red">C</span>oleta <span style="color:red">E</span>statística (Optimizing statistical data
 collection networks)</h1>
 <div id="english" class="section level2">
 <h2>English</h2>
 <p>The <code>orce</code> package is an R package designed to optimize
-the allocation of primary sampling units (PSUs), such as census tracts
-or health facilities, to IBGE (Brazilian Institute of Geography and
-Statistics) agencies. This allocation process is crucial for efficient
-and cost-effective data collection in large-scale surveys and censuses.
-The package addresses several challenges inherent to this process,
-including:</p>
+the allocation of statistics collections units (UCs), such as census
+tracts or health facilities, to IBGE (Brazilian Institute of Geography
+and Statistics) agencies. This allocation process is crucial for
+efficient and cost-effective data collection in large-scale surveys and
+censuses. The package addresses several challenges inherent to this
+process, including:</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Routing and Geocoding</strong>: Determining the optimal
-routes between PSUs and agencies requires accurate location data. The
+routes between UCs and agencies requires accurate location data. The
 <code>orce</code> package leverages the CNEFE (National Register of
 Addresses for Statistical Purposes) database to obtain precise
-coordinates for each PSU, prioritizing high-density areas within census
+coordinates for each UC, prioritizing high-density areas within census
 tracts to ensure accessibility and representativeness. The
 <code>ponto_setor_densidade</code> function aids in identifying these
 representative locations.</p></li>
@@ -383,7 +380,7 @@ representative locations.</p></li>
 <code>orce</code> package is its allocation optimization algorithm. It
 employs mixed-integer linear programming to minimize the overall cost of
 data collection, considering factors like travel distances, travel time,
-and fixed agency costs. The <code>alocar_upas</code> function implements
+and fixed agency costs. The <code>alocar_ucs</code> function implements
 this optimization, allowing for flexible constraints on agency capacity
 and location preferences.</p></li>
 <li><p><strong>Cost Calculation</strong>: Accurately estimating the cost
@@ -401,7 +398,7 @@ costs, vehicle fuel efficiency, and agency-specific
 constraints.</p></li>
 </ol>
 <p>In summary, the <code>orce</code> package provides a powerful and
-versatile solution for optimizing the allocation of PSUs to IBGE
+versatile solution for optimizing the allocation of UCs to IBGE
 agencies. By addressing challenges related to routing, geocoding,
 allocation optimization, and cost calculation, it enables efficient and
 cost-effective data collection strategies. Its flexibility and
@@ -411,48 +408,50 @@ census operations in Brazil.</p>
 </div>
 <div id="português" class="section level2">
 <h2>Português</h2>
-<p>O pacote orce é um pacote R projetado para otimizar a alocação de
-unidades primárias de amostragem (UPAs), como setores censitários ou
-estabelecimentos de saúde, às agências do IBGE (Instituto Brasileiro de
-Geografia e Estatística). Esse processo de alocação é crucial para a
-coleta de dados eficiente e econômica em pesquisas e censos de grande
-escala. O pacote aborda vários desafios inerentes a esse processo,
-incluindo:</p>
-<p>Roteamento e Geocodificação: A determinação das rotas ideais entre as
-UPAs e as agências requer dados de localização precisos. O pacote orce
-utiliza o banco de dados do CNEFE (Cadastro Nacional de Endereços para
-Fins Estatísticos) para obter coordenadas precisas para cada UPA,
-priorizando áreas de alta densidade dentro dos setores censitários para
-garantir acessibilidade e representatividade. A função
-ponto_setor_densidade auxilia na identificação desses locais
-representativos.</p>
-<p>Otimização da Alocação: O núcleo do pacote orce é seu algoritmo de
-otimização de alocação. Ele emprega programação linear inteira mista
-para minimizar o custo total da coleta de dados, considerando fatores
-como distâncias de viagem, tempo de viagem e custos fixos das agências.
-A função alocar_upas implementa essa otimização, permitindo restrições
-flexíveis na capacidade da agência e nas preferências de
-localização.</p>
-<p>Cálculo de Custos: Estimar com precisão o custo da coleta de dados
-envolve mais do que apenas distâncias e tempo de viagem. O pacote orce
-incorpora o conhecimento das fronteiras administrativas para determinar
-se as “diárias” (ajudas de custo para viagens) são aplicáveis. Esse
-cálculo de custo diferenciado garante que os resultados da otimização
-reflitam as verdadeiras implicações financeiras de diferentes cenários
-de alocação.</p>
-<p>Flexibilidade e Adaptabilidade: O pacote orce oferece várias opções
-de personalização para acomodar as necessidades específicas de
-diferentes pesquisas e esforços de coleta de dados. Os usuários podem
-definir parâmetros como custos de combustível, custos de viagem por
-hora, eficiência de combustível do veículo e restrições específicas da
-agência.</p>
-<p>Em resumo, o pacote orce fornece uma solução poderosa e versátil para
-otimizar a alocação de UPAs às agências do IBGE. Ao abordar os desafios
-relacionados ao roteamento, geocodificação, otimização de alocação e
-cálculo de custos, ele permite estratégias de coleta de dados eficientes
-e econômicas. Sua flexibilidade e adaptabilidade o tornam uma ferramenta
-valiosa para uma ampla gama de operações de pesquisa e censo no
-Brasil.</p>
+<p>O pacote <code>orce</code> é um pacote R projetado para otimizar a
+alocação de unidades de coleta estatística (UCs), como setores
+censitários ou estabelecimentos de saúde, às agências do IBGE (Instituto
+Brasileiro de Geografia e Estatística). Esse processo de alocação é
+crucial para a coleta de dados eficiente e econômica em pesquisas e
+censos de grande escala. O pacote aborda vários desafios inerentes a
+esse processo, incluindo:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Roteamento e Geocodificação</strong>: A determinação das
+rotas ideais entre as UCs e as agências requer dados de localização
+precisos. O pacote <code>orce</code> utiliza o banco de dados do CNEFE
+(Cadastro Nacional de Endereços para Fins Estatísticos) para obter
+coordenadas precisas para cada UC, priorizando áreas de alta densidade
+dentro dos setores censitários para garantir acessibilidade e
+representatividade. A função ponto_setor_densidade auxilia na
+identificação desses locais representativos.</p></li>
+<li><p><strong>Otimização da Alocação</strong> O núcleo do pacote
+<code>orce</code> é seu algoritmo de otimização de alocação. Ele emprega
+programação linear inteira mista para minimizar o custo total da coleta
+de dados, considerando fatores como distâncias de viagem, tempo de
+viagem e custos fixos das agências. A função alocar_ucs implementa essa
+otimização, permitindo restrições flexíveis na capacidade da agência e
+nas preferências de localização.</p></li>
+<li><p><strong>Cálculo de Custos</strong> Estimar com precisão o custo
+da coleta de dados envolve mais do que apenas distâncias e tempo de
+viagem. O pacote <code>orce</code> incorpora o conhecimento das
+fronteiras administrativas para determinar se as “diárias” (ajudas de
+custo para viagens) são aplicáveis. Esse cálculo de custo diferenciado
+garante que os resultados da otimização reflitam as verdadeiras
+implicações financeiras de diferentes cenários de alocação.</p></li>
+<li><p><strong>Flexibilidade e Adaptabilidade</strong> O pacote
+<code>orce</code> oferece várias opções de personalização para acomodar
+as necessidades específicas de diferentes pesquisas e esforços de coleta
+de dados. Os usuários podem definir parâmetros como custos de
+combustível, custos de viagem por hora, eficiência de combustível do
+veículo e restrições específicas da agência.</p></li>
+</ol>
+<p>Em resumo, o pacote <code>orce</code> fornece uma solução poderosa e
+versátil para otimizar a alocação de UCs às agências do IBGE. Ao abordar
+os desafios relacionados ao roteamento, geocodificação, otimização de
+alocação e cálculo de custos, ele permite estratégias de coleta de dados
+eficientes e econômicas. Sua flexibilidade e adaptabilidade o tornam uma
+ferramenta valiosa para uma ampla gama de operações de pesquisa e censo
+no Brasil.</p>
 </div>
 </div>
 
