@@ -11,13 +11,12 @@ alocar_ucs(
   custo_hora_viagem = 10,
   kml = 10,
   valor_diaria = 335,
-  custo_fixo = 500,
-  dias_treinamento = 5.5,
-  dist_diaria_km = 100,
+  custo_fixo = 0,
+  dias_treinamento = 0,
   agencias_treinadas = NULL,
   agencias_treinamento = NULL,
   distancias_ucs,
-  distancias_agencias,
+  distancias_agencias = NULL,
   min_uc_agencia = 1,
   max_uc_agencia = NULL,
   semi_centralizada = NULL,
@@ -50,8 +49,6 @@ alocar_ucs(
 \item{custo_fixo}{Custo fixo mensal da agência, como salário do entrevistador, custo de monitoramento, etc. (em R$). Padrão: 500.}
 
 \item{dias_treinamento}{Número de dias/diárias para treinamento. Padrão: 5.5}
-
-\item{dist_diaria_km}{Distância mínima (em km) para que seja paga uma diária, no caso de UC na jurisdição da agência. No caso da UC fora da jurisdição da agência, quando a distância for menor do que \code{dist_diaria_km}, se paga meia diária, calculada como 1/2 do valor das diárias inteiras. Padrão 100}
 
 \item{agencias_treinadas}{(Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. O custo dos APMs contratados nessas agências ainda será incluído no plano de otimização. Padrão: NULL.}
 

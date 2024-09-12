@@ -23,7 +23,9 @@ distancias_ucs <- tibble::tibble(
   distancia_km = runif(nrow(ucs) * nrow(agencias), 0, 200),
   duracao_horas = runif(nrow(ucs) * nrow(agencias), 0, 5)
 )|>
-  dplyr::mutate(diaria_municipio=sample(c(TRUE,FALSE), replace = TRUE, size=dplyr::n()))
+  dplyr::mutate(diaria_municipio=sample(c(TRUE,FALSE), replace = TRUE, size=dplyr::n()),
+                diaria_pernoite=sample(c(TRUE,FALSE), replace = TRUE, size=dplyr::n())
+                )
 
 
 distancias_agencias <- tibble::tibble(
@@ -45,11 +47,79 @@ test_that("alocar_ucs returns expected structure", {
     valor_diaria = 335,
     custo_fixo = 500,
     dias_treinamento = 5.5,
-    dist_diaria_km = 100,
     min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 1000,
+    agencias_treinamento = "A",
+    resultado_completo=TRUE
+  )
+
+  result <- alocar_ucs(
+    ucs = ucs,
+    agencias = NULL,
+    custo_litro_combustivel =  6,
+    custo_hora_viagem = 10,
+    kml = 10,
+    valor_diaria = 335,
+    custo_fixo = 500,
+    dias_treinamento = 5.5,
+    min_uc_agencia = 1,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    adicional_troca_jurisdicao = 1000,
+    agencias_treinamento = "A",
+    resultado_completo=TRUE
+  )
+
+  result <- alocar_ucs(
+    ucs = ucs,
+    agencias = agencias,
+    custo_litro_combustivel =  6,
+    custo_hora_viagem = 10,
+    kml = 10,
+    valor_diaria = 335,
+    custo_fixo = 500,
+    dias_treinamento = 0,
+    min_uc_agencia = 1,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    adicional_troca_jurisdicao = 1000,
+    agencias_treinamento = "A",
+    resultado_completo=TRUE
+  )
+
+  result <- alocar_ucs(
+    ucs = ucs,
+    agencias = agencias,
+    custo_litro_combustivel =  6,
+    custo_hora_viagem = 10,
+    kml = 10,
+    valor_diaria = 335,
+    custo_fixo = 500,
+    dias_treinamento = 0,
+    min_uc_agencia = 1,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    adicional_troca_jurisdicao = 1000,
+    agencias_treinamento = "A",
+    resultado_completo=FALSE
+  )
+
+
+  result <- alocar_ucs(
+    ucs = ucs,
+    agencias = agencias,
+    custo_litro_combustivel =  6,
+    custo_hora_viagem = 10,
+    kml = 10,
+    valor_diaria = 335,
+    custo_fixo = 500,
+    dias_treinamento = 0,
+    min_uc_agencia = 1,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    adicional_troca_jurisdicao = 0,
     agencias_treinamento = "A",
     resultado_completo=TRUE
   )

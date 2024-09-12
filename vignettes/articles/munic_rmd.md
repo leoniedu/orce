@@ -1,4 +1,25 @@
 ---
+abstract: Apresentamos o pacote R `orce`, uma ferramenta criada para
+  otimizar a alocação de Unidades de Coleta em pesquisas do IBGE, com o
+  objetivo de minimizar os custos totais. Por meio de um modelo de
+  otimização baseado em programação linear inteira mista, o pacote
+  considera fatores como distâncias, tempo de viagem, custos fixos das
+  agências e necessidade de diárias para encontrar a distribuição ideal
+  das unidades de coleta. Estudos de caso realizados com a Pesquisa
+  Nacional de Saúde (PNS) no Espírito Santo e a Pesquisa de Orçamentos
+  Familiares (POF) na Bahia demonstram o potencial do orce para alcançar
+  reduções significativas nos custos de coleta, chegando a até 40%. Além
+  da economia financeira, o pacote promove um melhor balanceamento da
+  carga de trabalho entre as agências e oferece flexibilidade para se
+  adaptar às necessidades e restrições específicas de cada pesquisa. O
+  artigo explora estratégias adicionais de otimização, como a
+  reorganização da jurisdição das agências e o ajuste do tempo de viagem
+  considerado para o pagamento de diárias. A análise dos resultados
+  reforça a importância da redução dos custos fixos como fator crucial
+  para alcançar maior eficiência e economia na coleta de dados. O `orce`
+  demonstra potencial para melhorar a eficiência e reduzir custos na
+  coleta de dados do IBGE, viabilizando pesquisas de alta qualidade com
+  recursos otimizados."
 author:
 - Eduardo Leoni - SES/BA - IBGE
 authors:
@@ -16,28 +37,6 @@ params:
 title: Otimizando a Coleta de Dados do IBGE com o Pacote R 'orce'
 toc-title: Índice
 ---
-
-# Resumo
-
-Este artigo apresenta o pacote R `orce`, uma ferramenta desenvolvida
-para otimizar a alocação de Unidades de Coleta (UCs) em pesquisas do
-IBGE. O pacote utiliza um modelo de otimização baseado em programação
-linear inteira mista para minimizar os custos totais de coleta,
-considerando fatores como distâncias, tempo de viagem, custos fixos das
-agências e necessidade de diárias.
-
-A aplicação do `orce` em estudos de caso da MUNIC no Espírito Santo e da
-POF na Bahia demonstrou reduções significativas nos custos de coleta,
-variando de 17% a 40%. Além disso, o pacote permite um melhor
-balanceamento da carga de trabalho entre as agências e oferece
-flexibilidade para se adaptar a diferentes necessidades e restrições.
-
-Os resultados destacam a importância da redução dos custos fixos para
-alcançar economias significativas. O artigo explora, ainda, outras
-estratégias de otimização, como a reorganização da jurisdição das
-agências e o ajuste do tempo máximo de viagem feitas sem diárias. O
-pacote `orce` se mostra uma ferramenta promissora para aprimorar a
-eficiência e a economicidade das operações de coleta de dados do IBGE.
 
 # Introdução
 
@@ -193,10 +192,10 @@ Os dados com as unidades de coleta tem a seguinte estrutura:
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="xxirhvkiws" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="nnprbewbbz" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-  uc        agencia_codigo   dias_coleta   viagens
+  Uc        Agencia Codigo   Dias Coleta   Viagens
   --------- ---------------- ------------- ---------
   3200102   320120900        2             1
   3200136   320150600        2             1
@@ -229,21 +228,21 @@ as unidades da federação.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="obrfxkbkvh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="jpzbpmgcvs" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-  agencia_codigo   municipio_codigo   diaria_municipio
+  Agencia Codigo   Municipio Codigo   Diaria Municipio
   ---------------- ------------------ ------------------
+  320020100        3200102            TRUE
   320120900        3200102            FALSE
-  320150600        3200136            FALSE
-  320150600        3200169            FALSE
-  320020100        3200201            FALSE
-  320240500        3200300            FALSE
-  320150600        3200359            FALSE
-  320240500        3200409            FALSE
-  320020100        3200508            FALSE
-  320320500        3200607            FALSE
-  320120900        3200706            FALSE
+  320130800        3200102            TRUE
+  320150600        3200102            TRUE
+  320240500        3200102            TRUE
+  320320500        3200102            TRUE
+  320490600        3200102            TRUE
+  320500200        3200102            TRUE
+  320520000        3200102            TRUE
+  320530900        3200102            TRUE
 
 </div></body></html>
 :::
@@ -257,10 +256,10 @@ informações sobre as diárias (`agencias_municipios_diaria`).
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="mshqjopwqm" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="cylmglhygw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-  agencia_codigo   uc        distancia_km   duracao_horas   diaria_municipio   diaria_pernoite
+  Agencia Codigo   Uc        Distancia Km   Duracao Horas   Diaria Municipio   Diaria Pernoite
   ---------------- --------- -------------- --------------- ------------------ -----------------
   320020100        3200102   132,51         2,2             TRUE               TRUE
   320120900        3200102   119,44         2,03            FALSE              TRUE
@@ -288,7 +287,7 @@ Estamos, agora, prontos para calcular os custos de coleta.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="gbqtsxaumg" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="ykzosxxnho" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                               Municipios   Total Diarias   Custo Diarias   Distancia Total Km   Custo Combustivel
@@ -315,10 +314,10 @@ Estamos, agora, prontos para calcular os custos de coleta.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="ytbbzubdgi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="lbgczdruug" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-  municipio_nome           agencia_nome              custo_diarias   custo_combustivel
+  Municipio                Agencia                   Custo Diarias   Custo Combustivel
   ------------------------ ------------------------- --------------- -------------------
   Ecoporanga               Colatina                  R\$502          R\$218
   Água Doce do Norte       Colatina                  R\$502          R\$189
@@ -348,10 +347,10 @@ responder essa pergunta.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="yizyhabfzs" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="jfaxsynmoe" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-  agencia_nome              distancia_km   custo_diarias   custo_combustivel
+  Agencia                   Distancia Km   Custo Diarias   Custo Combustivel
   ------------------------- -------------- --------------- -------------------
   Colatina (Jurisdição)     126,91         R\$502          R\$152
   São Mateus                145,88         R\$502          R\$175
@@ -380,10 +379,10 @@ diferente da de jurisdição? A resposta é sim!
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="stjnhdxfsv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="rqumjllglu" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-  municipio_nome          agencia_nome              distancia_km   custo_diarias   custo_combustivel
+  Municipio               Agencia                   Distancia Km   Custo Diarias   Custo Combustivel
   ----------------------- ------------------------- -------------- --------------- -------------------
   Governador Lindenberg   Colatina                  50,87          R\$0            R\$122
   Presidente Kennedy      Cachoeiro de Itapemirim   38,27          R\$335          R\$92
@@ -417,7 +416,7 @@ município.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="doiysudtwq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="krzggupmvq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Municipio            Agencia Otimo             Agencia Jurisdicao        Distancia Km Otimo   Distancia Km Jurisdicao   Custo Deslocamento Otimo   Custo Deslocamento Jurisdicao
@@ -454,10 +453,10 @@ município.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="bmkuojjalo" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="mobzqmmsms" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-  name                 jurisdicao   otimo       reducao   reducao_pct
+  Name                 Jurisdicao   Otimo       Reducao   Reducao Pct
   -------------------- ------------ ----------- --------- -------------
   custo_diarias        8.040        7.370       670       8,3%
   custo_combustivel    8.917,2      8.918,75    −1,55     −0,0%
@@ -478,7 +477,7 @@ em combustível.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="mlpdykujfn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="boionkoyel" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                                           Jurisdição (R\$)   Ótimo (R\$)   Redução (R\$)   Redução (%)
@@ -550,24 +549,24 @@ coleta realizada pela supervisão estadual da Pesquisa.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="kstixuthnn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="ubpynsjbll" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-                           n_agencias_jurisdicao   n_ucs_jurisdicao   n_ucs_otimo   custo_total_jurisdicao   custo_total_otimo   custo_deslocamento_jurisdicao   custo_deslocamento_otimo   custo_fixo_jurisdicao   custo_fixo_otimo   total_diarias_jurisdicao   total_diarias_otimo
-  ------------------------ ----------------------- ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- ----------------------- ------------------ -------------------------- ---------------------
-  Serrinha                 1                       6                  14            R\$23.454                R\$35.200           R\$1.552                        R\$13.298                  R\$21.902               R\$21.902          0                          19
-  Jaguaquara               1                       7                  19            R\$24.518                R\$53.206           R\$2.433                        R\$31.121                  R\$22.085               R\$22.085          0                          62
-  Teixeira de Freitas      1                       7                  21            R\$26.988                R\$59.656           R\$4.352                        R\$37.020                  R\$22.636               R\$22.636          0                          66
-  Camaçari                 1                       14                 22            R\$27.367                R\$37.044           R\$5.625                        R\$15.302                  R\$21.742               R\$21.742          0                          14
-  Santo Antônio de Jesus   1                       8                  22            R\$26.221                R\$51.745           R\$4.322                        R\$29.846                  R\$21.899               R\$21.899          0                          44
-  Itabuna                  1                       6                  23            R\$30.451                R\$65.082           R\$8.259                        R\$42.890                  R\$22.192               R\$22.192          19                         86
-  Ribeira do Pombal        1                       8                  26            R\$27.319                R\$84.394           R\$5.277                        R\$62.352                  R\$22.042               R\$22.042          0                          138
-  Jacobina                 1                       7                  29            R\$32.241                R\$107.772          R\$10.153                       R\$85.684                  R\$22.088               R\$22.088          19                         195
-  Vitória da Conquista     1                       18                 31            R\$48.136                R\$96.029           R\$25.835                       R\$73.728                  R\$22.301               R\$22.301          57                         176
-  Santa Maria da Vitória   1                       8                  34            R\$32.503                R\$134.334          R\$9.766                        R\$111.597                 R\$22.737               R\$22.737          19                         262
-  Feira de Santana         1                       20                 36            R\$25.322                R\$64.836           R\$3.503                        R\$43.016                  R\$21.819               R\$21.819          0                          82
-  Demais agências          37                      168                NA            R\$975.520               NA                  R\$153.730                      NA                         R\$821.790              NA                 209                        NA
-  Total Superintendência   48                      277                277           R\$1.300.041             R\$789.297          R\$234.808                      R\$545.854                 R\$1.065.233            R\$243.443         323                        1.146
+                           N Ucs Jurisdicao   N Ucs Otimo   Custo Total Jurisdicao   Custo Total Otimo   Custo Deslocamento Jurisdicao   Custo Deslocamento Otimo   Total Diarias Jurisdicao   Total Diarias Otimo
+  ------------------------ ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- -------------------------- ---------------------
+  Serrinha                 6                  14            R\$23.454                R\$35.200           R\$1.552                        R\$13.298                  0                          19
+  Jaguaquara               7                  19            R\$24.518                R\$53.206           R\$2.433                        R\$31.121                  0                          62
+  Teixeira de Freitas      7                  21            R\$26.988                R\$59.656           R\$4.352                        R\$37.020                  0                          66
+  Camaçari                 14                 22            R\$27.367                R\$37.044           R\$5.625                        R\$15.302                  0                          14
+  Santo Antônio de Jesus   8                  22            R\$26.221                R\$51.745           R\$4.322                        R\$29.846                  0                          44
+  Itabuna                  6                  23            R\$30.451                R\$65.082           R\$8.259                        R\$42.890                  19                         86
+  Ribeira do Pombal        8                  26            R\$27.319                R\$84.394           R\$5.277                        R\$62.352                  0                          138
+  Jacobina                 7                  29            R\$32.241                R\$107.772          R\$10.153                       R\$85.684                  19                         195
+  Vitória da Conquista     18                 31            R\$48.136                R\$96.029           R\$25.835                       R\$73.728                  57                         176
+  Santa Maria da Vitória   8                  34            R\$32.503                R\$134.334          R\$9.766                        R\$111.597                 19                         262
+  Feira de Santana         20                 36            R\$25.322                R\$64.836           R\$3.503                        R\$43.016                  0                          82
+  Demais agências          168                \-            R\$975.520               \-                  R\$153.730                      \-                         209                        \-
+  Total Superintendência   277                277           R\$1.300.041             R\$789.297          R\$234.808                      R\$545.854                 323                        1.146
 
 </div></body></html>
 :::
@@ -609,26 +608,26 @@ para reduzir custos.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="dvldrtbssv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="xfbyltytpw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-                           n_agencias_jurisdicao   n_ucs_jurisdicao   n_ucs_otimo   custo_total_jurisdicao   custo_total_otimo   custo_deslocamento_jurisdicao   custo_deslocamento_otimo   custo_fixo_jurisdicao   custo_fixo_otimo   total_diarias_jurisdicao   total_diarias_otimo
-  ------------------------ ----------------------- ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- ----------------------- ------------------ -------------------------- ---------------------
-  Alagoinhas               1                       6                  10            R\$23.563                R\$31.548           R\$1.742                        R\$9.727                   R\$21.821               R\$21.821          0                          10
-  Barreiras                1                       6                  16            R\$32.828                R\$67.327           R\$10.110                       R\$44.609                  R\$22.718               R\$22.718          19                         95
-  Serrinha                 1                       6                  18            R\$23.454                R\$50.206           R\$1.552                        R\$28.304                  R\$21.902               R\$21.902          0                          57
-  Santa Maria da Vitória   1                       8                  21            R\$32.503                R\$82.232           R\$9.766                        R\$59.495                  R\$22.737               R\$22.737          19                         138
-  Teixeira de Freitas      1                       7                  22            R\$26.988                R\$63.650           R\$4.352                        R\$41.014                  R\$22.636               R\$22.636          0                          76
-  Camaçari                 1                       14                 23            R\$27.367                R\$39.755           R\$5.625                        R\$18.013                  R\$21.742               R\$21.742          0                          15
-  Jaguaquara               1                       7                  23            R\$24.518                R\$68.529           R\$2.433                        R\$46.444                  R\$22.085               R\$22.085          0                          100
-  Feira de Santana         1                       20                 24            R\$25.322                R\$29.350           R\$3.503                        R\$7.531                   R\$21.819               R\$21.819          0                          5
-  Itabuna                  1                       6                  24            R\$30.451                R\$69.016           R\$8.259                        R\$46.824                  R\$22.192               R\$22.192          19                         96
-  Jacobina                 1                       7                  24            R\$32.241                R\$88.145           R\$10.153                       R\$66.057                  R\$22.088               R\$22.088          19                         148
-  Ribeira do Pombal        1                       8                  24            R\$27.319                R\$77.760           R\$5.277                        R\$55.718                  R\$22.042               R\$22.042          0                          120
-  Santo Antônio de Jesus   1                       8                  24            R\$26.221                R\$59.218           R\$4.322                        R\$37.319                  R\$21.899               R\$21.899          0                          63
-  Vitória da Conquista     1                       18                 24            R\$48.136                R\$69.605           R\$25.835                       R\$47.304                  R\$22.301               R\$22.301          57                         110
-  Demais agências          35                      156                NA            R\$919.130               NA                  R\$141.879                      NA                         R\$777.251              NA                 190                        NA
-  Total Superintendência   48                      277                277           R\$1.300.041             R\$796.339          R\$234.808                      R\$508.357                 R\$1.065.233            R\$287.982         323                        1.030
+                           N Ucs Jurisdicao   N Ucs Otimo   Custo Total Jurisdicao   Custo Total Otimo   Custo Deslocamento Jurisdicao   Custo Deslocamento Otimo   Total Diarias Jurisdicao   Total Diarias Otimo
+  ------------------------ ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- -------------------------- ---------------------
+  Alagoinhas               6                  10            R\$23.563                R\$31.548           R\$1.742                        R\$9.727                   0                          10
+  Barreiras                6                  16            R\$32.828                R\$67.327           R\$10.110                       R\$44.609                  19                         95
+  Serrinha                 6                  18            R\$23.454                R\$50.206           R\$1.552                        R\$28.304                  0                          57
+  Santa Maria da Vitória   8                  21            R\$32.503                R\$82.232           R\$9.766                        R\$59.495                  19                         138
+  Teixeira de Freitas      7                  22            R\$26.988                R\$63.650           R\$4.352                        R\$41.014                  0                          76
+  Camaçari                 14                 23            R\$27.367                R\$39.755           R\$5.625                        R\$18.013                  0                          15
+  Jaguaquara               7                  23            R\$24.518                R\$68.529           R\$2.433                        R\$46.444                  0                          100
+  Feira de Santana         20                 24            R\$25.322                R\$29.350           R\$3.503                        R\$7.531                   0                          5
+  Itabuna                  6                  24            R\$30.451                R\$69.016           R\$8.259                        R\$46.824                  19                         96
+  Jacobina                 7                  24            R\$32.241                R\$88.145           R\$10.153                       R\$66.057                  19                         148
+  Ribeira do Pombal        8                  24            R\$27.319                R\$77.760           R\$5.277                        R\$55.718                  0                          120
+  Santo Antônio de Jesus   8                  24            R\$26.221                R\$59.218           R\$4.322                        R\$37.319                  0                          63
+  Vitória da Conquista     18                 24            R\$48.136                R\$69.605           R\$25.835                       R\$47.304                  57                         110
+  Demais agências          156                \-            R\$919.130               \-                  R\$141.879                      \-                         190                        \-
+  Total Superintendência   277                277           R\$1.300.041             R\$796.339          R\$234.808                      R\$508.357                 323                        1.030
 
 </div></body></html>
 :::
@@ -641,8 +640,8 @@ As três maiores respondem por 26% da amostra, em vez de 36%.
 
 Os resultados mostram que o aumento significativo da eficiência nos
 gastos com a coleta depende crucialmente da redução dos custos fixos,
-que no caso concreto devem ser muito maiores do que os R\$
-1,8`\times 10`{=tex}\^{4} anuais aqui utilizados.
+que no caso concreto devem ser muito maiores do que os R\$ 18 mil anuais
+aqui utilizados.
 
 As seções seguintes mostram outras possibilidades de redução de custos.
 
@@ -664,24 +663,24 @@ responsabilidades das agências nas operações do IBGE, incluindo o Censo.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="recyswckpp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="xpguwvzrxf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-                           n_agencias_jurisdicao   n_ucs_jurisdicao   n_ucs_otimo   custo_total_jurisdicao   custo_total_otimo   custo_deslocamento_jurisdicao   custo_deslocamento_otimo   custo_fixo_jurisdicao   custo_fixo_otimo   total_diarias_jurisdicao   total_diarias_otimo
-  ------------------------ ----------------------- ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- ----------------------- ------------------ -------------------------- ---------------------
-  Jaguaquara               1                       7                  10            R\$24.518                R\$26.881           R\$2.433                        R\$4.796                   R\$22.085               R\$22.085          0                          0
-  Ipiaú                    1                       8                  14            R\$29.632                R\$33.512           R\$7.530                        R\$11.410                  R\$22.102               R\$22.102          10                         0
-  Itabuna                  1                       6                  17            R\$30.451                R\$49.592           R\$8.259                        R\$27.400                  R\$22.192               R\$22.192          19                         57
-  Teixeira de Freitas      1                       7                  21            R\$26.988                R\$59.656           R\$4.352                        R\$37.020                  R\$22.636               R\$22.636          0                          66
-  Camaçari                 1                       14                 22            R\$27.367                R\$35.369           R\$5.625                        R\$13.627                  R\$21.742               R\$21.742          0                          10
-  Santo Antônio de Jesus   1                       8                  22            R\$26.221                R\$42.870           R\$4.322                        R\$20.971                  R\$21.899               R\$21.899          0                          19
-  Jacobina                 1                       7                  29            R\$32.241                R\$106.097          R\$10.153                       R\$84.009                  R\$22.088               R\$22.088          19                         190
-  Vitória da Conquista     1                       18                 30            R\$48.136                R\$90.784           R\$25.835                       R\$68.483                  R\$22.301               R\$22.301          57                         162
-  Ribeira do Pombal        1                       8                  32            R\$27.319                R\$96.118           R\$5.277                        R\$74.076                  R\$22.042               R\$22.042          0                          162
-  Santa Maria da Vitória   1                       8                  34            R\$32.503                R\$132.659          R\$9.766                        R\$109.922                 R\$22.737               R\$22.737          19                         256
-  Feira de Santana         1                       20                 46            R\$25.322                R\$68.382           R\$3.503                        R\$46.563                  R\$21.819               R\$21.819          0                          66
-  Demais agências          37                      166                NA            R\$969.343               NA                  R\$147.753                      NA                         R\$821.590              NA                 200                        NA
-  Total Superintendência   48                      277                277           R\$1.300.041             R\$741.919          R\$234.808                      R\$498.276                 R\$1.065.233            R\$243.643         323                        988
+                           N Ucs Jurisdicao   N Ucs Otimo   Custo Total Jurisdicao   Custo Total Otimo   Custo Deslocamento Jurisdicao   Custo Deslocamento Otimo   Total Diarias Jurisdicao   Total Diarias Otimo
+  ------------------------ ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- -------------------------- ---------------------
+  Jaguaquara               7                  10            R\$24.518                R\$26.881           R\$2.433                        R\$4.796                   0                          0
+  Ipiaú                    8                  14            R\$29.632                R\$33.512           R\$7.530                        R\$11.410                  10                         0
+  Itabuna                  6                  17            R\$30.451                R\$49.592           R\$8.259                        R\$27.400                  19                         57
+  Teixeira de Freitas      7                  21            R\$26.988                R\$59.656           R\$4.352                        R\$37.020                  0                          66
+  Camaçari                 14                 22            R\$27.367                R\$35.369           R\$5.625                        R\$13.627                  0                          10
+  Santo Antônio de Jesus   8                  22            R\$26.221                R\$42.870           R\$4.322                        R\$20.971                  0                          19
+  Jacobina                 7                  29            R\$32.241                R\$106.097          R\$10.153                       R\$84.009                  19                         190
+  Vitória da Conquista     18                 30            R\$48.136                R\$90.784           R\$25.835                       R\$68.483                  57                         162
+  Ribeira do Pombal        8                  32            R\$27.319                R\$96.118           R\$5.277                        R\$74.076                  0                          162
+  Santa Maria da Vitória   8                  34            R\$32.503                R\$132.659          R\$9.766                        R\$109.922                 19                         256
+  Feira de Santana         20                 46            R\$25.322                R\$68.382           R\$3.503                        R\$46.563                  0                          66
+  Demais agências          166                \-            R\$969.343               \-                  R\$147.753                      \-                         200                        \-
+  Total Superintendência   277                277           R\$1.300.041             R\$741.919          R\$234.808                      R\$498.276                 323                        988
 
 </div></body></html>
 :::
@@ -709,24 +708,24 @@ do projeto.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="vsbuxcbhvk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="mnoeiryung" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-                           n_agencias_jurisdicao   n_ucs_jurisdicao   n_ucs_otimo   custo_total_jurisdicao   custo_total_otimo   custo_deslocamento_jurisdicao   custo_deslocamento_otimo   custo_fixo_jurisdicao   custo_fixo_otimo   total_diarias_jurisdicao   total_diarias_otimo
-  ------------------------ ----------------------- ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- ----------------------- ------------------ -------------------------- ---------------------
-  Serrinha                 1                       6                  14            R\$23.454                R\$35.060           R\$1.552                        R\$13.158                  R\$21.902               R\$21.902          0                          14
-  Jaguaquara               1                       7                  18            R\$24.518                R\$47.109           R\$2.433                        R\$25.024                  R\$22.085               R\$22.085          0                          25
-  Camaçari                 1                       14                 22            R\$27.367                R\$37.044           R\$5.625                        R\$15.302                  R\$21.742               R\$21.742          0                          14
-  Itamaraju                1                       8                  22            R\$26.461                R\$55.677           R\$3.906                        R\$33.122                  R\$22.555               R\$22.555          0                          38
-  Itabuna                  1                       6                  24            R\$26.703                R\$59.079           R\$4.511                        R\$36.887                  R\$22.192               R\$22.192          0                          39
-  Santo Antônio de Jesus   1                       8                  25            R\$26.221                R\$56.049           R\$4.322                        R\$34.150                  R\$21.899               R\$21.899          0                          34
-  Ribeira do Pombal        1                       8                  26            R\$27.319                R\$84.131           R\$5.277                        R\$62.089                  R\$22.042               R\$22.042          0                          134
-  Jacobina                 1                       7                  29            R\$28.638                R\$103.718          R\$6.550                        R\$81.630                  R\$22.088               R\$22.088          0                          167
-  Vitória da Conquista     1                       18                 31            R\$46.387                R\$90.423           R\$24.086                       R\$68.122                  R\$22.301               R\$22.301          48                         148
-  Feira de Santana         1                       20                 32            R\$25.322                R\$50.461           R\$3.503                        R\$28.642                  R\$21.819               R\$21.819          0                          39
-  Santa Maria da Vitória   1                       8                  34            R\$28.773                R\$130.264          R\$6.036                        R\$107.527                 R\$22.737               R\$22.737          0                          234
-  Demais agências          37                      167                NA            R\$952.510               NA                  R\$130.639                      NA                         R\$821.871              NA                 95                         NA
-  Total Superintendência   48                      277                277           R\$1.263.673             R\$749.016          R\$198.440                      R\$505.654                 R\$1.065.233            R\$243.362         142                        886
+                           N Ucs Jurisdicao   N Ucs Otimo   Custo Total Jurisdicao   Custo Total Otimo   Custo Deslocamento Jurisdicao   Custo Deslocamento Otimo   Total Diarias Jurisdicao   Total Diarias Otimo
+  ------------------------ ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- -------------------------- ---------------------
+  Serrinha                 6                  14            R\$23.454                R\$35.060           R\$1.552                        R\$13.158                  0                          14
+  Jaguaquara               7                  18            R\$24.518                R\$47.109           R\$2.433                        R\$25.024                  0                          25
+  Camaçari                 14                 22            R\$27.367                R\$37.044           R\$5.625                        R\$15.302                  0                          14
+  Itamaraju                8                  22            R\$26.461                R\$55.677           R\$3.906                        R\$33.122                  0                          38
+  Itabuna                  6                  24            R\$26.703                R\$59.079           R\$4.511                        R\$36.887                  0                          39
+  Santo Antônio de Jesus   8                  25            R\$26.221                R\$56.049           R\$4.322                        R\$34.150                  0                          34
+  Ribeira do Pombal        8                  26            R\$27.319                R\$84.131           R\$5.277                        R\$62.089                  0                          134
+  Jacobina                 7                  29            R\$28.638                R\$103.718          R\$6.550                        R\$81.630                  0                          167
+  Vitória da Conquista     18                 31            R\$46.387                R\$90.423           R\$24.086                       R\$68.122                  48                         148
+  Feira de Santana         20                 32            R\$25.322                R\$50.461           R\$3.503                        R\$28.642                  0                          39
+  Santa Maria da Vitória   8                  34            R\$28.773                R\$130.264          R\$6.036                        R\$107.527                 0                          234
+  Demais agências          167                \-            R\$952.510               \-                  R\$130.639                      \-                         95                         \-
+  Total Superintendência   277                277           R\$1.263.673             R\$749.016          R\$198.440                      R\$505.654                 142                        886
 
 </div></body></html>
 :::
@@ -775,7 +774,7 @@ $$
 \begin{array}{ll@{}ll}
 \text{minimizar} & \displaystyle\sum\limits_{i=1}^{n}\sum\limits_{j=1}^{m} custo\_de\_viagem_{i,j} \cdot x_{i, j} + \sum\limits_{j=1}^{m} custo\_fixo_{j} \cdot y_{j}& &\\
 \text{sujeito a} & \displaystyle\sum\limits_{j=1}^{m} x_{i, j} = 1 & i=1 ,\ldots, n&\\
-& \displaystyle x_{i, j} \leq y_j, & i=1 ,\ldots, n & j=1 ,\ldots, m&\\
+& \displaystyle x_{i, j} \leq y_j, & i=1 ,\ldots, n & j=1 ,\ldots, m\\
 & x_{i,j} \in \{0,1\} &i=1 ,\ldots, n, & j=1 ,\ldots, m \\
 & y_{j} \in \{0,1\} &j=1 ,\ldots, m& \\
 & \operatorname{(opcional)} \sum\limits_{i=1}^{n}{x}_{i,j} >= ( \operatorname{min\_upas} \cdot y_{j}) & j=1 ,\ldots, m&

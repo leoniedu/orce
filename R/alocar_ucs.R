@@ -15,7 +15,6 @@
 #' @param valor_diaria Valor da diária para deslocamentos (em R$). Padrão: 335.
 #' @param custo_fixo Custo fixo mensal da agência, como salário do entrevistador, custo de monitoramento, etc. (em R$). Padrão: 500.
 #' @param dias_treinamento Número de dias/diárias para treinamento. Padrão: 5.5
-#' @param dist_diaria_km Distância mínima (em km) para que seja paga uma diária, no caso de UC na jurisdição da agência. No caso da UC fora da jurisdição da agência, quando a distância for menor do que `dist_diaria_km`, se paga meia diária, calculada como 1/2 do valor das diárias inteiras. Padrão 100
 #' @param min_uc_agencia Número mínimo de UCs por agência. Só válido para agências não treinadas. Padrão: 1.
 #' @param max_uc_agencia Número máximo de UCs por agência. Padrão: NULL (ilimitado).
 #' @param semi_centralizada (Opcional) Um vetor de caracteres com os códigos das agências que não terão limite máximo de UCs alocadas. Padrão: NULL.
@@ -52,7 +51,6 @@ alocar_ucs <- function(ucs,
                        valor_diaria = 335,
                        custo_fixo = 0,
                        dias_treinamento = 0,
-                       dist_diaria_km = 100,
                        agencias_treinadas = NULL,
                        agencias_treinamento = NULL,
                        distancias_ucs,
@@ -77,12 +75,11 @@ alocar_ucs <- function(ucs,
   checkmate::assert_number(dias_treinamento, lower = 0)
   checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
   checkmate::assert_data_frame(distancias_agencias, null.ok=dias_treinamento == 0)
-  checkmate::assert_number(dist_diaria_km, lower = 0)
   checkmate::assert_integerish(min_uc_agencia, lower = 1)
   checkmate::assert_number(max_uc_agencia, lower = 1, null.ok = TRUE)
   checkmate::assert_character(semi_centralizada, null.ok = TRUE)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
-  checkmate::assertTRUE(all(c('diaria_municipio', 'uc')%in%names(distancias_ucs)))
+  checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite')%in%names(distancias_ucs)))
   checkmate::assertTRUE(all(c('dias_coleta', 'viagens')%in%names(ucs)))
   # Setting max_uc_agencia to infinity if not provided
   if (is.null(max_uc_agencia)) {
@@ -170,7 +167,7 @@ alocar_ucs <- function(ucs,
     dplyr::ungroup()|>
     sf::st_drop_geometry()|>
     dplyr::select(i,uc, agencia_codigo, agencia_codigo_jurisdicao,
-                  viagens, dias_coleta, distancia_km, duracao_horas, diaria_municipio)
+                  viagens, dias_coleta, distancia_km, duracao_horas, diaria_municipio, diaria_pernoite)
 
   # Ensure there are no missing values in distances
   stopifnot(sum(is.na(distancias_ucs_1$distancia_km)) == 0)
@@ -185,8 +182,8 @@ alocar_ucs <- function(ucs,
       agencia_codigo_jurisdicao,
       distancia_km, duracao_horas,
       diaria=diaria_municipio,
-      diaria=dplyr::if_else(distancia_km > dist_diaria_km, TRUE, diaria),
-      meia_diaria=(distancia_km < dist_diaria_km) & diaria,
+      diaria=dplyr::if_else(diaria_pernoite, TRUE, diaria),
+      meia_diaria=(!diaria_pernoite) & diaria,
       ## se com diaria inteira
       trechos=dplyr::if_else(diaria&(!meia_diaria),
                              # é uma ida e uma volta por viagem
@@ -196,6 +193,7 @@ alocar_ucs <- function(ucs,
       total_diarias=dplyr::if_else(diaria, calcula_diarias(dias_coleta, meia_diaria),0),
       custo_diarias=total_diarias * valor_diaria,
       distancia_total_km=trechos * distancia_km,
+      duracao_total_horasn=trechos * duracao_horas,
       custo_combustivel=((distancia_total_km / kml) * custo_litro_combustivel),
       custo_horas_viagem=(trechos * duracao_horas) * custo_hora_viagem,
       custo_troca_jurisdicao=if_else(agencia_codigo!=agencia_codigo_jurisdicao, adicional_troca_jurisdicao, 0),
