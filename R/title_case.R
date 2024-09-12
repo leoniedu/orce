@@ -16,8 +16,8 @@
 #'
 #' @export
 to_title_case <- function(string, locale = "en",
-                          exceptions = NULL) {
-  locale <- stringr::str_split_fixed(locale,"_",2)[,1]
+                          exceptions = NULL, ...) {
+  locale_short <- stringr::str_split_fixed(locale,"_",2)[,1]
   if (is.null(exceptions)) {
     exceptions <- list(
       en = c("of", "the", "and", "a", "an"),
@@ -39,12 +39,13 @@ to_title_case <- function(string, locale = "en",
       fr = c("de", "la", "le", "les", "et", "à", "au", "aux", "du", "des", "un", "une")  # French exceptions
     )
     # Check if the provided locale is supported
-    checkmate::assert_choice(locale, names(exceptions))
-    exceptions <- exceptions[[locale]]
+    checkmate::assert_choice(locale_short, names(exceptions))
+    exceptions <- exceptions[[locale_short]]
   } else {
     checkmate::assert_string(exceptions)
   }
-  stringtitle <- stringr::str_to_title(string, locale={locale})
+  #stringtitle <- stringr::str_to_title(string, locale={locale})
+  stringtitle <- snakecase::to_title_case(string, ...)
   #exceptions <- c("de", "da", "do", "e", "o", "a", "os", "as")
   #stringtitle <- "Eduardo DE Leoni"
 
