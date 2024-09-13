@@ -4,6 +4,7 @@ author: "Eduardo Leoni - SES/BA - IBGE"
 format: 
   html: default
   markdown: default
+  docx: default
 lang: pt
 echo: false
 message: false
@@ -26,6 +27,15 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+#https://arelbundock.com/posts/quarto_figures/index.html
+knitr::opts_chunk$set(
+    out.width = "70%", # enough room to breath
+    fig.width = 6,     # reasonable size
+    fig.asp = 0.618,   # golden ratio
+    fig.align = "center" # mostly what I want
+)
+
+
 options(OutDec = ",", scipen=100)
 library(ggplot2)
 library(gt)
@@ -581,8 +591,7 @@ res_ufs_df%>%
 ```
 
 
-## Caso 2. Calculando os custos da coleta da POF para a SES/Bahia, incluindo custos fixos
-
+## Caso 2. A importância dos custos fixos (salário e treinamento): calculando os custos da coleta da POF para a SES/Bahia
 
 ```{r}
 library(dplyr)
@@ -607,111 +616,128 @@ distancias_upas <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencia
   mutate(municipio_codigo=substr(uc,1,7))%>%
   left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
   semi_join(amostra_uf, by="uc")%>%
-  mutate(diaria_pernoite=duracao_horas>params$horas_viagem_pernoite)
+  mutate(diaria_pernoite=duracao_horas>1.5)
 
-params_pof <- list(ucs=amostra_uf,
+
+```
+
+
+
+```{r}
+
+## sem custo fixo nem custo de treinamento
+params_pof_0  <- list(ucs=amostra_uf,
            custo_litro_combustivel = 6,
            custo_hora_viagem = 10,
            kml = 10,
            valor_diaria = 335,
-           custo_fixo = 18000,
-           dias_treinamento = 11,
+           custo_fixo = 0,
+           dias_treinamento = 0,
            semi_centralizada = NULL,
            agencias_treinadas = NULL,
-           agencias_treinamento  = c('292740800'),
+           agencias_treinamento  = NULL,
            distancias_ucs=distancias_upas,
-           distancias_agencias=distancias_agencias_osrm,
            adicional_troca_jurisdicao  = 0,
            ## experimental: fica bem mais lento
            min_uc_agencia = 1,
            max_uc_agencia = NULL)
-```
 
-Cada agência de coleta, para operar, necessita de, no mínimo, pessoal para realizar a coleta e, particularmente no caso de treinamento presencial, o custos de diárias e transporte até o local de treinamento. 
+estrategias_pof <- bind_rows(
+  tibble(params=list(params_pof_0), 
+         descricao='sem custo fixo / sem custo de treinamento'),
+  tibble(params=list(modifyList(params_pof_0, 
+                                list(dias_treinamento = 11, # 2 * 5,5 diárias
+                                     agencias_treinamento  = c('292740800'),
+                                     distancias_agencias=distancias_agencias_osrm))), 
+         descricao='custo de treinamento'),
+  tibble(params=list(modifyList(params_pof_0, 
+                                list(dias_treinamento = 11, # 2 * 5,5 diárias
+                                     agencias_treinamento  = c('292740800'),
+                                     ## simulando quando não há diária por conta do município (somente por pernoite)
+                                     distancias_ucs=distancias_upas%>%
+                                       mutate(diaria_municipio=FALSE),
+                                     distancias_agencias=distancias_agencias_osrm))), 
+         descricao="custo de treinamento / reorganização"),
+  tibble(params=list(modifyList(params_pof_0, 
+                                list(dias_treinamento = 11, # 2 * 5,5 diárias
+                                     agencias_treinamento  = c('292740800'),
+                                     ## diárias só com mais de duas horas de viagem
+                                     distancias_ucs=distancias_upas%>%
+                                       mutate(diaria_pernoite=duracao_horas>2),
+                                     distancias_agencias=distancias_agencias_osrm))), 
+         descricao="custo de treinamento / redução diárias por pernoite"),
+  tibble(params=list(modifyList(params_pof_0, 
+                                list(dias_treinamento = 11, # 2 * 5,5 diárias
+                                     agencias_treinamento  = c('292740800'),
+                                     custo_fixo=18000,
+                                     distancias_agencias=distancias_agencias_osrm))), descricao='custo de treinamento + salario de 1 apm'),
+  tibble(params=list(modifyList(params_pof_0, 
+                                list(dias_treinamento = 11, # 2 * 5,5 diárias
+                                     agencias_treinamento  = c('292740800'),
+                                     custo_fixo=18000,
+                                     max_uc_agencia=24,
+                                     distancias_agencias=distancias_agencias_osrm))), descricao='custo de treinamento + salario de 1 apm / limite de 24 UPAs por agência'),
+  tibble(params=list(modifyList(params_pof_0, 
+                                list(dias_treinamento = 11, # 2 * 5,5 diárias
+                                     agencias_treinamento  = c('292740800'),
+                                     custo_fixo=0,
+                                     max_uc_agencia=24,
+                                     adicional_troca_jurisdicao=300,
+                                     distancias_agencias=distancias_agencias_osrm))), descricao='custo de treinamento /  limite de 24 UPAs por agência / adicional_troca_jurisdicao'))%>%
+  mutate(resultado=purrr::map(params, ~do.call(alocar_ucs, .x)))
 
-No exercício abaixo, temos por premissa que para realizar a POF é necessário contratar mais um APM na agência, ao custo (incluindo férias, inss e benefícios) de aproximadamente R\$ `r params_pof[["custo_fixo"]]` por ano, ou R\$ `r params_pof[["custo_fixo"]]/12` por mês. 
+estrategias_pof_sum <- 
+  estrategias_pof%>%
+  rowwise(descricao)%>%
+  reframe(
+    bind_rows(
+      resultado$resultado_agencias_otimo%>%mutate(modelo="Ótimo"),
+      resultado$resultado_agencias_jurisdicao%>%mutate(modelo="Jurisdição"))%>%
+      group_by(modelo)%>%
+      mutate(n_agencias=1)%>%
+      summarise(across(matches("custo|n_agencias"), ~sum(.x, na.rm=TRUE))))%>%
+  mutate(custo_total=custo_deslocamento+custo_fixo_total)%>%
+  select(descricao, modelo, n_agencias, custo_total, everything())
 
-A esse custo vinculado a salários, temos também o custo de treinamento. Calculamos que, para cada agência participante da coleta POF, são necessárias `r params_pof$dias_treinamento` diárias de treinamento, supondo que sejam *dois* funcionários treinados. O custo de treinamento inclui custos com combustível, de acordo com a distância entre agência de origem e município de treinamento, e diárias, caso o município de origem seja diferente do município de treinamento. O município de treinamento é o de código `r params_pof$municipio_codigo_treinamento`. 
-
-Observação: A coleta nas agências da capital, Salvador I e II, são excluídas do modelo, pois são muito maiores do que as demais, e têm coleta realizada pela supervisão estadual da Pesquisa.
-
-```{r}
-r <- do.call(what = alocar_ucs, args = params_pof)
-
-report_plans(r)
-
-```
-
-**** VERIFICAR/AUTOMATIZAR *** 
-
-O modelo otimizado sugere uma redução de mais de 77% no número de agências de coleta, resultando em uma diminuição de 40% no custo total, de R\$ 1,3 milhão para R\$ 789 mil. Embora o custo de deslocamento aumente para R\$ 546 mil no plano otimizado, essa elevação é compensada pela significativa redução de 75% nos custos fixos das agências, que caem de mais de R\$ 1 milhão para R$ 243 mil. 
-
-Apesar da redução de custos, o modelo inicial apresenta desafios. A carga de trabalho em algumas agências, como Feira de Santana e Santa Maria da Vitória, é incompatível com a capacidade de dois APMs. Além disso, a coleta fica concentrada em poucas agências: as três maiores são responsáveis por 36% da amostra.
-
-Para balancear a carga de trabalho e considerar o maior tempo de deslocamento nas agências do interior, propomos um novo critério: um limite máximo de 24 UPAs da POF por agência, o que equivale a uma média de 2 UPAs por mês. Essa restrição visa distribuir a coleta de forma mais equitativa entre as agências.
-
-Ao aplicar o novo critério, o modelo otimizado sugere a utilização de 13 agências, com um custo total de aproximadamente R$ 800 mil. Isso representa uma economia de R$ 500 mil em relação ao cenário original. Além disso, a concentração da coleta em poucas agências é reduzida: as três maiores agora respondem por 26% da amostra, em vez de 36%.
-
-Os resultados demonstram que a otimização da coleta de dados depende significativamente da redução dos custos fixos, que no cenário real devem ser consideravelmente maiores do que os R$ 18 mil anuais utilizados neste exemplo. As próximas seções exploram outras estratégias para reduzir custos.
-
-
-```{r}
-params_pof_24max <- params_pof
-params_pof_24max$max_uc_agencia <- 24
-r_pof_24max <- do.call(what = alocar_ucs, args = params_pof_24max)
-
-
-report_plans(r_pof_24max)
-
-
-```
-
-Com esse novo critério, o modelo propõe coleta com 13 agências, ao custo de aproximadamente R$ 800 mil, uma economia de R$ 500 mil em relação ao custo original. A concentração em poucas agências também é reduzida. As três maiores respondem por 26% da amostra, em vez de 36%.
-
-Os resultados mostram que o aumento significativo da eficiência nos gastos com a coleta depende crucialmente da redução dos custos fixos, que no caso concreto devem ser muito maiores do que os R\$ `r params_pof[["custo_fixo"]]/1000` mil anuais aqui utilizados.
-
-As seções seguintes mostram outras possibilidades de redução de custos.
-
-#### Reorganizando a jurisdição das agências
-
-Nesta seção, exploramos o potencial de redução de custos por meio da reorganização da jurisdição das agências. Ao ajustar as áreas de atuação de cada agência, podemos identificar oportunidades para otimizar ainda mais as rotas de coleta e minimizar as despesas com diárias e deslocamentos.
-
-É importante ressaltar que qualquer mudança na jurisdição das agências deve ser cuidadosamente avaliada, levando em consideração não apenas os custos, mas também outros fatores como a capacidade operacional de cada agência e a familiaridade das equipes com as áreas de coleta. Os custos de mudança não são triviais, e devem considerar todas as responsabilidades das agências nas operações do IBGE, incluindo o Censo.
-
-```{r}
-params_pof_sem_j <- params_pof
-params_pof_sem_j$distancias_ucs <- params_pof$distancias_ucs%>%mutate(diaria_municipio=FALSE)
-
-r_sem_jurisdicao <- do.call(what = alocar_ucs, args = params_pof_sem_j)
-
-report_plans(r_sem_jurisdicao)
-
-
-```
-
-
-
-#### Aumentando a distância sem diária
-
-Outra estratégia para reduzir custos é o aumento da duração da viagem que pode  ser percorrida sem o pagamento de diárias. No modelo acima, esse limite é de `r params$horas_viagem_pernoite` Ao flexibilizar essa restrição, para **VERIFICAR** 2 horas, podemos ampliar o raio de atuação das agências, diminuindo a necessidade de pernoites e, consequentemente, os custos com diárias.
-
-Ambas as estratégias - reorganização da jurisdição e aumento da distância sem diária - podem ser combinadas para alcançar resultados mais expressivos na otimização dos custos da coleta de dados. No entanto, essa redução de custos ainda se mostra muito menor do que a estratégia de redução de custos fixos. 
-
-Qualquer que seja a estratégia selecionada, acreditamos que o pacote orce ofereça a flexibilidade necessária para simular diferentes cenários e encontrar a solução que melhor se adapta às necessidades e restrições do projeto.
-
-```{r}
-
-params_pof_2 <- params_pof
-params_pof_2$distancias_ucs <- params_pof_2$distancias_ucs%>%mutate(
-  diaria_pernoite=duracao_horas>2
-)
-
-r_dist_2 <- do.call(what = alocar_ucs, args = params_pof_2)
-
-report_plans(r_dist_2)
-
+estrategias_pof_sum%>%
+  group_by(descricao)%>%
+  arrange(modelo)%>%
+  select(-modelo)%>%summarise(across(everything(), diff))%>%
+  select(descricao, n_agencias, custo_total, custo_fixo_total, custo_diarias, custo_combustivel)%>%
+  arrange(-custo_total)%>%
+  gt::gt()%>%
+  gt::cols_label(descricao='Modelo')%>%
+  gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%
+  print_gt()
 
 ```
+
+A tabela demonstra o impacto da otimização da rede de coleta em diferentes cenários, considerando custos fixos, diárias, combustível e número de agências envolvidas^[Observação: A coleta nas agências da capital, Salvador I e II, são excluídas do modelo, pois são muito maiores do que as demais, e têm coleta realizada pela supervisão estadual da Pesquisa.]. 
+
+**Principais Observações:**
+
+Em todos os cenários, a otimização resultou em redução significativa do custo total. 
+
+* **Realocação de UPAs entre as agências:** Outras medidas também tem seu impacto. A redistribuição ótima de UPAs entre as agências, sem alteração no número de agências na coleta, tem o não desprezível impacto de R\$ 18 mil. 
+
+* **Custo de treinamento:** Se incluímos os custos de treinamento (2 funcionários por agência) o número de agência ótimo diminui bastante (cerca de 30%), e o valor economizado salta para cerca de R\$ 50 mil. O custo de deslocamento (combustível e diárias) aumenta após a otimização. Isso é explicado pela necessidade de percorrer distâncias maiores para cobrir as UCs com uma rede menor de agências. No entanto, esse aumento é mais do que compensado pela redução dos custos fixos, resultando em uma economia geral.
+
+* **Reorganização da Jurisdição:** A reorganização da jurisdição das agências também pode levar a uma redução de custos. Por exemplo, quando incluímos o custo de treinamento e reorganizamos a jurisdição das agências de modo a minimizar o pagamento de diárias, a economia salta de R\$ 50 mil para R\$ 65 mil.
+
+
+* **Limite de UPAs por Agência:** A imposição de um limite de 24 UPAs por agência contribui para um melhor balanceamento da carga de trabalho, evitando a sobrecarga em algumas agências. O impacto dessa restrição na economia prevista é razoavelmente pequeno nos casos analisados.
+
+
+* **Redução de Custos de Pessoal:** Quando incluímos a despesa com somente um entrevistador adicional por agência, além do de treinamento para dois funcionários, a economia gerada passa de R$ 500 mil. É definitivamente aqui que está o mais efetivo instrumento para reduzir os custos de coleta.
+
+
+## Conclusão
+
+A otimização da rede de coleta promovida pelo pacote `orce` tem um impacto significativo na redução de custos, principalmente pela diminuição dos custos fixos associados às agências. A estratégia mais eficaz envolve a combinação da redução do número de agências, a imposição de limites de UPAs por agência e a reorganização da jurisdição, e é provavelmente vantajoso (impor o limite) para a boa gestão da coleta. 
+
+É importante ressaltar que a otimização deve considerar não apenas os custos, mas também outros fatores como a qualidade dos dados coletados e a capacidade operacional das agências. O pacote `orce` oferece flexibilidade para ajustar os parâmetros e restrições do modelo, permitindo encontrar a solução que melhor se adapta às necessidades e particularidades de cada pesquisa. 
+
+
 
 
 
@@ -722,7 +748,7 @@ report_plans(r_dist_2)
 
 ## Apêndice: Detalhes técnicos do problema de otimização
 
-Este apêndice detalha o problema de otimização que o pacote orce resolve, que é a alocação ideal de Unidades de Coleta (UCs) às agências, com o objetivo de minimizar os custos totais, incluindo custos de deslocamento e custos fixos de cada agência. O modelo de otimização é baseado no problema clássico de localização de armazéns.
+Este apêndice detalha o problema de otimização que o pacote orce resolve, que é a alocação ideal de Unidades de Coleta (UCs) às agências, com o objetivo de minimizar os custos totais, incluindo custos de deslocamento e custos fixos de cada agência. O modelo de otimização é baseado no problema clássico de localização de armazéns, e é baseado em "The Warehouse Location Problem", de Dirk Schumacher, disponível em \url{https://dirkschumacher.github.io/ompr/articles/problem-warehouse-location.html}. 
 
 ### O Desafio
 

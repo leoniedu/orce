@@ -192,7 +192,7 @@ Os dados com as unidades de coleta tem a seguinte estrutura:
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="nnprbewbbz" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="pdeexjqaaf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Uc        Agencia Codigo   Dias Coleta   Viagens
@@ -228,7 +228,7 @@ as unidades da federação.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="jpzbpmgcvs" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="muovmvktbx" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Agencia Codigo   Municipio Codigo   Diaria Municipio
@@ -256,7 +256,7 @@ informações sobre as diárias (`agencias_municipios_diaria`).
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="cylmglhygw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="ksqoybsnny" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Agencia Codigo   Uc        Distancia Km   Duracao Horas   Diaria Municipio   Diaria Pernoite
@@ -287,7 +287,7 @@ Estamos, agora, prontos para calcular os custos de coleta.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="ykzosxxnho" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="lgyvgnojzv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                               Municipios   Total Diarias   Custo Diarias   Distancia Total Km   Custo Combustivel
@@ -314,7 +314,7 @@ Estamos, agora, prontos para calcular os custos de coleta.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="lbgczdruug" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="yuxnzcnxul" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Municipio                Agencia                   Custo Diarias   Custo Combustivel
@@ -347,7 +347,7 @@ responder essa pergunta.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="jfaxsynmoe" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="imhrssufrm" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Agencia                   Distancia Km   Custo Diarias   Custo Combustivel
@@ -379,7 +379,7 @@ diferente da de jurisdição? A resposta é sim!
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="rqumjllglu" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="wjgcblzerh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Municipio               Agencia                   Distancia Km   Custo Diarias   Custo Combustivel
@@ -416,7 +416,7 @@ município.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="krzggupmvq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="cjfydlgxso" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Municipio            Agencia Otimo             Agencia Jurisdicao        Distancia Km Otimo   Distancia Km Jurisdicao   Custo Deslocamento Otimo   Custo Deslocamento Jurisdicao
@@ -453,7 +453,7 @@ município.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="mobzqmmsms" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="cdfaofpzut" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Name                 Jurisdicao   Otimo       Reducao   Reducao Pct
@@ -477,259 +477,125 @@ em combustível.
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="boionkoyel" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="dermhrnhsr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-                                          Jurisdição (R\$)   Ótimo (R\$)   Redução (R\$)   Redução (%)
-  ----------------- --------------------- ------------------ ------------- --------------- -------------
-  Centro Oeste                                                                             
-                    Goiás                 78.312             74.151        4.161           5,3%
-                    Mato Grosso           69.773             67.477        2.297           3,3%
-                    Mato Grosso do Sul    24.675             24.140        535             2,2%
-  Total da Região   ---                   172.761            165.768       6.993           ---
-  Nordeste                                                                                 
-                    Bahia                 97.099             91.748        5.352           5,5%
-                    Maranhão              71.841             68.103        3.737           5,2%
-                    Piauí                 71.613             69.710        1.903           2,7%
-                    Rio Grande do Norte   26.727             25.322        1.404           5,3%
-                    Ceará                 42.860             41.644        1.216           2,8%
-                    Paraíba               38.651             38.178        473             1,2%
-                    Pernambuco            27.336             27.009        327             1,2%
-                    Alagoas               10.327             10.002        324             3,1%
-                    Sergipe               9.363              9.231         132             1,4%
-  Total da Região   ---                   395.816            380.948       14.868          ---
-  Norte                                                                                    
-                    Tocantins             58.107             57.074        1.033           1,8%
-                    Acre                  10.562             9.959         602             5,7%
-                    Rondônia              23.711             23.314        397             1,7%
-                    Roraima               9.806              9.806         0               0,0%
-                    Amapá                 11.193             11.193        0               0,0%
-  Total da Região   ---                   113.379            111.347       2.032           ---
-  Sudeste                                                                                  
-                    Minas Gerais          182.764            178.514       4.251           2,3%
-                    São Paulo             68.994             67.919        1.075           1,6%
-                    Espírito Santo        19.489             18.822        667             3,4%
-                    Rio de Janeiro        11.783             11.783        0               0,0%
-  Total da Região   ---                   283.030            277.037       5.993           ---
-  Sul                                                                                      
-                    Rio Grande do Sul     98.559             92.542        6.018           6,1%
-                    Santa Catarina        42.431             39.476        2.955           7,0%
-                    Paraná                60.228             59.806        422             0,7%
-  Total da Região   ---                   201.218            191.824       9.394           ---
-  Total Brasil      ---                   1.166.205          1.126.925     39.280          ---
+                                          Jurisdição r   Ótimo r     Redução r   Redução
+  ----------------- --------------------- -------------- ----------- ----------- ---------
+  Centro Oeste                                                                   
+                    Goiás                 78.312         74.151      4.161       5,3%
+                    Mato Grosso           69.773         67.477      2.297       3,3%
+                    Mato Grosso do Sul    24.675         24.140      535         2,2%
+  Total da Região   ---                   172.761        165.768     6.993       ---
+  Nordeste                                                                       
+                    Bahia                 97.099         91.748      5.352       5,5%
+                    Maranhão              71.841         68.103      3.737       5,2%
+                    Piauí                 71.613         69.710      1.903       2,7%
+                    Rio Grande do Norte   26.727         25.322      1.404       5,3%
+                    Ceará                 42.860         41.644      1.216       2,8%
+                    Paraíba               38.651         38.178      473         1,2%
+                    Pernambuco            27.336         27.009      327         1,2%
+                    Alagoas               10.327         10.002      324         3,1%
+                    Sergipe               9.363          9.231       132         1,4%
+  Total da Região   ---                   395.816        380.948     14.868      ---
+  Norte                                                                          
+                    Tocantins             58.107         57.074      1.033       1,8%
+                    Acre                  10.562         9.959       602         5,7%
+                    Rondônia              23.711         23.314      397         1,7%
+                    Roraima               9.806          9.806       0           0,0%
+                    Amapá                 11.193         11.193      0           0,0%
+  Total da Região   ---                   113.379        111.347     2.032       ---
+  Sudeste                                                                        
+                    Minas Gerais          182.764        178.514     4.251       2,3%
+                    São Paulo             68.994         67.919      1.075       1,6%
+                    Espírito Santo        19.489         18.822      667         3,4%
+                    Rio de Janeiro        11.783         11.783      0           0,0%
+  Total da Região   ---                   283.030        277.037     5.993       ---
+  Sul                                                                            
+                    Rio Grande do Sul     98.559         92.542      6.018       6,1%
+                    Santa Catarina        42.431         39.476      2.955       7,0%
+                    Paraná                60.228         59.806      422         0,7%
+  Total da Região   ---                   201.218        191.824     9.394       ---
+  Total Brasil      ---                   1.166.205      1.126.925   39.280      ---
 
 </div></body></html>
 :::
 ::::
 
-## Caso 2. Calculando os custos da coleta da POF para a SES/Bahia, incluindo custos fixos
-
-Cada agência de coleta, para operar, necessita de, no mínimo, pessoal
-para realizar a coleta e, particularmente no caso de treinamento
-presencial, o custos de diárias e transporte até o local de treinamento.
-
-No exercício abaixo, temos por premissa que para realizar a POF é
-necessário contratar mais um APM na agência, ao custo (incluindo férias,
-inss e benefícios) de aproximadamente R\$ 1,8`\times 10`{=tex}\^{4} por
-ano, ou R\$ 1500 por mês.
-
-A esse custo vinculado a salários, temos também o custo de treinamento.
-Calculamos que, para cada agência participante da coleta POF, são
-necessárias 11 diárias de treinamento, supondo que sejam *dois*
-funcionários treinados. O custo de treinamento inclui custos com
-combustível, de acordo com a distância entre agência de origem e
-município de treinamento, e diárias, caso o município de origem seja
-diferente do município de treinamento. O município de treinamento é o de
-código .
-
-Observação: A coleta nas agências da capital, Salvador I e II, são
-excluídas do modelo, pois são muito maiores do que as demais, e têm
-coleta realizada pela supervisão estadual da Pesquisa.
+## Caso 2. A importância dos custos fixos (salário e treinamento): calculando os custos da coleta da POF para a SES/Bahia
 
 :::: cell
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="ubpynsjbll" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="tgbpfcpkew" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-                           N Ucs Jurisdicao   N Ucs Otimo   Custo Total Jurisdicao   Custo Total Otimo   Custo Deslocamento Jurisdicao   Custo Deslocamento Otimo   Total Diarias Jurisdicao   Total Diarias Otimo
-  ------------------------ ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- -------------------------- ---------------------
-  Serrinha                 6                  14            R\$23.454                R\$35.200           R\$1.552                        R\$13.298                  0                          19
-  Jaguaquara               7                  19            R\$24.518                R\$53.206           R\$2.433                        R\$31.121                  0                          62
-  Teixeira de Freitas      7                  21            R\$26.988                R\$59.656           R\$4.352                        R\$37.020                  0                          66
-  Camaçari                 14                 22            R\$27.367                R\$37.044           R\$5.625                        R\$15.302                  0                          14
-  Santo Antônio de Jesus   8                  22            R\$26.221                R\$51.745           R\$4.322                        R\$29.846                  0                          44
-  Itabuna                  6                  23            R\$30.451                R\$65.082           R\$8.259                        R\$42.890                  19                         86
-  Ribeira do Pombal        8                  26            R\$27.319                R\$84.394           R\$5.277                        R\$62.352                  0                          138
-  Jacobina                 7                  29            R\$32.241                R\$107.772          R\$10.153                       R\$85.684                  19                         195
-  Vitória da Conquista     18                 31            R\$48.136                R\$96.029           R\$25.835                       R\$73.728                  57                         176
-  Santa Maria da Vitória   8                  34            R\$32.503                R\$134.334          R\$9.766                        R\$111.597                 19                         262
-  Feira de Santana         20                 36            R\$25.322                R\$64.836           R\$3.503                        R\$43.016                  0                          82
-  Demais agências          168                \-            R\$975.520               \-                  R\$153.730                      \-                         209                        \-
-  Total Superintendência   277                277           R\$1.300.041             R\$789.297          R\$234.808                      R\$545.854                 323                        1.146
+  Modelo                                                                              N Agencias   Custo Total   Custo Fixo Total   Custo Diarias   Custo Combustivel
+  ----------------------------------------------------------------------------------- ------------ ------------- ------------------ --------------- -------------------
+  sem custo fixo / sem custo de treinamento                                           0            −R\$18.142    R\$0               −R\$18.760      R\$363
+  custo de treinamento / redução diárias por pernoite                                 −15          −R\$46.536    −R\$62.111         R\$2.010        R\$10.574
+  custo de treinamento / limite de 24 UPAs por agência / adicional_troca_jurisdicao   −13          −R\$49.149    −R\$54.152         −R\$7.538       R\$9.897
+  custo de treinamento                                                                −15          −R\$51.468    −R\$62.501         −R\$4.355       R\$12.120
+  custo de treinamento / reorganização                                                −17          −R\$65.266    −R\$70.579         −R\$12.730      R\$14.180
+  custo de treinamento + salario de 1 apm / limite de 24 UPAs por agência             −35          −R\$503.702   −R\$777.251        R\$237.012      R\$30.102
+  custo de treinamento + salario de 1 apm                                             −37          −R\$510.744   −R\$821.790        R\$275.538      R\$29.137
+
+  : Redução de custos promovido pela otimização da rede de coleta
 
 </div></body></html>
 :::
 ::::
 
-\*\*\*\* VERIFICAR/AUTOMATIZAR \*\*\*
+A tabela demonstra o impacto da otimização da rede de coleta em
+diferentes cenários, considerando custos fixos, diárias, combustível e
+número de agências envolvidas[^2].
 
-O modelo otimizado sugere uma redução de mais de 77% no número de
-agências de coleta, resultando em uma diminuição de 40% no custo total,
-de R\$ 1,3 milhão para R\$ 789 mil. Embora o custo de deslocamento
-aumente para R\$ 546 mil no plano otimizado, essa elevação é compensada
-pela significativa redução de 75% nos custos fixos das agências, que
-caem de mais de R\$ 1 milhão para R\$ 243 mil.
+**Principais Observações:**
 
-Apesar da redução de custos, o modelo inicial apresenta desafios. A
-carga de trabalho em algumas agências, como Feira de Santana e Santa
-Maria da Vitória, é incompatível com a capacidade de dois APMs. Além
-disso, a coleta fica concentrada em poucas agências: as três maiores são
-responsáveis por 36% da amostra.
+-   **Redução de Custos:** Em todos os cenários, a otimização resultou
+    em redução significativa do custo total. A maior economia foi
+    observada no cenário que inclui custos de treinamento e custos com
+    salário ("custo de treinamento + salário de 1 apm"), com redução de
+    R\$ 510.744.
 
-Para balancear a carga de trabalho e considerar o maior tempo de
-deslocamento nas agências do interior, propomos um novo critério: um
-limite máximo de 24 UPAs da POF por agência, o que equivale a uma média
-de 2 UPAs por mês. Essa restrição visa distribuir a coleta de forma mais
-equitativa entre as agências.
+-   **Impacto dos Custos Fixos:** A redução do número de agências e a
+    consequente diminuição dos custos fixos (treinamento, salários,
+    etc.) são os principais fatores que impulsionam a economia de
+    custos. Isso fica evidente nos cenários que incluem o custo do
+    salário dos entrevistadores, onde a redução de custos é mais
+    expressiva.
 
-Ao aplicar o novo critério, o modelo otimizado sugere a utilização de 13
-agências, com um custo total de aproximadamente R\$ 800 mil. Isso
-representa uma economia de R\$ 500 mil em relação ao cenário original.
-Além disso, a concentração da coleta em poucas agências é reduzida: as
-três maiores agora respondem por 26% da amostra, em vez de 36%.
+-   **Custo de Deslocamento:** Em alguns cenários, o custo de
+    deslocamento (combustível e diárias) aumenta após a otimização. Isso
+    é explicado pela necessidade de percorrer distâncias maiores para
+    cobrir as UCs com uma rede menor de agências. No entanto, esse
+    aumento é mais do que compensado pela redução dos custos fixos,
+    resultando em uma economia geral.
 
-Os resultados demonstram que a otimização da coleta de dados depende
-significativamente da redução dos custos fixos, que no cenário real
-devem ser consideravelmente maiores do que os R\$ 18 mil anuais
-utilizados neste exemplo. As próximas seções exploram outras estratégias
-para reduzir custos.
+-   **Limite de UPAs por Agência:** A imposição de um limite de 24 UPAs
+    por agência contribui para um melhor balanceamento da carga de
+    trabalho, evitando a sobrecarga em algumas agências.
 
-:::: cell
-::: cell-output-display
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="xfbyltytpw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-  
+-   **Reorganização da Jurisdição:** A reorganização da jurisdição das
+    agências também pode levar a uma redução de custos, embora em menor
+    escala do que a redução de agências e a limitação de UPAs por
+    agência.
 
-                           N Ucs Jurisdicao   N Ucs Otimo   Custo Total Jurisdicao   Custo Total Otimo   Custo Deslocamento Jurisdicao   Custo Deslocamento Otimo   Total Diarias Jurisdicao   Total Diarias Otimo
-  ------------------------ ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- -------------------------- ---------------------
-  Alagoinhas               6                  10            R\$23.563                R\$31.548           R\$1.742                        R\$9.727                   0                          10
-  Barreiras                6                  16            R\$32.828                R\$67.327           R\$10.110                       R\$44.609                  19                         95
-  Serrinha                 6                  18            R\$23.454                R\$50.206           R\$1.552                        R\$28.304                  0                          57
-  Santa Maria da Vitória   8                  21            R\$32.503                R\$82.232           R\$9.766                        R\$59.495                  19                         138
-  Teixeira de Freitas      7                  22            R\$26.988                R\$63.650           R\$4.352                        R\$41.014                  0                          76
-  Camaçari                 14                 23            R\$27.367                R\$39.755           R\$5.625                        R\$18.013                  0                          15
-  Jaguaquara               7                  23            R\$24.518                R\$68.529           R\$2.433                        R\$46.444                  0                          100
-  Feira de Santana         20                 24            R\$25.322                R\$29.350           R\$3.503                        R\$7.531                   0                          5
-  Itabuna                  6                  24            R\$30.451                R\$69.016           R\$8.259                        R\$46.824                  19                         96
-  Jacobina                 7                  24            R\$32.241                R\$88.145           R\$10.153                       R\$66.057                  19                         148
-  Ribeira do Pombal        8                  24            R\$27.319                R\$77.760           R\$5.277                        R\$55.718                  0                          120
-  Santo Antônio de Jesus   8                  24            R\$26.221                R\$59.218           R\$4.322                        R\$37.319                  0                          63
-  Vitória da Conquista     18                 24            R\$48.136                R\$69.605           R\$25.835                       R\$47.304                  57                         110
-  Demais agências          156                \-            R\$919.130               \-                  R\$141.879                      \-                         190                        \-
-  Total Superintendência   277                277           R\$1.300.041             R\$796.339          R\$234.808                      R\$508.357                 323                        1.030
+## Conclusão
 
-</div></body></html>
-:::
-::::
+A otimização da rede de coleta promovida pelo pacote `orce` tem um
+impacto significativo na redução de custos, principalmente pela
+diminuição dos custos fixos associados às agências. A estratégia mais
+eficaz envolve a combinação da redução do número de agências, a
+imposição de limites de UPAs por agência e a reorganização da
+jurisdição.
 
-Com esse novo critério, o modelo propõe coleta com 13 agências, ao custo
-de aproximadamente R\$ 800 mil, uma economia de R\$ 500 mil em relação
-ao custo original. A concentração em poucas agências também é reduzida.
-As três maiores respondem por 26% da amostra, em vez de 36%.
-
-Os resultados mostram que o aumento significativo da eficiência nos
-gastos com a coleta depende crucialmente da redução dos custos fixos,
-que no caso concreto devem ser muito maiores do que os R\$ 18 mil anuais
-aqui utilizados.
-
-As seções seguintes mostram outras possibilidades de redução de custos.
-
-#### Reorganizando a jurisdição das agências
-
-Nesta seção, exploramos o potencial de redução de custos por meio da
-reorganização da jurisdição das agências. Ao ajustar as áreas de atuação
-de cada agência, podemos identificar oportunidades para otimizar ainda
-mais as rotas de coleta e minimizar as despesas com diárias e
-deslocamentos.
-
-É importante ressaltar que qualquer mudança na jurisdição das agências
-deve ser cuidadosamente avaliada, levando em consideração não apenas os
-custos, mas também outros fatores como a capacidade operacional de cada
-agência e a familiaridade das equipes com as áreas de coleta. Os custos
-de mudança não são triviais, e devem considerar todas as
-responsabilidades das agências nas operações do IBGE, incluindo o Censo.
-
-:::: cell
-::: cell-output-display
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="xpguwvzrxf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-  
-
-                           N Ucs Jurisdicao   N Ucs Otimo   Custo Total Jurisdicao   Custo Total Otimo   Custo Deslocamento Jurisdicao   Custo Deslocamento Otimo   Total Diarias Jurisdicao   Total Diarias Otimo
-  ------------------------ ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- -------------------------- ---------------------
-  Jaguaquara               7                  10            R\$24.518                R\$26.881           R\$2.433                        R\$4.796                   0                          0
-  Ipiaú                    8                  14            R\$29.632                R\$33.512           R\$7.530                        R\$11.410                  10                         0
-  Itabuna                  6                  17            R\$30.451                R\$49.592           R\$8.259                        R\$27.400                  19                         57
-  Teixeira de Freitas      7                  21            R\$26.988                R\$59.656           R\$4.352                        R\$37.020                  0                          66
-  Camaçari                 14                 22            R\$27.367                R\$35.369           R\$5.625                        R\$13.627                  0                          10
-  Santo Antônio de Jesus   8                  22            R\$26.221                R\$42.870           R\$4.322                        R\$20.971                  0                          19
-  Jacobina                 7                  29            R\$32.241                R\$106.097          R\$10.153                       R\$84.009                  19                         190
-  Vitória da Conquista     18                 30            R\$48.136                R\$90.784           R\$25.835                       R\$68.483                  57                         162
-  Ribeira do Pombal        8                  32            R\$27.319                R\$96.118           R\$5.277                        R\$74.076                  0                          162
-  Santa Maria da Vitória   8                  34            R\$32.503                R\$132.659          R\$9.766                        R\$109.922                 19                         256
-  Feira de Santana         20                 46            R\$25.322                R\$68.382           R\$3.503                        R\$46.563                  0                          66
-  Demais agências          166                \-            R\$969.343               \-                  R\$147.753                      \-                         200                        \-
-  Total Superintendência   277                277           R\$1.300.041             R\$741.919          R\$234.808                      R\$498.276                 323                        988
-
-</div></body></html>
-:::
-::::
-
-#### Aumentando a distância sem diária
-
-Outra estratégia para reduzir custos é o aumento da duração da viagem
-que pode ser percorrida sem o pagamento de diárias. No modelo acima,
-esse limite é de 1,5 Ao flexibilizar essa restrição, para **VERIFICAR**
-2 horas, podemos ampliar o raio de atuação das agências, diminuindo a
-necessidade de pernoites e, consequentemente, os custos com diárias.
-
-Ambas as estratégias - reorganização da jurisdição e aumento da
-distância sem diária - podem ser combinadas para alcançar resultados
-mais expressivos na otimização dos custos da coleta de dados. No
-entanto, essa redução de custos ainda se mostra muito menor do que a
-estratégia de redução de custos fixos.
-
-Qualquer que seja a estratégia selecionada, acreditamos que o pacote
-orce ofereça a flexibilidade necessária para simular diferentes cenários
-e encontrar a solução que melhor se adapta às necessidades e restrições
-do projeto.
-
-:::: cell
-::: cell-output-display
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="mnoeiryung" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-  
-
-                           N Ucs Jurisdicao   N Ucs Otimo   Custo Total Jurisdicao   Custo Total Otimo   Custo Deslocamento Jurisdicao   Custo Deslocamento Otimo   Total Diarias Jurisdicao   Total Diarias Otimo
-  ------------------------ ------------------ ------------- ------------------------ ------------------- ------------------------------- -------------------------- -------------------------- ---------------------
-  Serrinha                 6                  14            R\$23.454                R\$35.060           R\$1.552                        R\$13.158                  0                          14
-  Jaguaquara               7                  18            R\$24.518                R\$47.109           R\$2.433                        R\$25.024                  0                          25
-  Camaçari                 14                 22            R\$27.367                R\$37.044           R\$5.625                        R\$15.302                  0                          14
-  Itamaraju                8                  22            R\$26.461                R\$55.677           R\$3.906                        R\$33.122                  0                          38
-  Itabuna                  6                  24            R\$26.703                R\$59.079           R\$4.511                        R\$36.887                  0                          39
-  Santo Antônio de Jesus   8                  25            R\$26.221                R\$56.049           R\$4.322                        R\$34.150                  0                          34
-  Ribeira do Pombal        8                  26            R\$27.319                R\$84.131           R\$5.277                        R\$62.089                  0                          134
-  Jacobina                 7                  29            R\$28.638                R\$103.718          R\$6.550                        R\$81.630                  0                          167
-  Vitória da Conquista     18                 31            R\$46.387                R\$90.423           R\$24.086                       R\$68.122                  48                         148
-  Feira de Santana         20                 32            R\$25.322                R\$50.461           R\$3.503                        R\$28.642                  0                          39
-  Santa Maria da Vitória   8                  34            R\$28.773                R\$130.264          R\$6.036                        R\$107.527                 0                          234
-  Demais agências          167                \-            R\$952.510               \-                  R\$130.639                      \-                         95                         \-
-  Total Superintendência   277                277           R\$1.263.673             R\$749.016          R\$198.440                      R\$505.654                 142                        886
-
-</div></body></html>
-:::
-::::
+É importante ressaltar que a otimização deve considerar não apenas os
+custos, mas também outros fatores como a qualidade dos dados coletados e
+a capacidade operacional das agências. O pacote `orce` oferece
+flexibilidade para ajustar os parâmetros e restrições do modelo,
+permitindo encontrar a solução que melhor se adapta às necessidades e
+particularidades de cada pesquisa.
 
 ------------------------------------------------------------------------
 
@@ -913,3 +779,7 @@ restrições para encontrar a solução mais eficiente.
 
 [^1]: Foram excluídas Superintendências Estaduais onde não há rotas
     rodoviárias para todos os municípios: 13, 15, 53
+
+[^2]: Observação: A coleta nas agências da capital, Salvador I e II, são
+    excluídas do modelo, pois são muito maiores do que as demais, e têm
+    coleta realizada pela supervisão estadual da Pesquisa.

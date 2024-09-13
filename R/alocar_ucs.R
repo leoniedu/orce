@@ -140,7 +140,7 @@ alocar_ucs <- function(ucs,
     custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
   }
 
-  agencias_t$fixed_cost <- custo_fixo + custo_treinamento
+  agencias_t$custo_fixo_total <- custo_fixo + custo_treinamento
 
 
   # Maximum UCs per agency
@@ -193,7 +193,7 @@ alocar_ucs <- function(ucs,
       total_diarias=dplyr::if_else(diaria, calcula_diarias(dias_coleta, meia_diaria),0),
       custo_diarias=total_diarias * valor_diaria,
       distancia_total_km=trechos * distancia_km,
-      duracao_total_horasn=trechos * duracao_horas,
+      duracao_total_horas=trechos * duracao_horas,
       custo_combustivel=((distancia_total_km / kml) * custo_litro_combustivel),
       custo_horas_viagem=(trechos * duracao_horas) * custo_hora_viagem,
       custo_troca_jurisdicao=if_else(agencia_codigo!=agencia_codigo_jurisdicao, adicional_troca_jurisdicao, 0),
@@ -224,7 +224,7 @@ alocar_ucs <- function(ucs,
     # maximize the preferences
     set_objective(sum_over(
       transport_cost(i, j)* x[i, j] , i = 1:n, j = 1:m)
-      + sum_over(agencias_sel$fixed_cost[j] * y[j], j = 1:m)
+      + sum_over(agencias_sel$custo_fixo_total[j] * y[j], j = 1:m)
       ##fix: termo com o número de entrevistadores por agência
       ## nao é fixo. depende do número de UCs na agência
       ## nao funciona (está somando o estado todo em vez de agencias)
@@ -265,14 +265,14 @@ alocar_ucs <- function(ucs,
 
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo'))|>
-    dplyr::group_by(pick(any_of(c('agencia_codigo', 'fixed_cost', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km'))))|>
+    dplyr::group_by(pick(any_of(c('agencia_codigo', 'custo_fixo_total', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km'))))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
     dplyr::ungroup()|>
     dplyr::select(-j)
 
   resultado_agencias_jurisdicao <- agencias_t|>
     dplyr::inner_join(resultado_ucs_jurisdicao, by = c('agencia_codigo'))|>
-    dplyr::group_by(pick(any_of(c('agencia_codigo', 'fixed_cost', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km'))))|>
+    dplyr::group_by(pick(any_of(c('agencia_codigo', 'custo_fixo_total', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km'))))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
     dplyr::ungroup()
 
