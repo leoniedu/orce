@@ -230,7 +230,7 @@ exposição do processo de estimação. Espírito Santo tem 78 municípios, e
 <span>  <span class="fu">geom_point</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y<span class="op">=</span><span class="va">municipio_sede_lat</span>, x<span class="op">=</span><span class="va">municipio_sede_lon</span>, color<span class="op">=</span><span class="va">agencia_nome_bdo</span><span class="op">)</span>, data<span class="op">=</span><span class="va">mnow</span>, alpha<span class="op">=</span><span class="fl">3</span><span class="op">/</span><span class="fl">4</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu">geom_point</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y<span class="op">=</span><span class="va">agencia_lat</span>, x<span class="op">=</span><span class="va">agencia_lon</span>, color<span class="op">=</span><span class="va">agencia_nome_bdo</span><span class="op">)</span>, data<span class="op">=</span><span class="va">mnow</span>, shape<span class="op">=</span><span class="fl">2</span>, size<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu">labs</span><span class="op">(</span>x<span class="op">=</span><span class="st">""</span>, y<span class="op">=</span><span class="st">""</span>, color<span class="op">=</span><span class="st">""</span><span class="op">)</span></span></code></pre></div>
-<p><img src="munic_rmd_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
+<p><img src="munic_rmd_files/figure-html/unnamed-chunk-3-1.png" width="70%" style="display: block; margin: auto;"></p>
 <p>Vamos supor que seja necessário visitar todos os 78 municípios. Como
 podemos estimar o custo da coleta? Partiremos de algumas premissas.</p>
 <ol style="list-style-type: decimal">
@@ -4657,7 +4657,7 @@ município.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p><img src="munic_rmd_files/figure-html/unnamed-chunk-17-1.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-17-2.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-17-3.png" width="700"><img src="munic_rmd_files/figure-html/unnamed-chunk-17-4.png" width="700"></p>
+<p><img src="munic_rmd_files/figure-html/unnamed-chunk-17-1.png" width="70%" style="display: block; margin: auto;"><img src="munic_rmd_files/figure-html/unnamed-chunk-17-2.png" width="70%" style="display: block; margin: auto;"><img src="munic_rmd_files/figure-html/unnamed-chunk-17-3.png" width="70%" style="display: block; margin: auto;"><img src="munic_rmd_files/figure-html/unnamed-chunk-17-4.png" width="70%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level5">
 <h5 id="resumo-da-otimização">Resumo da otimização<a class="anchor" aria-label="anchor" href="#resumo-da-otimiza%C3%A7%C3%A3o"></a>
@@ -6007,8 +6007,8 @@ rotas rodoviárias para todos os municípios: 13, 15, 53&lt;/p&gt;"><sup>1</sup>
 </div>
 </div>
 <div class="section level3">
-<h3 id="caso-2--calculando-os-custos-da-coleta-da-pof-para-a-sesbahia-incluindo-custos-fixos">Caso 2. Calculando os custos da coleta da POF para a SES/Bahia,
-incluindo custos fixos<a class="anchor" aria-label="anchor" href="#caso-2--calculando-os-custos-da-coleta-da-pof-para-a-sesbahia-incluindo-custos-fixos"></a>
+<h3 id="caso-2--a-importância-dos-custos-fixos-salário-e-treinamento-calculando-os-custos-da-coleta-da-pof-para-a-sesbahia">Caso 2. A importância dos custos fixos (salário e treinamento):
+calculando os custos da coleta da POF para a SES/Bahia<a class="anchor" aria-label="anchor" href="#caso-2--a-import%C3%A2ncia-dos-custos-fixos-sal%C3%A1rio-e-treinamento-calculando-os-custos-da-coleta-da-pof-para-a-sesbahia"></a>
 </h3>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
@@ -6033,47 +6033,93 @@ incluindo custos fixos<a class="anchor" aria-label="anchor" href="#caso-2--calcu
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>municipio_codigo<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substr</a></span><span class="op">(</span><span class="va">uc</span>,<span class="fl">1</span>,<span class="fl">7</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">agencias_municipios_diaria</span>, by<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"agencia_codigo"</span>, <span class="st">"municipio_codigo"</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter-joins.html" class="external-link">semi_join</a></span><span class="op">(</span><span class="va">amostra_uf</span>, by<span class="op">=</span><span class="st">"uc"</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>diaria_pernoite<span class="op">=</span><span class="va">duracao_horas</span><span class="op">&gt;</span><span class="va">params</span><span class="op">$</span><span class="va">horas_viagem_pernoite</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">params_pof</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>ucs<span class="op">=</span><span class="va">amostra_uf</span>,</span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>diaria_pernoite<span class="op">=</span><span class="va">duracao_horas</span><span class="op">&gt;</span><span class="fl">1.5</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co">## sem custo fixo nem custo de treinamento</span></span>
+<span><span class="va">params_pof_0</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>ucs<span class="op">=</span><span class="va">amostra_uf</span>,</span>
 <span>           custo_litro_combustivel <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>           custo_hora_viagem <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>           kml <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>           valor_diaria <span class="op">=</span> <span class="fl">335</span>,</span>
-<span>           custo_fixo <span class="op">=</span> <span class="fl">18000</span>,</span>
-<span>           dias_treinamento <span class="op">=</span> <span class="fl">11</span>,</span>
+<span>           custo_fixo <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>           dias_treinamento <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>           semi_centralizada <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>           agencias_treinadas <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>           agencias_treinamento  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'292740800'</span><span class="op">)</span>,</span>
+<span>           agencias_treinamento  <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>           distancias_ucs<span class="op">=</span><span class="va">distancias_upas</span>,</span>
-<span>           distancias_agencias<span class="op">=</span><span class="va">distancias_agencias_osrm</span>,</span>
 <span>           adicional_troca_jurisdicao  <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>           <span class="co">## experimental: fica bem mais lento</span></span>
 <span>           min_uc_agencia <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>           max_uc_agencia <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
-<p>Cada agência de coleta, para operar, necessita de, no mínimo, pessoal
-para realizar a coleta e, particularmente no caso de treinamento
-presencial, o custos de diárias e transporte até o local de
-treinamento.</p>
-<p>No exercício abaixo, temos por premissa que para realizar a POF é
-necessário contratar mais um APM na agência, ao custo (incluindo férias,
-inss e benefícios) de aproximadamente R$ 18000 por ano, ou R$ 1500 por
-mês.</p>
-<p>A esse custo vinculado a salários, temos também o custo de
-treinamento. Calculamos que, para cada agência participante da coleta
-POF, são necessárias 11 diárias de treinamento, supondo que sejam
-<em>dois</em> funcionários treinados. O custo de treinamento inclui
-custos com combustível, de acordo com a distância entre agência de
-origem e município de treinamento, e diárias, caso o município de origem
-seja diferente do município de treinamento. O município de treinamento é
-o de código .</p>
-<p>Observação: A coleta nas agências da capital, Salvador I e II, são
-excluídas do modelo, pois são muito maiores do que as demais, e têm
-coleta realizada pela supervisão estadual da Pesquisa.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span>what <span class="op">=</span> <span class="va">alocar_ucs</span>, args <span class="op">=</span> <span class="va">params_pof</span><span class="op">)</span></span>
+<span>           max_uc_agencia <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">report_plans</span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">estrategias_pof</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">params_pof_0</span><span class="op">)</span>, </span>
+<span>         descricao<span class="op">=</span><span class="st">'sem custo fixo / sem custo de treinamento'</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">params_pof_0</span>, </span>
+<span>                                <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dias_treinamento <span class="op">=</span> <span class="fl">11</span>, <span class="co"># 2 * 5,5 diárias</span></span>
+<span>                                     agencias_treinamento  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'292740800'</span><span class="op">)</span>,</span>
+<span>                                     distancias_agencias<span class="op">=</span><span class="va">distancias_agencias_osrm</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, </span>
+<span>         descricao<span class="op">=</span><span class="st">'custo de treinamento'</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">params_pof_0</span>, </span>
+<span>                                <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dias_treinamento <span class="op">=</span> <span class="fl">11</span>, <span class="co"># 2 * 5,5 diárias</span></span>
+<span>                                     agencias_treinamento  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'292740800'</span><span class="op">)</span>,</span>
+<span>                                     <span class="co">## simulando quando não há diária por conta do município (somente por pernoite)</span></span>
+<span>                                     distancias_ucs<span class="op">=</span><span class="va">distancias_upas</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>                                       <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>diaria_municipio<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>                                     distancias_agencias<span class="op">=</span><span class="va">distancias_agencias_osrm</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, </span>
+<span>         descricao<span class="op">=</span><span class="st">"custo de treinamento / reorganização"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">params_pof_0</span>, </span>
+<span>                                <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dias_treinamento <span class="op">=</span> <span class="fl">11</span>, <span class="co"># 2 * 5,5 diárias</span></span>
+<span>                                     agencias_treinamento  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'292740800'</span><span class="op">)</span>,</span>
+<span>                                     <span class="co">## diárias só com mais de duas horas de viagem</span></span>
+<span>                                     distancias_ucs<span class="op">=</span><span class="va">distancias_upas</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>                                       <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>diaria_pernoite<span class="op">=</span><span class="va">duracao_horas</span><span class="op">&gt;</span><span class="fl">2</span><span class="op">)</span>,</span>
+<span>                                     distancias_agencias<span class="op">=</span><span class="va">distancias_agencias_osrm</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, </span>
+<span>         descricao<span class="op">=</span><span class="st">"custo de treinamento / redução diárias por pernoite"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">params_pof_0</span>, </span>
+<span>                                <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dias_treinamento <span class="op">=</span> <span class="fl">11</span>, <span class="co"># 2 * 5,5 diárias</span></span>
+<span>                                     agencias_treinamento  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'292740800'</span><span class="op">)</span>,</span>
+<span>                                     custo_fixo<span class="op">=</span><span class="fl">18000</span>,</span>
+<span>                                     distancias_agencias<span class="op">=</span><span class="va">distancias_agencias_osrm</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, descricao<span class="op">=</span><span class="st">'custo de treinamento + salario de 1 apm'</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">params_pof_0</span>, </span>
+<span>                                <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dias_treinamento <span class="op">=</span> <span class="fl">11</span>, <span class="co"># 2 * 5,5 diárias</span></span>
+<span>                                     agencias_treinamento  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'292740800'</span><span class="op">)</span>,</span>
+<span>                                     custo_fixo<span class="op">=</span><span class="fl">18000</span>,</span>
+<span>                                     max_uc_agencia<span class="op">=</span><span class="fl">24</span>,</span>
+<span>                                     distancias_agencias<span class="op">=</span><span class="va">distancias_agencias_osrm</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, descricao<span class="op">=</span><span class="st">'custo de treinamento + salario de 1 apm / limite de 24 UPAs por agência'</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">params_pof_0</span>, </span>
+<span>                                <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dias_treinamento <span class="op">=</span> <span class="fl">11</span>, <span class="co"># 2 * 5,5 diárias</span></span>
+<span>                                     agencias_treinamento  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'292740800'</span><span class="op">)</span>,</span>
+<span>                                     custo_fixo<span class="op">=</span><span class="fl">0</span>,</span>
+<span>                                     max_uc_agencia<span class="op">=</span><span class="fl">24</span>,</span>
+<span>                                     adicional_troca_jurisdicao<span class="op">=</span><span class="fl">300</span>,</span>
+<span>                                     distancias_agencias<span class="op">=</span><span class="va">distancias_agencias_osrm</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, descricao<span class="op">=</span><span class="st">'custo de treinamento /  limite de 24 UPAs por agência / adicional_troca_jurisdicao'</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>resultado<span class="op">=</span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">params</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">alocar_ucs</span>, <span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">estrategias_pof_sum</span> <span class="op">&lt;-</span> </span>
+<span>  <span class="va">estrategias_pof</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rowwise.html" class="external-link">rowwise</a></span><span class="op">(</span><span class="va">descricao</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/reframe.html" class="external-link">reframe</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span></span>
+<span>      <span class="va">resultado</span><span class="op">$</span><span class="va">resultado_agencias_otimo</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>modelo<span class="op">=</span><span class="st">"Ótimo"</span><span class="op">)</span>,</span>
+<span>      <span class="va">resultado</span><span class="op">$</span><span class="va">resultado_agencias_jurisdicao</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>modelo<span class="op">=</span><span class="st">"Jurisdição"</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">modelo</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>n_agencias<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>      <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">matches</a></span><span class="op">(</span><span class="st">"custo|n_agencias"</span><span class="op">)</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">.x</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>custo_total<span class="op">=</span><span class="va">custo_deslocamento</span><span class="op">+</span><span class="va">custo_fixo_total</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">descricao</span>, <span class="va">modelo</span>, <span class="va">n_agencias</span>, <span class="va">custo_total</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">estrategias_pof_sum</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">descricao</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">modelo</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">modelo</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/across.html" class="external-link">across</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">diff</span><span class="op">)</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">descricao</span>, <span class="va">n_agencias</span>, <span class="va">custo_total</span>, <span class="va">custo_fixo_total</span>, <span class="va">custo_diarias</span>, <span class="va">custo_combustivel</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="op">-</span><span class="va">custo_total</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/gt.html" class="external-link">gt</a></span><span class="op">(</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/cols_label.html" class="external-link">cols_label</a></span><span class="op">(</span>descricao<span class="op">=</span><span class="st">'Modelo'</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/tab_caption.html" class="external-link">tab_caption</a></span><span class="op">(</span><span class="st">"Redução de custos promovido pela otimização da rede de coleta"</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu">print_gt</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div id="wkadgwxbhi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>#wkadgwxbhi table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -6524,2108 +6570,130 @@ coleta realizada pela supervisão estadual da Pesquisa.</p>
 }
 </style>
 <table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-<thead><tr class="gt_col_headings">
-<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id=""></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Jurisdicao">N Ucs Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Otimo">N Ucs Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Jurisdicao">Custo Total Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Otimo">Custo Total Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Jurisdicao">Custo Deslocamento Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Otimo">Custo Deslocamento Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Jurisdicao">Total Diarias Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Otimo">Total Diarias Otimo</th>
+<caption>Redução de custos promovido pela otimização da rede de coleta</caption>
+  <thead><tr class="gt_col_headings">
+<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="Modelo">Modelo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Agencias">N Agencias</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total">Custo Total</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Fixo Total">Custo Fixo Total</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Diarias">Custo Diarias</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Combustivel">Custo Combustivel</th>
     </tr></thead>
 <tbody class="gt_table_body">
 <tr>
-<th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">Serrinha</th>
-<td headers="stub_1_1 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
-<td headers="stub_1_1 n_ucs_otimo" class="gt_row gt_right">14</td>
-<td headers="stub_1_1 custo_total_jurisdicao" class="gt_row gt_right">R$23.454</td>
-<td headers="stub_1_1 custo_total_otimo" class="gt_row gt_right">R$35.200</td>
-<td headers="stub_1_1 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$1.552</td>
-<td headers="stub_1_1 custo_deslocamento_otimo" class="gt_row gt_right">R$13.298</td>
-<td headers="stub_1_1 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_1 total_diarias_otimo" class="gt_row gt_right">19</td>
+<td headers="descricao" class="gt_row gt_left">sem custo fixo / sem custo de treinamento</td>
+<td headers="n_agencias" class="gt_row gt_right">0</td>
+<td headers="custo_total" class="gt_row gt_right">−R$18.142</td>
+<td headers="custo_fixo_total" class="gt_row gt_right">R$0</td>
+<td headers="custo_diarias" class="gt_row gt_right">−R$18.760</td>
+<td headers="custo_combustivel" class="gt_row gt_right">R$363</td>
 </tr>
 <tr>
-<th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Jaguaquara</th>
-<td headers="stub_1_2 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_2 n_ucs_otimo" class="gt_row gt_right">19</td>
-<td headers="stub_1_2 custo_total_jurisdicao" class="gt_row gt_right">R$24.518</td>
-<td headers="stub_1_2 custo_total_otimo" class="gt_row gt_right">R$53.206</td>
-<td headers="stub_1_2 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$2.433</td>
-<td headers="stub_1_2 custo_deslocamento_otimo" class="gt_row gt_right">R$31.121</td>
-<td headers="stub_1_2 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_2 total_diarias_otimo" class="gt_row gt_right">62</td>
+<td headers="descricao" class="gt_row gt_left">custo de treinamento / redução diárias por pernoite</td>
+<td headers="n_agencias" class="gt_row gt_right">−15</td>
+<td headers="custo_total" class="gt_row gt_right">−R$46.536</td>
+<td headers="custo_fixo_total" class="gt_row gt_right">−R$62.111</td>
+<td headers="custo_diarias" class="gt_row gt_right">R$2.010</td>
+<td headers="custo_combustivel" class="gt_row gt_right">R$10.574</td>
 </tr>
 <tr>
-<th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Teixeira de Freitas</th>
-<td headers="stub_1_3 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_3 n_ucs_otimo" class="gt_row gt_right">21</td>
-<td headers="stub_1_3 custo_total_jurisdicao" class="gt_row gt_right">R$26.988</td>
-<td headers="stub_1_3 custo_total_otimo" class="gt_row gt_right">R$59.656</td>
-<td headers="stub_1_3 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$4.352</td>
-<td headers="stub_1_3 custo_deslocamento_otimo" class="gt_row gt_right">R$37.020</td>
-<td headers="stub_1_3 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_3 total_diarias_otimo" class="gt_row gt_right">66</td>
+<td headers="descricao" class="gt_row gt_left">custo de treinamento /  limite de 24 UPAs por agência / adicional_troca_jurisdicao</td>
+<td headers="n_agencias" class="gt_row gt_right">−13</td>
+<td headers="custo_total" class="gt_row gt_right">−R$49.149</td>
+<td headers="custo_fixo_total" class="gt_row gt_right">−R$54.152</td>
+<td headers="custo_diarias" class="gt_row gt_right">−R$7.538</td>
+<td headers="custo_combustivel" class="gt_row gt_right">R$9.897</td>
 </tr>
 <tr>
-<th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Camaçari</th>
-<td headers="stub_1_4 n_ucs_jurisdicao" class="gt_row gt_right">14</td>
-<td headers="stub_1_4 n_ucs_otimo" class="gt_row gt_right">22</td>
-<td headers="stub_1_4 custo_total_jurisdicao" class="gt_row gt_right">R$27.367</td>
-<td headers="stub_1_4 custo_total_otimo" class="gt_row gt_right">R$37.044</td>
-<td headers="stub_1_4 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$5.625</td>
-<td headers="stub_1_4 custo_deslocamento_otimo" class="gt_row gt_right">R$15.302</td>
-<td headers="stub_1_4 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_4 total_diarias_otimo" class="gt_row gt_right">14</td>
+<td headers="descricao" class="gt_row gt_left">custo de treinamento</td>
+<td headers="n_agencias" class="gt_row gt_right">−15</td>
+<td headers="custo_total" class="gt_row gt_right">−R$51.468</td>
+<td headers="custo_fixo_total" class="gt_row gt_right">−R$62.501</td>
+<td headers="custo_diarias" class="gt_row gt_right">−R$4.355</td>
+<td headers="custo_combustivel" class="gt_row gt_right">R$12.120</td>
 </tr>
 <tr>
-<th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Santo Antônio de Jesus</th>
-<td headers="stub_1_5 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_5 n_ucs_otimo" class="gt_row gt_right">22</td>
-<td headers="stub_1_5 custo_total_jurisdicao" class="gt_row gt_right">R$26.221</td>
-<td headers="stub_1_5 custo_total_otimo" class="gt_row gt_right">R$51.745</td>
-<td headers="stub_1_5 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$4.322</td>
-<td headers="stub_1_5 custo_deslocamento_otimo" class="gt_row gt_right">R$29.846</td>
-<td headers="stub_1_5 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_5 total_diarias_otimo" class="gt_row gt_right">44</td>
+<td headers="descricao" class="gt_row gt_left">custo de treinamento / reorganização</td>
+<td headers="n_agencias" class="gt_row gt_right">−17</td>
+<td headers="custo_total" class="gt_row gt_right">−R$65.266</td>
+<td headers="custo_fixo_total" class="gt_row gt_right">−R$70.579</td>
+<td headers="custo_diarias" class="gt_row gt_right">−R$12.730</td>
+<td headers="custo_combustivel" class="gt_row gt_right">R$14.180</td>
 </tr>
 <tr>
-<th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Itabuna</th>
-<td headers="stub_1_6 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
-<td headers="stub_1_6 n_ucs_otimo" class="gt_row gt_right">23</td>
-<td headers="stub_1_6 custo_total_jurisdicao" class="gt_row gt_right">R$30.451</td>
-<td headers="stub_1_6 custo_total_otimo" class="gt_row gt_right">R$65.082</td>
-<td headers="stub_1_6 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$8.259</td>
-<td headers="stub_1_6 custo_deslocamento_otimo" class="gt_row gt_right">R$42.890</td>
-<td headers="stub_1_6 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_6 total_diarias_otimo" class="gt_row gt_right">86</td>
+<td headers="descricao" class="gt_row gt_left">custo de treinamento + salario de 1 apm / limite de 24 UPAs por agência</td>
+<td headers="n_agencias" class="gt_row gt_right">−35</td>
+<td headers="custo_total" class="gt_row gt_right">−R$503.702</td>
+<td headers="custo_fixo_total" class="gt_row gt_right">−R$777.251</td>
+<td headers="custo_diarias" class="gt_row gt_right">R$237.012</td>
+<td headers="custo_combustivel" class="gt_row gt_right">R$30.102</td>
 </tr>
 <tr>
-<th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Ribeira do Pombal</th>
-<td headers="stub_1_7 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_7 n_ucs_otimo" class="gt_row gt_right">26</td>
-<td headers="stub_1_7 custo_total_jurisdicao" class="gt_row gt_right">R$27.319</td>
-<td headers="stub_1_7 custo_total_otimo" class="gt_row gt_right">R$84.394</td>
-<td headers="stub_1_7 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$5.277</td>
-<td headers="stub_1_7 custo_deslocamento_otimo" class="gt_row gt_right">R$62.352</td>
-<td headers="stub_1_7 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_7 total_diarias_otimo" class="gt_row gt_right">138</td>
-</tr>
-<tr>
-<th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Jacobina</th>
-<td headers="stub_1_8 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_8 n_ucs_otimo" class="gt_row gt_right">29</td>
-<td headers="stub_1_8 custo_total_jurisdicao" class="gt_row gt_right">R$32.241</td>
-<td headers="stub_1_8 custo_total_otimo" class="gt_row gt_right">R$107.772</td>
-<td headers="stub_1_8 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$10.153</td>
-<td headers="stub_1_8 custo_deslocamento_otimo" class="gt_row gt_right">R$85.684</td>
-<td headers="stub_1_8 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_8 total_diarias_otimo" class="gt_row gt_right">195</td>
-</tr>
-<tr>
-<th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Vitória da Conquista</th>
-<td headers="stub_1_9 n_ucs_jurisdicao" class="gt_row gt_right">18</td>
-<td headers="stub_1_9 n_ucs_otimo" class="gt_row gt_right">31</td>
-<td headers="stub_1_9 custo_total_jurisdicao" class="gt_row gt_right">R$48.136</td>
-<td headers="stub_1_9 custo_total_otimo" class="gt_row gt_right">R$96.029</td>
-<td headers="stub_1_9 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$25.835</td>
-<td headers="stub_1_9 custo_deslocamento_otimo" class="gt_row gt_right">R$73.728</td>
-<td headers="stub_1_9 total_diarias_jurisdicao" class="gt_row gt_right">57</td>
-<td headers="stub_1_9 total_diarias_otimo" class="gt_row gt_right">176</td>
-</tr>
-<tr>
-<th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Santa Maria da Vitória</th>
-<td headers="stub_1_10 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_10 n_ucs_otimo" class="gt_row gt_right">34</td>
-<td headers="stub_1_10 custo_total_jurisdicao" class="gt_row gt_right">R$32.503</td>
-<td headers="stub_1_10 custo_total_otimo" class="gt_row gt_right">R$134.334</td>
-<td headers="stub_1_10 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$9.766</td>
-<td headers="stub_1_10 custo_deslocamento_otimo" class="gt_row gt_right">R$111.597</td>
-<td headers="stub_1_10 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_10 total_diarias_otimo" class="gt_row gt_right">262</td>
-</tr>
-<tr>
-<th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Feira de Santana</th>
-<td headers="stub_1_11 n_ucs_jurisdicao" class="gt_row gt_right">20</td>
-<td headers="stub_1_11 n_ucs_otimo" class="gt_row gt_right">36</td>
-<td headers="stub_1_11 custo_total_jurisdicao" class="gt_row gt_right">R$25.322</td>
-<td headers="stub_1_11 custo_total_otimo" class="gt_row gt_right">R$64.836</td>
-<td headers="stub_1_11 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$3.503</td>
-<td headers="stub_1_11 custo_deslocamento_otimo" class="gt_row gt_right">R$43.016</td>
-<td headers="stub_1_11 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_11 total_diarias_otimo" class="gt_row gt_right">82</td>
-</tr>
-<tr>
-<th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub">Demais agências</th>
-<td headers="stub_1_12 n_ucs_jurisdicao" class="gt_row gt_right">168</td>
-<td headers="stub_1_12 n_ucs_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_12 custo_total_jurisdicao" class="gt_row gt_right">R$975.520</td>
-<td headers="stub_1_12 custo_total_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_12 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$153.730</td>
-<td headers="stub_1_12 custo_deslocamento_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_12 total_diarias_jurisdicao" class="gt_row gt_right">209</td>
-<td headers="stub_1_12 total_diarias_otimo" class="gt_row gt_right">-</td>
-</tr>
-<tr>
-<th id="grand_summary_stub_1" scope="row" class="gt_row gt_left gt_stub gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">Total Superintendência</th>
-<td headers="grand_summary_stub_1 n_ucs_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
-<td headers="grand_summary_stub_1 n_ucs_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
-<td headers="grand_summary_stub_1 custo_total_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$1.300.041</td>
-<td headers="grand_summary_stub_1 custo_total_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$789.297</td>
-<td headers="grand_summary_stub_1 custo_deslocamento_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$234.808</td>
-<td headers="grand_summary_stub_1 custo_deslocamento_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$545.854</td>
-<td headers="grand_summary_stub_1 total_diarias_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">323</td>
-<td headers="grand_summary_stub_1 total_diarias_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">1.146</td>
+<td headers="descricao" class="gt_row gt_left">custo de treinamento + salario de 1 apm</td>
+<td headers="n_agencias" class="gt_row gt_right">−37</td>
+<td headers="custo_total" class="gt_row gt_right">−R$510.744</td>
+<td headers="custo_fixo_total" class="gt_row gt_right">−R$821.790</td>
+<td headers="custo_diarias" class="gt_row gt_right">R$275.538</td>
+<td headers="custo_combustivel" class="gt_row gt_right">R$29.137</td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>**** VERIFICAR/AUTOMATIZAR ***</p>
-<p>O modelo otimizado sugere uma redução de mais de 77% no número de
-agências de coleta, resultando em uma diminuição de 40% no custo total,
-de R$ 1,3 milhão para R$ 789 mil. Embora o custo de deslocamento aumente
-para R$ 546 mil no plano otimizado, essa elevação é compensada pela
-significativa redução de 75% nos custos fixos das agências, que caem de
-mais de R$ 1 milhão para R$ 243 mil.</p>
-<p>Apesar da redução de custos, o modelo inicial apresenta desafios. A
-carga de trabalho em algumas agências, como Feira de Santana e Santa
-Maria da Vitória, é incompatível com a capacidade de dois APMs. Além
-disso, a coleta fica concentrada em poucas agências: as três maiores são
-responsáveis por 36% da amostra.</p>
-<p>Para balancear a carga de trabalho e considerar o maior tempo de
-deslocamento nas agências do interior, propomos um novo critério: um
-limite máximo de 24 UPAs da POF por agência, o que equivale a uma média
-de 2 UPAs por mês. Essa restrição visa distribuir a coleta de forma mais
-equitativa entre as agências.</p>
-<p>Ao aplicar o novo critério, o modelo otimizado sugere a utilização de
-13 agências, com um custo total de aproximadamente R$ 800 mil. Isso
-representa uma economia de R$ 500 mil em relação ao cenário original.
-Além disso, a concentração da coleta em poucas agências é reduzida: as
-três maiores agora respondem por 26% da amostra, em vez de 36%.</p>
-<p>Os resultados demonstram que a otimização da coleta de dados depende
-significativamente da redução dos custos fixos, que no cenário real
-devem ser consideravelmente maiores do que os R$ 18 mil anuais
-utilizados neste exemplo. As próximas seções exploram outras estratégias
-para reduzir custos.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">params_pof_24max</span> <span class="op">&lt;-</span> <span class="va">params_pof</span></span>
-<span><span class="va">params_pof_24max</span><span class="op">$</span><span class="va">max_uc_agencia</span> <span class="op">&lt;-</span> <span class="fl">24</span></span>
-<span><span class="va">r_pof_24max</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span>what <span class="op">=</span> <span class="va">alocar_ucs</span>, args <span class="op">=</span> <span class="va">params_pof_24max</span><span class="op">)</span></span>
-<span></span>
-<span></span>
-<span><span class="fu">report_plans</span><span class="op">(</span><span class="va">r_pof_24max</span><span class="op">)</span></span></code></pre></div>
-<div id="sifmmyucmr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#sifmmyucmr table {
-  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#sifmmyucmr thead, #sifmmyucmr tbody, #sifmmyucmr tfoot, #sifmmyucmr tr, #sifmmyucmr td, #sifmmyucmr th {
-  border-style: none;
-}
-
-#sifmmyucmr p {
-  margin: 0;
-  padding: 0;
-}
-
-#sifmmyucmr .gt_table {
-  display: table;
-  border-collapse: collapse;
-  line-height: normal;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_caption {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#sifmmyucmr .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#sifmmyucmr .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 3px;
-  padding-bottom: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#sifmmyucmr .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#sifmmyucmr .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#sifmmyucmr .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#sifmmyucmr .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#sifmmyucmr .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#sifmmyucmr .gt_spanner_row {
-  border-bottom-style: hidden;
-}
-
-#sifmmyucmr .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  text-align: left;
-}
-
-#sifmmyucmr .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#sifmmyucmr .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#sifmmyucmr .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#sifmmyucmr .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#sifmmyucmr .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#sifmmyucmr .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#sifmmyucmr .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#sifmmyucmr .gt_row_group_first th {
-  border-top-width: 2px;
-}
-
-#sifmmyucmr .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#sifmmyucmr .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#sifmmyucmr .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#sifmmyucmr .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_last_grand_summary_row_top {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: double;
-  border-bottom-width: 6px;
-  border-bottom-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#sifmmyucmr .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#sifmmyucmr .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#sifmmyucmr .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#sifmmyucmr .gt_left {
-  text-align: left;
-}
-
-#sifmmyucmr .gt_center {
-  text-align: center;
-}
-
-#sifmmyucmr .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#sifmmyucmr .gt_font_normal {
-  font-weight: normal;
-}
-
-#sifmmyucmr .gt_font_bold {
-  font-weight: bold;
-}
-
-#sifmmyucmr .gt_font_italic {
-  font-style: italic;
-}
-
-#sifmmyucmr .gt_super {
-  font-size: 65%;
-}
-
-#sifmmyucmr .gt_footnote_marks {
-  font-size: 75%;
-  vertical-align: 0.4em;
-  position: initial;
-}
-
-#sifmmyucmr .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#sifmmyucmr .gt_indent_1 {
-  text-indent: 5px;
-}
-
-#sifmmyucmr .gt_indent_2 {
-  text-indent: 10px;
-}
-
-#sifmmyucmr .gt_indent_3 {
-  text-indent: 15px;
-}
-
-#sifmmyucmr .gt_indent_4 {
-  text-indent: 20px;
-}
-
-#sifmmyucmr .gt_indent_5 {
-  text-indent: 25px;
-}
-
-#sifmmyucmr .katex-display {
-  display: inline-flex !important;
-  margin-bottom: 0.75em !important;
-}
-
-#sifmmyucmr div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
-  height: 0px !important;
-}
-</style>
-<table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-<thead><tr class="gt_col_headings">
-<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id=""></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Jurisdicao">N Ucs Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Otimo">N Ucs Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Jurisdicao">Custo Total Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Otimo">Custo Total Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Jurisdicao">Custo Deslocamento Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Otimo">Custo Deslocamento Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Jurisdicao">Total Diarias Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Otimo">Total Diarias Otimo</th>
-    </tr></thead>
-<tbody class="gt_table_body">
-<tr>
-<th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">Alagoinhas</th>
-<td headers="stub_1_1 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
-<td headers="stub_1_1 n_ucs_otimo" class="gt_row gt_right">10</td>
-<td headers="stub_1_1 custo_total_jurisdicao" class="gt_row gt_right">R$23.563</td>
-<td headers="stub_1_1 custo_total_otimo" class="gt_row gt_right">R$31.548</td>
-<td headers="stub_1_1 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$1.742</td>
-<td headers="stub_1_1 custo_deslocamento_otimo" class="gt_row gt_right">R$9.727</td>
-<td headers="stub_1_1 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_1 total_diarias_otimo" class="gt_row gt_right">10</td>
-</tr>
-<tr>
-<th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Barreiras</th>
-<td headers="stub_1_2 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
-<td headers="stub_1_2 n_ucs_otimo" class="gt_row gt_right">16</td>
-<td headers="stub_1_2 custo_total_jurisdicao" class="gt_row gt_right">R$32.828</td>
-<td headers="stub_1_2 custo_total_otimo" class="gt_row gt_right">R$67.327</td>
-<td headers="stub_1_2 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$10.110</td>
-<td headers="stub_1_2 custo_deslocamento_otimo" class="gt_row gt_right">R$44.609</td>
-<td headers="stub_1_2 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_2 total_diarias_otimo" class="gt_row gt_right">95</td>
-</tr>
-<tr>
-<th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Serrinha</th>
-<td headers="stub_1_3 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
-<td headers="stub_1_3 n_ucs_otimo" class="gt_row gt_right">18</td>
-<td headers="stub_1_3 custo_total_jurisdicao" class="gt_row gt_right">R$23.454</td>
-<td headers="stub_1_3 custo_total_otimo" class="gt_row gt_right">R$50.206</td>
-<td headers="stub_1_3 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$1.552</td>
-<td headers="stub_1_3 custo_deslocamento_otimo" class="gt_row gt_right">R$28.304</td>
-<td headers="stub_1_3 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_3 total_diarias_otimo" class="gt_row gt_right">57</td>
-</tr>
-<tr>
-<th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Santa Maria da Vitória</th>
-<td headers="stub_1_4 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_4 n_ucs_otimo" class="gt_row gt_right">21</td>
-<td headers="stub_1_4 custo_total_jurisdicao" class="gt_row gt_right">R$32.503</td>
-<td headers="stub_1_4 custo_total_otimo" class="gt_row gt_right">R$82.232</td>
-<td headers="stub_1_4 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$9.766</td>
-<td headers="stub_1_4 custo_deslocamento_otimo" class="gt_row gt_right">R$59.495</td>
-<td headers="stub_1_4 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_4 total_diarias_otimo" class="gt_row gt_right">138</td>
-</tr>
-<tr>
-<th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Teixeira de Freitas</th>
-<td headers="stub_1_5 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_5 n_ucs_otimo" class="gt_row gt_right">22</td>
-<td headers="stub_1_5 custo_total_jurisdicao" class="gt_row gt_right">R$26.988</td>
-<td headers="stub_1_5 custo_total_otimo" class="gt_row gt_right">R$63.650</td>
-<td headers="stub_1_5 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$4.352</td>
-<td headers="stub_1_5 custo_deslocamento_otimo" class="gt_row gt_right">R$41.014</td>
-<td headers="stub_1_5 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_5 total_diarias_otimo" class="gt_row gt_right">76</td>
-</tr>
-<tr>
-<th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Camaçari</th>
-<td headers="stub_1_6 n_ucs_jurisdicao" class="gt_row gt_right">14</td>
-<td headers="stub_1_6 n_ucs_otimo" class="gt_row gt_right">23</td>
-<td headers="stub_1_6 custo_total_jurisdicao" class="gt_row gt_right">R$27.367</td>
-<td headers="stub_1_6 custo_total_otimo" class="gt_row gt_right">R$39.755</td>
-<td headers="stub_1_6 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$5.625</td>
-<td headers="stub_1_6 custo_deslocamento_otimo" class="gt_row gt_right">R$18.013</td>
-<td headers="stub_1_6 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_6 total_diarias_otimo" class="gt_row gt_right">15</td>
-</tr>
-<tr>
-<th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Jaguaquara</th>
-<td headers="stub_1_7 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_7 n_ucs_otimo" class="gt_row gt_right">23</td>
-<td headers="stub_1_7 custo_total_jurisdicao" class="gt_row gt_right">R$24.518</td>
-<td headers="stub_1_7 custo_total_otimo" class="gt_row gt_right">R$68.529</td>
-<td headers="stub_1_7 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$2.433</td>
-<td headers="stub_1_7 custo_deslocamento_otimo" class="gt_row gt_right">R$46.444</td>
-<td headers="stub_1_7 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_7 total_diarias_otimo" class="gt_row gt_right">100</td>
-</tr>
-<tr>
-<th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Feira de Santana</th>
-<td headers="stub_1_8 n_ucs_jurisdicao" class="gt_row gt_right">20</td>
-<td headers="stub_1_8 n_ucs_otimo" class="gt_row gt_right">24</td>
-<td headers="stub_1_8 custo_total_jurisdicao" class="gt_row gt_right">R$25.322</td>
-<td headers="stub_1_8 custo_total_otimo" class="gt_row gt_right">R$29.350</td>
-<td headers="stub_1_8 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$3.503</td>
-<td headers="stub_1_8 custo_deslocamento_otimo" class="gt_row gt_right">R$7.531</td>
-<td headers="stub_1_8 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_8 total_diarias_otimo" class="gt_row gt_right">5</td>
-</tr>
-<tr>
-<th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Itabuna</th>
-<td headers="stub_1_9 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
-<td headers="stub_1_9 n_ucs_otimo" class="gt_row gt_right">24</td>
-<td headers="stub_1_9 custo_total_jurisdicao" class="gt_row gt_right">R$30.451</td>
-<td headers="stub_1_9 custo_total_otimo" class="gt_row gt_right">R$69.016</td>
-<td headers="stub_1_9 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$8.259</td>
-<td headers="stub_1_9 custo_deslocamento_otimo" class="gt_row gt_right">R$46.824</td>
-<td headers="stub_1_9 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_9 total_diarias_otimo" class="gt_row gt_right">96</td>
-</tr>
-<tr>
-<th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Jacobina</th>
-<td headers="stub_1_10 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_10 n_ucs_otimo" class="gt_row gt_right">24</td>
-<td headers="stub_1_10 custo_total_jurisdicao" class="gt_row gt_right">R$32.241</td>
-<td headers="stub_1_10 custo_total_otimo" class="gt_row gt_right">R$88.145</td>
-<td headers="stub_1_10 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$10.153</td>
-<td headers="stub_1_10 custo_deslocamento_otimo" class="gt_row gt_right">R$66.057</td>
-<td headers="stub_1_10 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_10 total_diarias_otimo" class="gt_row gt_right">148</td>
-</tr>
-<tr>
-<th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Ribeira do Pombal</th>
-<td headers="stub_1_11 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_11 n_ucs_otimo" class="gt_row gt_right">24</td>
-<td headers="stub_1_11 custo_total_jurisdicao" class="gt_row gt_right">R$27.319</td>
-<td headers="stub_1_11 custo_total_otimo" class="gt_row gt_right">R$77.760</td>
-<td headers="stub_1_11 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$5.277</td>
-<td headers="stub_1_11 custo_deslocamento_otimo" class="gt_row gt_right">R$55.718</td>
-<td headers="stub_1_11 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_11 total_diarias_otimo" class="gt_row gt_right">120</td>
-</tr>
-<tr>
-<th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub">Santo Antônio de Jesus</th>
-<td headers="stub_1_12 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_12 n_ucs_otimo" class="gt_row gt_right">24</td>
-<td headers="stub_1_12 custo_total_jurisdicao" class="gt_row gt_right">R$26.221</td>
-<td headers="stub_1_12 custo_total_otimo" class="gt_row gt_right">R$59.218</td>
-<td headers="stub_1_12 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$4.322</td>
-<td headers="stub_1_12 custo_deslocamento_otimo" class="gt_row gt_right">R$37.319</td>
-<td headers="stub_1_12 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_12 total_diarias_otimo" class="gt_row gt_right">63</td>
-</tr>
-<tr>
-<th id="stub_1_13" scope="row" class="gt_row gt_left gt_stub">Vitória da Conquista</th>
-<td headers="stub_1_13 n_ucs_jurisdicao" class="gt_row gt_right">18</td>
-<td headers="stub_1_13 n_ucs_otimo" class="gt_row gt_right">24</td>
-<td headers="stub_1_13 custo_total_jurisdicao" class="gt_row gt_right">R$48.136</td>
-<td headers="stub_1_13 custo_total_otimo" class="gt_row gt_right">R$69.605</td>
-<td headers="stub_1_13 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$25.835</td>
-<td headers="stub_1_13 custo_deslocamento_otimo" class="gt_row gt_right">R$47.304</td>
-<td headers="stub_1_13 total_diarias_jurisdicao" class="gt_row gt_right">57</td>
-<td headers="stub_1_13 total_diarias_otimo" class="gt_row gt_right">110</td>
-</tr>
-<tr>
-<th id="stub_1_14" scope="row" class="gt_row gt_left gt_stub">Demais agências</th>
-<td headers="stub_1_14 n_ucs_jurisdicao" class="gt_row gt_right">156</td>
-<td headers="stub_1_14 n_ucs_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_14 custo_total_jurisdicao" class="gt_row gt_right">R$919.130</td>
-<td headers="stub_1_14 custo_total_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_14 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$141.879</td>
-<td headers="stub_1_14 custo_deslocamento_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_14 total_diarias_jurisdicao" class="gt_row gt_right">190</td>
-<td headers="stub_1_14 total_diarias_otimo" class="gt_row gt_right">-</td>
-</tr>
-<tr>
-<th id="grand_summary_stub_1" scope="row" class="gt_row gt_left gt_stub gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">Total Superintendência</th>
-<td headers="grand_summary_stub_1 n_ucs_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
-<td headers="grand_summary_stub_1 n_ucs_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
-<td headers="grand_summary_stub_1 custo_total_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$1.300.041</td>
-<td headers="grand_summary_stub_1 custo_total_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$796.339</td>
-<td headers="grand_summary_stub_1 custo_deslocamento_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$234.808</td>
-<td headers="grand_summary_stub_1 custo_deslocamento_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$508.357</td>
-<td headers="grand_summary_stub_1 total_diarias_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">323</td>
-<td headers="grand_summary_stub_1 total_diarias_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">1.030</td>
-</tr>
-</tbody>
-</table>
+<p>A tabela demonstra o impacto da otimização da rede de coleta em
+diferentes cenários, considerando custos fixos, diárias, combustível e
+número de agências envolvidas<a class="footnote-ref" tabindex="0" data-bs-toggle="popover" data-bs-content="&lt;p&gt;Observação: A coleta nas agências da capital, Salvador I
+e II, são excluídas do modelo, pois são muito maiores do que as demais,
+e têm coleta realizada pela supervisão estadual da Pesquisa.&lt;/p&gt;"><sup>2</sup></a>.</p>
+<p><strong>Principais Observações:</strong></p>
+<p>Em todos os cenários, a otimização resultou em redução significativa
+do custo total.</p>
+<ul>
+<li><p><strong>Realocação de UPAs entre as agências:</strong> Outras
+medidas também tem seu impacto. A redistribuição ótima de UPAs entre as
+agências, sem alteração no número de agências na coleta, tem o não
+desprezível impacto de R$ 18 mil.</p></li>
+<li><p><strong>Custo de treinamento:</strong> Se incluímos os custos de
+treinamento (2 funcionários por agência) o número de agência ótimo
+diminui bastante (cerca de 30%), e o valor economizado salta para cerca
+de R$ 50 mil. O custo de deslocamento (combustível e diárias) aumenta
+após a otimização. Isso é explicado pela necessidade de percorrer
+distâncias maiores para cobrir as UCs com uma rede menor de agências. No
+entanto, esse aumento é mais do que compensado pela redução dos custos
+fixos, resultando em uma economia geral.</p></li>
+<li><p><strong>Reorganização da Jurisdição:</strong> A reorganização da
+jurisdição das agências também pode levar a uma redução de custos. Por
+exemplo, quando incluímos o custo de treinamento e reorganizamos a
+jurisdição das agências de modo a minimizar o pagamento de diárias, a
+economia salta de R$ 50 mil para R$ 65 mil.</p></li>
+<li><p><strong>Limite de UPAs por Agência:</strong> A imposição de um
+limite de 24 UPAs por agência contribui para um melhor balanceamento da
+carga de trabalho, evitando a sobrecarga em algumas agências. O impacto
+dessa restrição na economia prevista é razoavelmente pequeno nos casos
+analisados.</p></li>
+<li><p><strong>Redução de Custos de Pessoal:</strong> Quando incluímos a
+despesa com somente um entrevistador adicional por agência, além do de
+treinamento para dois funcionários, a economia gerada passa de R$ 500
+mil. É definitivamente aqui que está o mais efetivo instrumento para
+reduzir os custos de coleta.</p></li>
+</ul>
 </div>
-<p>Com esse novo critério, o modelo propõe coleta com 13 agências, ao
-custo de aproximadamente R$ 800 mil, uma economia de R$ 500 mil em
-relação ao custo original. A concentração em poucas agências também é
-reduzida. As três maiores respondem por 26% da amostra, em vez de
-36%.</p>
-<p>Os resultados mostram que o aumento significativo da eficiência nos
-gastos com a coleta depende crucialmente da redução dos custos fixos,
-que no caso concreto devem ser muito maiores do que os R$ 18 mil anuais
-aqui utilizados.</p>
-<p>As seções seguintes mostram outras possibilidades de redução de
-custos.</p>
-<div class="section level5">
-<h5 id="reorganizando-a-jurisdição-das-agências">Reorganizando a jurisdição das agências<a class="anchor" aria-label="anchor" href="#reorganizando-a-jurisdi%C3%A7%C3%A3o-das-ag%C3%AAncias"></a>
-</h5>
-<p>Nesta seção, exploramos o potencial de redução de custos por meio da
-reorganização da jurisdição das agências. Ao ajustar as áreas de atuação
-de cada agência, podemos identificar oportunidades para otimizar ainda
-mais as rotas de coleta e minimizar as despesas com diárias e
-deslocamentos.</p>
-<p>É importante ressaltar que qualquer mudança na jurisdição das
-agências deve ser cuidadosamente avaliada, levando em consideração não
-apenas os custos, mas também outros fatores como a capacidade
-operacional de cada agência e a familiaridade das equipes com as áreas
-de coleta. Os custos de mudança não são triviais, e devem considerar
-todas as responsabilidades das agências nas operações do IBGE, incluindo
-o Censo.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">params_pof_sem_j</span> <span class="op">&lt;-</span> <span class="va">params_pof</span></span>
-<span><span class="va">params_pof_sem_j</span><span class="op">$</span><span class="va">distancias_ucs</span> <span class="op">&lt;-</span> <span class="va">params_pof</span><span class="op">$</span><span class="va">distancias_ucs</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>diaria_municipio<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">r_sem_jurisdicao</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span>what <span class="op">=</span> <span class="va">alocar_ucs</span>, args <span class="op">=</span> <span class="va">params_pof_sem_j</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">report_plans</span><span class="op">(</span><span class="va">r_sem_jurisdicao</span><span class="op">)</span></span></code></pre></div>
-<div id="wtkdbirsls" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#wtkdbirsls table {
-  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#wtkdbirsls thead, #wtkdbirsls tbody, #wtkdbirsls tfoot, #wtkdbirsls tr, #wtkdbirsls td, #wtkdbirsls th {
-  border-style: none;
-}
-
-#wtkdbirsls p {
-  margin: 0;
-  padding: 0;
-}
-
-#wtkdbirsls .gt_table {
-  display: table;
-  border-collapse: collapse;
-  line-height: normal;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_caption {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#wtkdbirsls .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#wtkdbirsls .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 3px;
-  padding-bottom: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#wtkdbirsls .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#wtkdbirsls .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#wtkdbirsls .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#wtkdbirsls .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#wtkdbirsls .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#wtkdbirsls .gt_spanner_row {
-  border-bottom-style: hidden;
-}
-
-#wtkdbirsls .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  text-align: left;
-}
-
-#wtkdbirsls .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#wtkdbirsls .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#wtkdbirsls .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#wtkdbirsls .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#wtkdbirsls .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#wtkdbirsls .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#wtkdbirsls .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#wtkdbirsls .gt_row_group_first th {
-  border-top-width: 2px;
-}
-
-#wtkdbirsls .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#wtkdbirsls .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#wtkdbirsls .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#wtkdbirsls .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_last_grand_summary_row_top {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: double;
-  border-bottom-width: 6px;
-  border-bottom-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#wtkdbirsls .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#wtkdbirsls .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#wtkdbirsls .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#wtkdbirsls .gt_left {
-  text-align: left;
-}
-
-#wtkdbirsls .gt_center {
-  text-align: center;
-}
-
-#wtkdbirsls .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#wtkdbirsls .gt_font_normal {
-  font-weight: normal;
-}
-
-#wtkdbirsls .gt_font_bold {
-  font-weight: bold;
-}
-
-#wtkdbirsls .gt_font_italic {
-  font-style: italic;
-}
-
-#wtkdbirsls .gt_super {
-  font-size: 65%;
-}
-
-#wtkdbirsls .gt_footnote_marks {
-  font-size: 75%;
-  vertical-align: 0.4em;
-  position: initial;
-}
-
-#wtkdbirsls .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#wtkdbirsls .gt_indent_1 {
-  text-indent: 5px;
-}
-
-#wtkdbirsls .gt_indent_2 {
-  text-indent: 10px;
-}
-
-#wtkdbirsls .gt_indent_3 {
-  text-indent: 15px;
-}
-
-#wtkdbirsls .gt_indent_4 {
-  text-indent: 20px;
-}
-
-#wtkdbirsls .gt_indent_5 {
-  text-indent: 25px;
-}
-
-#wtkdbirsls .katex-display {
-  display: inline-flex !important;
-  margin-bottom: 0.75em !important;
-}
-
-#wtkdbirsls div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
-  height: 0px !important;
-}
-</style>
-<table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-<thead><tr class="gt_col_headings">
-<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id=""></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Jurisdicao">N Ucs Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Otimo">N Ucs Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Jurisdicao">Custo Total Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Otimo">Custo Total Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Jurisdicao">Custo Deslocamento Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Otimo">Custo Deslocamento Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Jurisdicao">Total Diarias Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Otimo">Total Diarias Otimo</th>
-    </tr></thead>
-<tbody class="gt_table_body">
-<tr>
-<th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">Jaguaquara</th>
-<td headers="stub_1_1 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_1 n_ucs_otimo" class="gt_row gt_right">10</td>
-<td headers="stub_1_1 custo_total_jurisdicao" class="gt_row gt_right">R$24.518</td>
-<td headers="stub_1_1 custo_total_otimo" class="gt_row gt_right">R$26.881</td>
-<td headers="stub_1_1 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$2.433</td>
-<td headers="stub_1_1 custo_deslocamento_otimo" class="gt_row gt_right">R$4.796</td>
-<td headers="stub_1_1 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_1 total_diarias_otimo" class="gt_row gt_right">0</td>
-</tr>
-<tr>
-<th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Ipiaú</th>
-<td headers="stub_1_2 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_2 n_ucs_otimo" class="gt_row gt_right">14</td>
-<td headers="stub_1_2 custo_total_jurisdicao" class="gt_row gt_right">R$29.632</td>
-<td headers="stub_1_2 custo_total_otimo" class="gt_row gt_right">R$33.512</td>
-<td headers="stub_1_2 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$7.530</td>
-<td headers="stub_1_2 custo_deslocamento_otimo" class="gt_row gt_right">R$11.410</td>
-<td headers="stub_1_2 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
-<td headers="stub_1_2 total_diarias_otimo" class="gt_row gt_right">0</td>
-</tr>
-<tr>
-<th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Itabuna</th>
-<td headers="stub_1_3 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
-<td headers="stub_1_3 n_ucs_otimo" class="gt_row gt_right">17</td>
-<td headers="stub_1_3 custo_total_jurisdicao" class="gt_row gt_right">R$30.451</td>
-<td headers="stub_1_3 custo_total_otimo" class="gt_row gt_right">R$49.592</td>
-<td headers="stub_1_3 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$8.259</td>
-<td headers="stub_1_3 custo_deslocamento_otimo" class="gt_row gt_right">R$27.400</td>
-<td headers="stub_1_3 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_3 total_diarias_otimo" class="gt_row gt_right">57</td>
-</tr>
-<tr>
-<th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Teixeira de Freitas</th>
-<td headers="stub_1_4 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_4 n_ucs_otimo" class="gt_row gt_right">21</td>
-<td headers="stub_1_4 custo_total_jurisdicao" class="gt_row gt_right">R$26.988</td>
-<td headers="stub_1_4 custo_total_otimo" class="gt_row gt_right">R$59.656</td>
-<td headers="stub_1_4 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$4.352</td>
-<td headers="stub_1_4 custo_deslocamento_otimo" class="gt_row gt_right">R$37.020</td>
-<td headers="stub_1_4 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_4 total_diarias_otimo" class="gt_row gt_right">66</td>
-</tr>
-<tr>
-<th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Camaçari</th>
-<td headers="stub_1_5 n_ucs_jurisdicao" class="gt_row gt_right">14</td>
-<td headers="stub_1_5 n_ucs_otimo" class="gt_row gt_right">22</td>
-<td headers="stub_1_5 custo_total_jurisdicao" class="gt_row gt_right">R$27.367</td>
-<td headers="stub_1_5 custo_total_otimo" class="gt_row gt_right">R$35.369</td>
-<td headers="stub_1_5 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$5.625</td>
-<td headers="stub_1_5 custo_deslocamento_otimo" class="gt_row gt_right">R$13.627</td>
-<td headers="stub_1_5 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_5 total_diarias_otimo" class="gt_row gt_right">10</td>
-</tr>
-<tr>
-<th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Santo Antônio de Jesus</th>
-<td headers="stub_1_6 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_6 n_ucs_otimo" class="gt_row gt_right">22</td>
-<td headers="stub_1_6 custo_total_jurisdicao" class="gt_row gt_right">R$26.221</td>
-<td headers="stub_1_6 custo_total_otimo" class="gt_row gt_right">R$42.870</td>
-<td headers="stub_1_6 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$4.322</td>
-<td headers="stub_1_6 custo_deslocamento_otimo" class="gt_row gt_right">R$20.971</td>
-<td headers="stub_1_6 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_6 total_diarias_otimo" class="gt_row gt_right">19</td>
-</tr>
-<tr>
-<th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Jacobina</th>
-<td headers="stub_1_7 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_7 n_ucs_otimo" class="gt_row gt_right">29</td>
-<td headers="stub_1_7 custo_total_jurisdicao" class="gt_row gt_right">R$32.241</td>
-<td headers="stub_1_7 custo_total_otimo" class="gt_row gt_right">R$106.097</td>
-<td headers="stub_1_7 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$10.153</td>
-<td headers="stub_1_7 custo_deslocamento_otimo" class="gt_row gt_right">R$84.009</td>
-<td headers="stub_1_7 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_7 total_diarias_otimo" class="gt_row gt_right">190</td>
-</tr>
-<tr>
-<th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Vitória da Conquista</th>
-<td headers="stub_1_8 n_ucs_jurisdicao" class="gt_row gt_right">18</td>
-<td headers="stub_1_8 n_ucs_otimo" class="gt_row gt_right">30</td>
-<td headers="stub_1_8 custo_total_jurisdicao" class="gt_row gt_right">R$48.136</td>
-<td headers="stub_1_8 custo_total_otimo" class="gt_row gt_right">R$90.784</td>
-<td headers="stub_1_8 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$25.835</td>
-<td headers="stub_1_8 custo_deslocamento_otimo" class="gt_row gt_right">R$68.483</td>
-<td headers="stub_1_8 total_diarias_jurisdicao" class="gt_row gt_right">57</td>
-<td headers="stub_1_8 total_diarias_otimo" class="gt_row gt_right">162</td>
-</tr>
-<tr>
-<th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Ribeira do Pombal</th>
-<td headers="stub_1_9 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_9 n_ucs_otimo" class="gt_row gt_right">32</td>
-<td headers="stub_1_9 custo_total_jurisdicao" class="gt_row gt_right">R$27.319</td>
-<td headers="stub_1_9 custo_total_otimo" class="gt_row gt_right">R$96.118</td>
-<td headers="stub_1_9 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$5.277</td>
-<td headers="stub_1_9 custo_deslocamento_otimo" class="gt_row gt_right">R$74.076</td>
-<td headers="stub_1_9 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_9 total_diarias_otimo" class="gt_row gt_right">162</td>
-</tr>
-<tr>
-<th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Santa Maria da Vitória</th>
-<td headers="stub_1_10 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_10 n_ucs_otimo" class="gt_row gt_right">34</td>
-<td headers="stub_1_10 custo_total_jurisdicao" class="gt_row gt_right">R$32.503</td>
-<td headers="stub_1_10 custo_total_otimo" class="gt_row gt_right">R$132.659</td>
-<td headers="stub_1_10 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$9.766</td>
-<td headers="stub_1_10 custo_deslocamento_otimo" class="gt_row gt_right">R$109.922</td>
-<td headers="stub_1_10 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
-<td headers="stub_1_10 total_diarias_otimo" class="gt_row gt_right">256</td>
-</tr>
-<tr>
-<th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Feira de Santana</th>
-<td headers="stub_1_11 n_ucs_jurisdicao" class="gt_row gt_right">20</td>
-<td headers="stub_1_11 n_ucs_otimo" class="gt_row gt_right">46</td>
-<td headers="stub_1_11 custo_total_jurisdicao" class="gt_row gt_right">R$25.322</td>
-<td headers="stub_1_11 custo_total_otimo" class="gt_row gt_right">R$68.382</td>
-<td headers="stub_1_11 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$3.503</td>
-<td headers="stub_1_11 custo_deslocamento_otimo" class="gt_row gt_right">R$46.563</td>
-<td headers="stub_1_11 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_11 total_diarias_otimo" class="gt_row gt_right">66</td>
-</tr>
-<tr>
-<th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub">Demais agências</th>
-<td headers="stub_1_12 n_ucs_jurisdicao" class="gt_row gt_right">166</td>
-<td headers="stub_1_12 n_ucs_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_12 custo_total_jurisdicao" class="gt_row gt_right">R$969.343</td>
-<td headers="stub_1_12 custo_total_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_12 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$147.753</td>
-<td headers="stub_1_12 custo_deslocamento_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_12 total_diarias_jurisdicao" class="gt_row gt_right">200</td>
-<td headers="stub_1_12 total_diarias_otimo" class="gt_row gt_right">-</td>
-</tr>
-<tr>
-<th id="grand_summary_stub_1" scope="row" class="gt_row gt_left gt_stub gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">Total Superintendência</th>
-<td headers="grand_summary_stub_1 n_ucs_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
-<td headers="grand_summary_stub_1 n_ucs_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
-<td headers="grand_summary_stub_1 custo_total_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$1.300.041</td>
-<td headers="grand_summary_stub_1 custo_total_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$741.919</td>
-<td headers="grand_summary_stub_1 custo_deslocamento_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$234.808</td>
-<td headers="grand_summary_stub_1 custo_deslocamento_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$498.276</td>
-<td headers="grand_summary_stub_1 total_diarias_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">323</td>
-<td headers="grand_summary_stub_1 total_diarias_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">988</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div class="section level5">
-<h5 id="aumentando-a-distância-sem-diária">Aumentando a distância sem diária<a class="anchor" aria-label="anchor" href="#aumentando-a-dist%C3%A2ncia-sem-di%C3%A1ria"></a>
-</h5>
-<p>Outra estratégia para reduzir custos é o aumento da duração da viagem
-que pode ser percorrida sem o pagamento de diárias. No modelo acima,
-esse limite é de 1,5 Ao flexibilizar essa restrição, para
-<strong>VERIFICAR</strong> 2 horas, podemos ampliar o raio de atuação
-das agências, diminuindo a necessidade de pernoites e, consequentemente,
-os custos com diárias.</p>
-<p>Ambas as estratégias - reorganização da jurisdição e aumento da
-distância sem diária - podem ser combinadas para alcançar resultados
-mais expressivos na otimização dos custos da coleta de dados. No
-entanto, essa redução de custos ainda se mostra muito menor do que a
-estratégia de redução de custos fixos.</p>
-<p>Qualquer que seja a estratégia selecionada, acreditamos que o pacote
-orce ofereça a flexibilidade necessária para simular diferentes cenários
-e encontrar a solução que melhor se adapta às necessidades e restrições
-do projeto.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">params_pof_2</span> <span class="op">&lt;-</span> <span class="va">params_pof</span></span>
-<span><span class="va">params_pof_2</span><span class="op">$</span><span class="va">distancias_ucs</span> <span class="op">&lt;-</span> <span class="va">params_pof_2</span><span class="op">$</span><span class="va">distancias_ucs</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>  diaria_pernoite<span class="op">=</span><span class="va">duracao_horas</span><span class="op">&gt;</span><span class="fl">2</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">r_dist_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span>what <span class="op">=</span> <span class="va">alocar_ucs</span>, args <span class="op">=</span> <span class="va">params_pof_2</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu">report_plans</span><span class="op">(</span><span class="va">r_dist_2</span><span class="op">)</span></span></code></pre></div>
-<div id="qjlmpgudac" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#qjlmpgudac table {
-  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#qjlmpgudac thead, #qjlmpgudac tbody, #qjlmpgudac tfoot, #qjlmpgudac tr, #qjlmpgudac td, #qjlmpgudac th {
-  border-style: none;
-}
-
-#qjlmpgudac p {
-  margin: 0;
-  padding: 0;
-}
-
-#qjlmpgudac .gt_table {
-  display: table;
-  border-collapse: collapse;
-  line-height: normal;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_caption {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#qjlmpgudac .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#qjlmpgudac .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 3px;
-  padding-bottom: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#qjlmpgudac .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#qjlmpgudac .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#qjlmpgudac .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#qjlmpgudac .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#qjlmpgudac .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#qjlmpgudac .gt_spanner_row {
-  border-bottom-style: hidden;
-}
-
-#qjlmpgudac .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  text-align: left;
-}
-
-#qjlmpgudac .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#qjlmpgudac .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#qjlmpgudac .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#qjlmpgudac .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#qjlmpgudac .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qjlmpgudac .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#qjlmpgudac .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#qjlmpgudac .gt_row_group_first th {
-  border-top-width: 2px;
-}
-
-#qjlmpgudac .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qjlmpgudac .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#qjlmpgudac .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qjlmpgudac .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_last_grand_summary_row_top {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: double;
-  border-bottom-width: 6px;
-  border-bottom-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#qjlmpgudac .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qjlmpgudac .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#qjlmpgudac .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qjlmpgudac .gt_left {
-  text-align: left;
-}
-
-#qjlmpgudac .gt_center {
-  text-align: center;
-}
-
-#qjlmpgudac .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#qjlmpgudac .gt_font_normal {
-  font-weight: normal;
-}
-
-#qjlmpgudac .gt_font_bold {
-  font-weight: bold;
-}
-
-#qjlmpgudac .gt_font_italic {
-  font-style: italic;
-}
-
-#qjlmpgudac .gt_super {
-  font-size: 65%;
-}
-
-#qjlmpgudac .gt_footnote_marks {
-  font-size: 75%;
-  vertical-align: 0.4em;
-  position: initial;
-}
-
-#qjlmpgudac .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#qjlmpgudac .gt_indent_1 {
-  text-indent: 5px;
-}
-
-#qjlmpgudac .gt_indent_2 {
-  text-indent: 10px;
-}
-
-#qjlmpgudac .gt_indent_3 {
-  text-indent: 15px;
-}
-
-#qjlmpgudac .gt_indent_4 {
-  text-indent: 20px;
-}
-
-#qjlmpgudac .gt_indent_5 {
-  text-indent: 25px;
-}
-
-#qjlmpgudac .katex-display {
-  display: inline-flex !important;
-  margin-bottom: 0.75em !important;
-}
-
-#qjlmpgudac div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
-  height: 0px !important;
-}
-</style>
-<table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-<thead><tr class="gt_col_headings">
-<th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id=""></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Jurisdicao">N Ucs Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Otimo">N Ucs Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Jurisdicao">Custo Total Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Otimo">Custo Total Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Jurisdicao">Custo Deslocamento Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Deslocamento Otimo">Custo Deslocamento Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Jurisdicao">Total Diarias Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Otimo">Total Diarias Otimo</th>
-    </tr></thead>
-<tbody class="gt_table_body">
-<tr>
-<th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">Serrinha</th>
-<td headers="stub_1_1 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
-<td headers="stub_1_1 n_ucs_otimo" class="gt_row gt_right">14</td>
-<td headers="stub_1_1 custo_total_jurisdicao" class="gt_row gt_right">R$23.454</td>
-<td headers="stub_1_1 custo_total_otimo" class="gt_row gt_right">R$35.060</td>
-<td headers="stub_1_1 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$1.552</td>
-<td headers="stub_1_1 custo_deslocamento_otimo" class="gt_row gt_right">R$13.158</td>
-<td headers="stub_1_1 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_1 total_diarias_otimo" class="gt_row gt_right">14</td>
-</tr>
-<tr>
-<th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Jaguaquara</th>
-<td headers="stub_1_2 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_2 n_ucs_otimo" class="gt_row gt_right">18</td>
-<td headers="stub_1_2 custo_total_jurisdicao" class="gt_row gt_right">R$24.518</td>
-<td headers="stub_1_2 custo_total_otimo" class="gt_row gt_right">R$47.109</td>
-<td headers="stub_1_2 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$2.433</td>
-<td headers="stub_1_2 custo_deslocamento_otimo" class="gt_row gt_right">R$25.024</td>
-<td headers="stub_1_2 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_2 total_diarias_otimo" class="gt_row gt_right">25</td>
-</tr>
-<tr>
-<th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Camaçari</th>
-<td headers="stub_1_3 n_ucs_jurisdicao" class="gt_row gt_right">14</td>
-<td headers="stub_1_3 n_ucs_otimo" class="gt_row gt_right">22</td>
-<td headers="stub_1_3 custo_total_jurisdicao" class="gt_row gt_right">R$27.367</td>
-<td headers="stub_1_3 custo_total_otimo" class="gt_row gt_right">R$37.044</td>
-<td headers="stub_1_3 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$5.625</td>
-<td headers="stub_1_3 custo_deslocamento_otimo" class="gt_row gt_right">R$15.302</td>
-<td headers="stub_1_3 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_3 total_diarias_otimo" class="gt_row gt_right">14</td>
-</tr>
-<tr>
-<th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Itamaraju</th>
-<td headers="stub_1_4 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_4 n_ucs_otimo" class="gt_row gt_right">22</td>
-<td headers="stub_1_4 custo_total_jurisdicao" class="gt_row gt_right">R$26.461</td>
-<td headers="stub_1_4 custo_total_otimo" class="gt_row gt_right">R$55.677</td>
-<td headers="stub_1_4 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$3.906</td>
-<td headers="stub_1_4 custo_deslocamento_otimo" class="gt_row gt_right">R$33.122</td>
-<td headers="stub_1_4 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_4 total_diarias_otimo" class="gt_row gt_right">38</td>
-</tr>
-<tr>
-<th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Itabuna</th>
-<td headers="stub_1_5 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
-<td headers="stub_1_5 n_ucs_otimo" class="gt_row gt_right">24</td>
-<td headers="stub_1_5 custo_total_jurisdicao" class="gt_row gt_right">R$26.703</td>
-<td headers="stub_1_5 custo_total_otimo" class="gt_row gt_right">R$59.079</td>
-<td headers="stub_1_5 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$4.511</td>
-<td headers="stub_1_5 custo_deslocamento_otimo" class="gt_row gt_right">R$36.887</td>
-<td headers="stub_1_5 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_5 total_diarias_otimo" class="gt_row gt_right">39</td>
-</tr>
-<tr>
-<th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Santo Antônio de Jesus</th>
-<td headers="stub_1_6 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_6 n_ucs_otimo" class="gt_row gt_right">25</td>
-<td headers="stub_1_6 custo_total_jurisdicao" class="gt_row gt_right">R$26.221</td>
-<td headers="stub_1_6 custo_total_otimo" class="gt_row gt_right">R$56.049</td>
-<td headers="stub_1_6 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$4.322</td>
-<td headers="stub_1_6 custo_deslocamento_otimo" class="gt_row gt_right">R$34.150</td>
-<td headers="stub_1_6 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_6 total_diarias_otimo" class="gt_row gt_right">34</td>
-</tr>
-<tr>
-<th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Ribeira do Pombal</th>
-<td headers="stub_1_7 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_7 n_ucs_otimo" class="gt_row gt_right">26</td>
-<td headers="stub_1_7 custo_total_jurisdicao" class="gt_row gt_right">R$27.319</td>
-<td headers="stub_1_7 custo_total_otimo" class="gt_row gt_right">R$84.131</td>
-<td headers="stub_1_7 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$5.277</td>
-<td headers="stub_1_7 custo_deslocamento_otimo" class="gt_row gt_right">R$62.089</td>
-<td headers="stub_1_7 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_7 total_diarias_otimo" class="gt_row gt_right">134</td>
-</tr>
-<tr>
-<th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Jacobina</th>
-<td headers="stub_1_8 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
-<td headers="stub_1_8 n_ucs_otimo" class="gt_row gt_right">29</td>
-<td headers="stub_1_8 custo_total_jurisdicao" class="gt_row gt_right">R$28.638</td>
-<td headers="stub_1_8 custo_total_otimo" class="gt_row gt_right">R$103.718</td>
-<td headers="stub_1_8 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$6.550</td>
-<td headers="stub_1_8 custo_deslocamento_otimo" class="gt_row gt_right">R$81.630</td>
-<td headers="stub_1_8 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_8 total_diarias_otimo" class="gt_row gt_right">167</td>
-</tr>
-<tr>
-<th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Vitória da Conquista</th>
-<td headers="stub_1_9 n_ucs_jurisdicao" class="gt_row gt_right">18</td>
-<td headers="stub_1_9 n_ucs_otimo" class="gt_row gt_right">31</td>
-<td headers="stub_1_9 custo_total_jurisdicao" class="gt_row gt_right">R$46.387</td>
-<td headers="stub_1_9 custo_total_otimo" class="gt_row gt_right">R$90.423</td>
-<td headers="stub_1_9 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$24.086</td>
-<td headers="stub_1_9 custo_deslocamento_otimo" class="gt_row gt_right">R$68.122</td>
-<td headers="stub_1_9 total_diarias_jurisdicao" class="gt_row gt_right">48</td>
-<td headers="stub_1_9 total_diarias_otimo" class="gt_row gt_right">148</td>
-</tr>
-<tr>
-<th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Feira de Santana</th>
-<td headers="stub_1_10 n_ucs_jurisdicao" class="gt_row gt_right">20</td>
-<td headers="stub_1_10 n_ucs_otimo" class="gt_row gt_right">32</td>
-<td headers="stub_1_10 custo_total_jurisdicao" class="gt_row gt_right">R$25.322</td>
-<td headers="stub_1_10 custo_total_otimo" class="gt_row gt_right">R$50.461</td>
-<td headers="stub_1_10 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$3.503</td>
-<td headers="stub_1_10 custo_deslocamento_otimo" class="gt_row gt_right">R$28.642</td>
-<td headers="stub_1_10 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_10 total_diarias_otimo" class="gt_row gt_right">39</td>
-</tr>
-<tr>
-<th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Santa Maria da Vitória</th>
-<td headers="stub_1_11 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
-<td headers="stub_1_11 n_ucs_otimo" class="gt_row gt_right">34</td>
-<td headers="stub_1_11 custo_total_jurisdicao" class="gt_row gt_right">R$28.773</td>
-<td headers="stub_1_11 custo_total_otimo" class="gt_row gt_right">R$130.264</td>
-<td headers="stub_1_11 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$6.036</td>
-<td headers="stub_1_11 custo_deslocamento_otimo" class="gt_row gt_right">R$107.527</td>
-<td headers="stub_1_11 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
-<td headers="stub_1_11 total_diarias_otimo" class="gt_row gt_right">234</td>
-</tr>
-<tr>
-<th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub">Demais agências</th>
-<td headers="stub_1_12 n_ucs_jurisdicao" class="gt_row gt_right">167</td>
-<td headers="stub_1_12 n_ucs_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_12 custo_total_jurisdicao" class="gt_row gt_right">R$952.510</td>
-<td headers="stub_1_12 custo_total_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_12 custo_deslocamento_jurisdicao" class="gt_row gt_right">R$130.639</td>
-<td headers="stub_1_12 custo_deslocamento_otimo" class="gt_row gt_right">-</td>
-<td headers="stub_1_12 total_diarias_jurisdicao" class="gt_row gt_right">95</td>
-<td headers="stub_1_12 total_diarias_otimo" class="gt_row gt_right">-</td>
-</tr>
-<tr>
-<th id="grand_summary_stub_1" scope="row" class="gt_row gt_left gt_stub gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">Total Superintendência</th>
-<td headers="grand_summary_stub_1 n_ucs_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
-<td headers="grand_summary_stub_1 n_ucs_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
-<td headers="grand_summary_stub_1 custo_total_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$1.263.673</td>
-<td headers="grand_summary_stub_1 custo_total_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$749.016</td>
-<td headers="grand_summary_stub_1 custo_deslocamento_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$198.440</td>
-<td headers="grand_summary_stub_1 custo_deslocamento_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$505.654</td>
-<td headers="grand_summary_stub_1 total_diarias_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">142</td>
-<td headers="grand_summary_stub_1 total_diarias_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">886</td>
-</tr>
-</tbody>
-</table>
-</div>
+<div class="section level3">
+<h3 id="conclusão">Conclusão<a class="anchor" aria-label="anchor" href="#conclus%C3%A3o"></a>
+</h3>
+<p>A otimização da rede de coleta promovida pelo pacote
+<code>orce</code> tem um impacto significativo na redução de custos,
+principalmente pela diminuição dos custos fixos associados às agências.
+A estratégia mais eficaz envolve a combinação da redução do número de
+agências, a imposição de limites de UPAs por agência e a reorganização
+da jurisdição, e é provavelmente vantajoso (impor o limite) para a boa
+gestão da coleta.</p>
+<p>É importante ressaltar que a otimização deve considerar não apenas os
+custos, mas também outros fatores como a qualidade dos dados coletados e
+a capacidade operacional das agências. O pacote <code>orce</code>
+oferece flexibilidade para ajustar os parâmetros e restrições do modelo,
+permitindo encontrar a solução que melhor se adapta às necessidades e
+particularidades de cada pesquisa.</p>
 <hr>
-</div>
 </div>
 <div class="section level3">
 <h3 id="apêndice-detalhes-técnicos-do-problema-de-otimização">Apêndice: Detalhes técnicos do problema de otimização<a class="anchor" aria-label="anchor" href="#ap%C3%AAndice-detalhes-t%C3%A9cnicos-do-problema-de-otimiza%C3%A7%C3%A3o"></a>
@@ -8634,7 +6702,9 @@ do projeto.</p>
 resolve, que é a alocação ideal de Unidades de Coleta (UCs) às agências,
 com o objetivo de minimizar os custos totais, incluindo custos de
 deslocamento e custos fixos de cada agência. O modelo de otimização é
-baseado no problema clássico de localização de armazéns.</p>
+baseado no problema clássico de localização de armazéns, e é baseado em
+“The Warehouse Location Problem”, de Dirk Schumacher, disponível em
+.</p>
 <div class="section level4">
 <h4 id="o-desafio">O Desafio<a class="anchor" aria-label="anchor" href="#o-desafio"></a>
 </h4>
