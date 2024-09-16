@@ -15,7 +15,8 @@ agencias <- tibble::tibble(
   agencia_codigo = LETTERS[1:3],
   agencia_lon = runif(3, -50, -40),
   agencia_lat = runif(3, -20, -10),
-  max_uc_agencia=Inf
+  max_uc_agencia=Inf,
+  custo_fixo = 500
 )
 
 distancias_ucs <- tibble::tibble(
@@ -46,7 +47,6 @@ test_that("alocar_ucs returns expected structure", {
     custo_hora_viagem = 10,
     kml = 10,
     valor_diaria = 335,
-    custo_fixo = 500,
     dias_treinamento = 5.5,
     min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,

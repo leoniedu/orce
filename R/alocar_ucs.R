@@ -254,8 +254,9 @@ alocar_ucs <- function(ucs,
   ags_group_vars <- c('agencia_codigo', 'custo_fixo_total', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km', 'max_uc_agencia')
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo'))|>
+    dplyr::left_join(resultado_ucs_jurisdicao|>dplyr::select(uc, agencia_codigo_jurisdicao=agencia_codigo), by = c('uc'))|>
     dplyr::group_by(pick(any_of(ags_group_vars)))|>
-    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
+    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE), n_trocas_jurisdicao=sum(agencia_codigo!=agencia_codigo_jurisdicao))|>
     dplyr::ungroup()|>
     dplyr::select(-j)
 
