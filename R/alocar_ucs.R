@@ -16,8 +16,6 @@
 #' @param custo_fixo Custo fixo mensal da agência, como salário do entrevistador, custo de monitoramento, etc. (em R$). Padrão: 500.
 #' @param dias_treinamento Número de dias/diárias para treinamento. Padrão: 5.5
 #' @param min_uc_agencia Número mínimo de UCs por agência. Só válido para agências não treinadas. Padrão: 1.
-#' @param max_uc_agencia Número máximo de UCs por agência. Padrão: NULL (ilimitado).
-#' @param semi_centralizada (Opcional) Um vetor de caracteres com os códigos das agências que não terão limite máximo de UCs alocadas. Padrão: NULL.
 #' @param agencias_treinadas (Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. O custo dos APMs contratados nessas agências ainda será incluído no plano de otimização. Padrão: NULL.
 #' @param agencias_treinamento Código da(s) agência(s) onde o treinamento será realizado.
 #' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão 0
@@ -44,7 +42,7 @@
 #' @import dplyr ompr magrittr ompr.roi ROI.plugin.glpk checkmate
 #' @export
 alocar_ucs <- function(ucs,
-                       agencias=NULL,
+                       agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), max_uc_agencia=Inf),
                        custo_litro_combustivel = 6,
                        custo_hora_viagem = 10,
                        kml = 10,
@@ -56,8 +54,6 @@ alocar_ucs <- function(ucs,
                        distancias_ucs,
                        distancias_agencias=NULL,
                        min_uc_agencia = 1,
-                       max_uc_agencia = NULL,
-                       semi_centralizada = NULL,
                        adicional_troca_jurisdicao = 0,
                        resultado_completo = FALSE) {
   # Import required libraries explicitly
@@ -76,18 +72,12 @@ alocar_ucs <- function(ucs,
   checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
   checkmate::assert_data_frame(distancias_agencias, null.ok=dias_treinamento == 0)
   checkmate::assert_integerish(min_uc_agencia, lower = 1)
-  checkmate::assert_number(max_uc_agencia, lower = 1, null.ok = TRUE)
-  checkmate::assert_character(semi_centralizada, null.ok = TRUE)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite')%in%names(distancias_ucs)))
-  checkmate::assertTRUE(all(c('dias_coleta', 'viagens')%in%names(ucs)))
-  # Setting max_uc_agencia to infinity if not provided
-  if (is.null(max_uc_agencia)) {
-    max_uc_agencia <- Inf
-  }
-
-
-
+  checkmate::assertTRUE(all(c('dias_coleta', 'viagens'
+                              #, 'municipio_codigo'
+                              )%in%names(ucs)))
+  checkmate::assertTRUE(all(c('max_uc_agencia')%in%names(agencias)))
   # Creating jurisdiction allocation
   agencias_jurisdicao <- tibble::tibble(agencia_codigo=unique(ucs$agencia_codigo))
 
@@ -145,18 +135,14 @@ alocar_ucs <- function(ucs,
 
   # Maximum UCs per agency
   agencias_sel <- agencias_sel|>
-    dplyr::inner_join(agencias_t, by="agencia_codigo")|>
-    dplyr::mutate(max_uc_agencia=rep(max_uc_agencia, dplyr::n()))
-  if (length(semi_centralizada) > 0) {
-    agencias_sel <- agencias_sel|>dplyr::mutate(max_uc_agencia=if_else(agencia_codigo%in% semi_centralizada, Inf, max_uc_agencia))
-  }
-
+    dplyr::inner_join(agencias_t, by="agencia_codigo")
   # Combining UC and agency information
   ucs_i <- ucs |>
     sf::st_drop_geometry()|>
     dplyr::ungroup()|>
     dplyr::arrange(uc)|>
-    dplyr::transmute(i=1:n(), uc, municipio_codigo, agencia_codigo_jurisdicao=agencia_codigo, dias_coleta, viagens)
+    dplyr::transmute(i=1:n(), uc, #municipio_codigo,
+                     agencia_codigo_jurisdicao=agencia_codigo, dias_coleta, viagens)
   ag_mun_grid <- tidyr::expand_grid(
     agencias_t|>
       transmute(municipio_codigo_agencia = substr(agencia_codigo, 1, 7), agencia_codigo),
@@ -240,12 +226,11 @@ alocar_ucs <- function(ucs,
       # multiplica por y[j] por que só vale pra agencias incluídas, se não é >=0
       add_constraint(sum_over(x[i, j], i = 1:n) >= (min_uc_agencia[j]*y[j]), j = 1:m)
   }
-  if(is.finite({{max_uc_agencia}})) {
+  if(any(is.finite(agencias_sel$max_uc_agencia))) {
     model <- model|>
       # constraint com número máximo de UCs por agência
       add_constraint(sum_over(x[i, j], i = 1:n) <= agencias_sel$max_uc_agencia[j], j = 1:m)
   }
-
   # Solve the model using GLPK solver
   result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = "glpk", verbose = TRUE))
   stopifnot(result$status != "error")
@@ -262,17 +247,17 @@ alocar_ucs <- function(ucs,
   resultado_ucs_jurisdicao <- dist_uc_agencias|>
     dplyr::filter(agencia_codigo_jurisdicao==agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -i, -j, -custo_troca_jurisdicao)
-
+  ags_group_vars <- c('agencia_codigo', 'custo_fixo_total', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km', 'max_uc_agencia')
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo'))|>
-    dplyr::group_by(pick(any_of(c('agencia_codigo', 'custo_fixo_total', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km'))))|>
+    dplyr::group_by(pick(any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
     dplyr::ungroup()|>
     dplyr::select(-j)
 
   resultado_agencias_jurisdicao <- agencias_t|>
     dplyr::inner_join(resultado_ucs_jurisdicao, by = c('agencia_codigo'))|>
-    dplyr::group_by(pick(any_of(c('agencia_codigo', 'custo_fixo_total', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km'))))|>
+    dplyr::group_by(pick(any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
     dplyr::ungroup()
 

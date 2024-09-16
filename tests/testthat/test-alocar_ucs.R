@@ -5,7 +5,7 @@ set.seed(20091975)
 # Simulate Fake Data
 ucs <- tibble::tibble(
   uc = paste0("UC", 1:10),
-  municipio_codigo = sample(1000:1005, 10, replace = TRUE),
+  #municipio_codigo = sample(1000:1005, 10, replace = TRUE),
   agencia_codigo = sample(LETTERS[1:3], 10, replace = TRUE),
   dias_coleta=sample(1:10, 10),
   viagens=dias_coleta/2
@@ -14,7 +14,8 @@ ucs <- tibble::tibble(
 agencias <- tibble::tibble(
   agencia_codigo = LETTERS[1:3],
   agencia_lon = runif(3, -50, -40),
-  agencia_lat = runif(3, -20, -10)
+  agencia_lat = runif(3, -20, -10),
+  max_uc_agencia=Inf
 )
 
 distancias_ucs <- tibble::tibble(
@@ -55,9 +56,26 @@ test_that("alocar_ucs returns expected structure", {
     resultado_completo=TRUE
   )
 
+
   result <- alocar_ucs(
     ucs = ucs,
-    agencias = NULL,
+    agencias = agencias|>dplyr::mutate(max_uc_agencia=c(2,2,8)),
+    custo_litro_combustivel =  6,
+    custo_hora_viagem = 10,
+    kml = 10,
+    valor_diaria = 335,
+    custo_fixo = 500,
+    dias_treinamento = 5.5,
+    min_uc_agencia = 1,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    adicional_troca_jurisdicao = 1000,
+    agencias_treinamento = "A",
+    resultado_completo=TRUE
+  )
+
+  result <- alocar_ucs(
+    ucs = ucs,
     custo_litro_combustivel =  6,
     custo_hora_viagem = 10,
     kml = 10,
