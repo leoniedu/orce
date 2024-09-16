@@ -32,6 +32,9 @@
 #'   * `duracao_horas`: Duração da viagem em horas entre a agência de origem e a de destino
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
 #'
+#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: glpk. Outras opções: highs, cbc
+
+#'
 #' @return Uma lista contendo:
 #' * `resultado_ucs_otimo`: Um `tibble` com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
 #' * `resultado_ucs_jurisdicao`: Um `tibble` com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento.
@@ -55,7 +58,7 @@ alocar_ucs <- function(ucs,
                        distancias_agencias=NULL,
                        min_uc_agencia = 1,
                        adicional_troca_jurisdicao = 0,
-                       resultado_completo = FALSE) {
+                       resultado_completo = FALSE, solver="glpk") {
   # Import required libraries explicitly
   requireNamespace("dplyr")
   require("ompr")
@@ -232,7 +235,7 @@ alocar_ucs <- function(ucs,
       add_constraint(sum_over(x[i, j], i = 1:n) <= agencias_sel$max_uc_agencia[j], j = 1:m)
   }
   # Solve the model using GLPK solver
-  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = "glpk", verbose = TRUE))
+  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, verbose = TRUE))
   stopifnot(result$status != "error")
 
   # Extract the solution
