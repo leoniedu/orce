@@ -32,7 +32,8 @@
 #'   * `duracao_horas`: Duração da viagem em horas entre a agência de origem e a de destino
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
 #'
-#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: glpk. Outras opções: highs, cbc
+#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: glpk. Outras opções: cbc (instalação manual)
+#' @param ... Opções para o solver.
 
 #'
 #' @return Uma lista contendo:
@@ -58,12 +59,12 @@ alocar_ucs <- function(ucs,
                        distancias_agencias=NULL,
                        min_uc_agencia = 1,
                        adicional_troca_jurisdicao = 0,
-                       resultado_completo = FALSE, solver="glpk") {
+                       resultado_completo = FALSE, solver="symphony", ...) {
   # Import required libraries explicitly
   requireNamespace("dplyr")
   require("ompr")
   require("ompr.roi")
-  require("ROI.plugin.glpk")
+  require(paste0("ROI.plugin.",solver),character.only = TRUE)
   # Verificação dos Argumentos
   checkmate::assertTRUE(!anyDuplicated(agencias[['agencia_codigo']]))
   checkmate::assertTRUE(!anyDuplicated(ucs[['uc']]))
@@ -235,7 +236,7 @@ alocar_ucs <- function(ucs,
       add_constraint(sum_over(x[i, j], i = 1:n) <= agencias_sel$max_uc_agencia[j], j = 1:m)
   }
   # Solve the model using GLPK solver
-  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, verbose = TRUE))
+  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, ...))
   stopifnot(result$status != "error")
 
   # Extract the solution

@@ -731,6 +731,77 @@ Em todos os cenários, a otimização resultou em redução significativa do cus
 * **Redução de Custos de Pessoal:** Quando incluímos a despesa com somente um entrevistador adicional por agência, além do de treinamento para dois funcionários, a economia gerada passa de R$ 500 mil. É definitivamente aqui que está o mais efetivo instrumento para reduzir os custos de coleta.
 
 
+## Caso 3. Um novo modelo de coleta na PNADC
+
+```{r}
+library(dplyr)
+library(orce)
+## amostra mestra
+amostra_mestra <- readr::read_rds("data-raw/amostra_mestra_2025_t1.rds")
+
+uf_codigo_now <- 29
+ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
+
+amostra_uf <- amostra_mestra%>%
+  filter(substr(upa,1,2)==ufnow$uf_codigo)%>%
+  distinct(upa, ano, trimestre, .keep_all = TRUE)%>%
+  rename(uc=upa)%>%
+  count(agencia_codigo=as.character(codigo_agencia_sugerida), uc, name="visitas")%>%
+  mutate(
+    dias_coleta = 5,
+    viagens = visitas)#%>%ungroup()%>%slice_sample(n=100)
+
+## distancias upas
+distancias_upas <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
+  rename(uc=setor)%>%
+  mutate(municipio_codigo=substr(uc,1,7))%>%
+  left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
+  semi_join(amostra_uf, by="uc")%>%
+  mutate(diaria_pernoite=duracao_horas>1.5)
+
+agencias_uf <-  amostra_uf%>%
+  ungroup%>%
+  count(agencia_codigo)%>%
+  mutate(max_uc_agencia=Inf)%>%
+  ## 1 UPA por semana
+  ## 3 meses =
+  ## 12 upas por entrevistador
+  mutate(max_uc_agencia_calc=(ceiling(n/12))*12)
+
+## sem custo fixo nem custo de treinamento
+params_pnadc_0  <- list(ucs=amostra_uf,
+                        agencias=agencias_uf,
+           custo_litro_combustivel = 6,
+           custo_hora_viagem = 10,
+           kml = 10,
+           valor_diaria = 335,
+           custo_fixo = 0,
+           dias_treinamento = 0,
+           agencias_treinadas = NULL,
+           agencias_treinamento  = NULL,
+           distancias_ucs=distancias_upas,
+           adicional_troca_jurisdicao  = 0,
+           ## experimental: fica bem mais lento
+           min_uc_agencia = 1)
+
+estrategias_pnadc <- bind_rows(
+  tibble(params=list(params_pnadc_0), 
+         descricao='sem custo fixo / sem custo de treinamento'),
+  tibble(params=list(modifyList(params_pnadc_0, 
+                                ## 3 meses, 1 apm a mais,  1500 por mes por apm
+                                list(
+                                  solver="cbc",
+                                  custo_fixo=9000, agencias=agencias_uf%>%mutate(max_uc_agencia=max_uc_agencia_calc)))), 
+                     descricao='solver cbc, custo fixo, max_uc_agencia=atual+1'))%>%
+    mutate(resultado=purrr::map(params, ~do.call(alocar_ucs, .x))
+    )
+
+```
+
+## Solvers
+
+
+
 ## Conclusão
 
 A otimização da rede de coleta promovida pelo pacote `orce` tem um impacto significativo na redução de custos, principalmente pela diminuição dos custos fixos associados às agências. A estratégia mais eficaz envolve a combinação da redução do número de agências, a imposição de limites de UPAs por agência e a reorganização da jurisdição, e é provavelmente vantajoso (impor o limite) para a boa gestão da coleta. 
@@ -748,7 +819,7 @@ A otimização da rede de coleta promovida pelo pacote `orce` tem um impacto sig
 
 ## Apêndice: Detalhes técnicos do problema de otimização
 
-Este apêndice detalha o problema de otimização que o pacote orce resolve, que é a alocação ideal de Unidades de Coleta (UCs) às agências, com o objetivo de minimizar os custos totais, incluindo custos de deslocamento e custos fixos de cada agência. O modelo de otimização é baseado no problema clássico de localização de armazéns, e é baseado em "The Warehouse Location Problem", de Dirk Schumacher, disponível em \url{https://dirkschumacher.github.io/ompr/articles/problem-warehouse-location.html}. 
+Este apêndice detalha o problema de otimização que o pacote orce resolve, que é a alocação ideal de Unidades de Coleta (UCs) às agências, com o objetivo de minimizar os custos totais, incluindo custos de deslocamento e custos fixos de cada agência. O modelo de otimização é baseado no problema clássico de localização de armazéns, e é baseado em ["The Warehouse Location Problem"](https://dirkschumacher.github.io/ompr/articles/problem-warehouse-location.html), de Dirk Schumacher. 
 
 ### O Desafio
 
