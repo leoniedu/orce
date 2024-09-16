@@ -13,7 +13,6 @@
 #' @param custo_hora_viagem Custo de cada hora de viagem (em R$). Padrão: 10.
 #' @param kml Consumo médio de combustível do veículo (em km/l). Padrão: 10.
 #' @param valor_diaria Valor da diária para deslocamentos (em R$). Padrão: 335.
-#' @param custo_fixo Custo fixo mensal da agência, como salário do entrevistador, custo de monitoramento, etc. (em R$). Padrão: 500.
 #' @param dias_treinamento Número de dias/diárias para treinamento. Padrão: 5.5
 #' @param min_uc_agencia Número mínimo de UCs por agência. Só válido para agências não treinadas. Padrão: 1.
 #' @param agencias_treinadas (Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. O custo dos APMs contratados nessas agências ainda será incluído no plano de otimização. Padrão: NULL.
@@ -46,12 +45,13 @@
 #' @import dplyr ompr magrittr ompr.roi ROI.plugin.glpk checkmate
 #' @export
 alocar_ucs <- function(ucs,
-                       agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), max_uc_agencia=Inf),
+                       agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), max_uc_agencia=Inf, custo_fixo=0),
                        custo_litro_combustivel = 6,
                        custo_hora_viagem = 10,
                        kml = 10,
                        valor_diaria = 335,
-                       custo_fixo = 0,
+                       custo_funcionario = 0,
+                       ucs_por_funcionario=1,
                        dias_treinamento = 0,
                        agencias_treinadas = NULL,
                        agencias_treinamento = NULL,
@@ -71,17 +71,19 @@ alocar_ucs <- function(ucs,
   checkmate::assert_number(custo_litro_combustivel, lower = 0)
   checkmate::assert_number(kml, lower = 0)
   checkmate::assert_number(valor_diaria, lower = 0)
-  checkmate::assert_number(custo_fixo, lower = 0)
   checkmate::assert_number(dias_treinamento, lower = 0)
   checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
   checkmate::assert_data_frame(distancias_agencias, null.ok=dias_treinamento == 0)
   checkmate::assert_integerish(min_uc_agencia, lower = 1)
+  checkmate::assert_number(ucs_por_funcionario, lower = 1)
+  checkmate::assert_number(custo_funcionario, lower = 0)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite')%in%names(distancias_ucs)))
   checkmate::assertTRUE(all(c('dias_coleta', 'viagens'
                               #, 'municipio_codigo'
                               )%in%names(ucs)))
-  checkmate::assertTRUE(all(c('max_uc_agencia')%in%names(agencias)))
+  checkmate::assertTRUE(all(c('max_uc_agencia', 'custo_fixo')%in%names(agencias)))
+  agencias <- agencias|>dplyr::select(agencia_codigo, max_uc_agencia, custo_fixo)
   # Creating jurisdiction allocation
   agencias_jurisdicao <- tibble::tibble(agencia_codigo=unique(ucs$agencia_codigo))
 
@@ -134,7 +136,7 @@ alocar_ucs <- function(ucs,
     custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
   }
 
-  agencias_t$custo_fixo_total <- custo_fixo + custo_treinamento
+  agencias_t$custo_treinamento <- custo_treinamento
 
 
   # Maximum UCs per agency
@@ -207,23 +209,25 @@ alocar_ucs <- function(ucs,
   m <- nrow(agencias_sel)
   stopifnot((agencias_sel$j)==(1:nrow(agencias_sel)))
   model <- MIPModel() |>
-    # 1 iff i gets assigned to agencia j
+    # 1 iff (se e somente se) uc i vai para a agencia j
     add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
-    # 1 iff agencia j is included
+    # 1 iff (se e somente se) agencia j ativada
     add_variable(y[j], j = 1:m, type = "binary") |>
+    # trabalhadores na agencia j
+    add_variable(w[j], j = 1:m, type = "integer", lb=0) |>
     # maximize the preferences
     set_objective(sum_over(
       transport_cost(i, j)* x[i, j] , i = 1:n, j = 1:m)
-      + sum_over(agencias_sel$custo_fixo_total[j] * y[j], j = 1:m)
-      ##fix: termo com o número de entrevistadores por agência
-      ## nao é fixo. depende do número de UCs na agência
-      ## nao funciona (está somando o estado todo em vez de agencias)
-      #  + (sum_over(x[i,j], i=1:n, j = 1:m)/
-      , "min") |>
+      + sum_over(
+        (agencias_sel$custo_treinamento[j]+agencias_sel$custo_fixo[j]) * y[j]+w[j]*{custo_funcionario}, j = 1:m), "min") |>
     # toda UC precisa estar associada a uma agencia
     add_constraint(sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
     # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
-    add_constraint(x[i,j] <= y[j], i = 1:n, j = 1:m)
+    add_constraint(x[i,j] <= y[j], i = 1:n, j = 1:m)|>
+    # se agencia está ativa, w tem que ser >=1
+    add_constraint(y[j] <= w[j], i = 1:n, j = 1:m)|>
+    # se w tem que ser o suficiente para dar conta das ucs
+    add_constraint((sum_over(x[i,j], i=1:n)/{ucs_por_funcionario}) <= w[j], j = 1:m)
   if(any({{min_uc_agencia}}>1)) {
     model <- model|>
       # constraint com número mínimo de UCs por agência que for incluída
@@ -235,7 +239,7 @@ alocar_ucs <- function(ucs,
       # constraint com número máximo de UCs por agência
       add_constraint(sum_over(x[i, j], i = 1:n) <= agencias_sel$max_uc_agencia[j], j = 1:m)
   }
-  # Solve the model using GLPK solver
+  # Solve the model using solver
   result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, ...))
   stopifnot(result$status != "error")
 
@@ -244,14 +248,20 @@ alocar_ucs <- function(ucs,
     ompr::get_solution(x[i, j]) |>
     dplyr::filter(value > .9) |>
     dplyr::select(i, j)
+  workers <- result |>
+    ompr::get_solution(w[j]) |>
+    dplyr::filter(value > .9) |>
+    dplyr::select(j, funcionarios=value)
 
   resultado_ucs_otimo <- matching|>
     dplyr::left_join(dist_uc_agencias|>select(-agencia_codigo_jurisdicao), by=c('i', 'j'))|>
+    dplyr::left_join(workers, by=c('j'))|>
     dplyr::select(-i, -j)
   resultado_ucs_jurisdicao <- dist_uc_agencias|>
     dplyr::filter(agencia_codigo_jurisdicao==agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -i, -j, -custo_troca_jurisdicao)
-  ags_group_vars <- c('agencia_codigo', 'custo_fixo_total', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km', 'max_uc_agencia')
+  ags_group_vars <- c('agencia_codigo', 'custo_fixo', 'custo_treinamento', 'agencia_codigo_treinamento', 'distancia_km_agencia_treinamento', 'duracao_horas_agencia_treinamento_km', 'max_uc_agencia', 'funcionarios')
+  browser()
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo'))|>
     dplyr::left_join(resultado_ucs_jurisdicao|>dplyr::select(uc, agencia_codigo_jurisdicao=agencia_codigo), by = c('uc'))|>
