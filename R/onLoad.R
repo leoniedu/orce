@@ -9,7 +9,6 @@ package <- new.env(parent = emptyenv())
   dir.create(file.path(package$cache_dir, "alocar_ucs"), showWarnings = FALSE, recursive = TRUE)
   dir.create(file.path(package$cache_dir, "get_map"), showWarnings = FALSE, recursive = TRUE)
   alocar_ucs <<- memoise::memoise(alocar_ucs, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "alocar_ucs")))
-  MIPModel <<- memoise::memoise(MIPModel, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "MIPModel")))
   get_map_mem <<- memoise::memoise(ggmap::get_map, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "get_map")))
 }
 

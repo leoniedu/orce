@@ -8,13 +8,20 @@ load(here::here("data/pontos_setores.rda"))
 load(here::here("data/municipios_22.rda"))
 distancias_setores_path <- "~/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds"
 distancias_agencias_setores_osrm_done <- readr::read_rds(distancias_setores_path)
-uf_codigo_now <- 26
+uf_codigo_now <- 29
 
 amostra_mestra <- readRDS("data-raw/amostra_mestra_2025_t1.rds")
+amostra_pof <- readxl::read_excel("~/gitlab/pof2024ba/data-raw/Alocação_trimestre_POF2425_1907.xls")%>%
+  rename_ibge()
+amostra_pof_uf <- amostra_pof%>%
+  filter(substr(upa,1,2)==uf_codigo_now)%>%
+  distinct(setor, upa, agencia_codigo)
 amostra_uf <- amostra_mestra%>%
   filter(uf_codigo==uf_codigo_now)%>%
-  mutate(ano_mes=lubridate::make_date(ano,mes))%>%
-  distinct(setor=codigo_controle, upa, agencia_codigo=as.character(codigo_agencia_sugerida))
+  mutate(ano_mes=lubridate::make_date(ano,mes), agencia_codigo=as.character(codigo_agencia_sugerida))%>%
+  distinct(setor=codigo_controle, upa, agencia_codigo)%>%
+  bind_rows(amostra_pof_uf)
+
 
 agencias_uf <- agencias_bdo%>%
   semi_join(amostra_uf, by="agencia_codigo")
@@ -34,6 +41,7 @@ distancias_amostra_toget_0 <- rbind(
 )
 distancias_amostra_toget <- distancias_amostra_toget_0%>%anti_join(distancias_agencias_setores_osrm_done, by = join_by(setor))
 
+stopifnot(nrow(distancias_amostra_toget)>1)
 distancias_amostra_1 <- calcula_distancias(distancias_amostra_toget, agencias_uf, nmax = 1000)
 
 distancias_agencias_setores_osrm_1 <- bind_rows(distancias_amostra_1)%>%

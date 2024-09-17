@@ -49,11 +49,14 @@ test_that("alocar_ucs returns expected structure", {
     valor_diaria = 335,
     dias_treinamento = 5.5,
     min_uc_agencia = 1,
+    ucs_por_funcionario = 3,
+    n_funcionarios_min=2,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
-    adicional_troca_jurisdicao = 1000,
+    adicional_troca_jurisdicao = 10,
     agencias_treinamento = "A",
-    resultado_completo=TRUE
+    resultado_completo=TRUE,
+    first_feasible=TRUE
   )
 
 
@@ -64,7 +67,6 @@ test_that("alocar_ucs returns expected structure", {
     custo_hora_viagem = 10,
     kml = 10,
     valor_diaria = 335,
-    custo_fixo = 500,
     dias_treinamento = 5.5,
     min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
@@ -80,7 +82,6 @@ test_that("alocar_ucs returns expected structure", {
     custo_hora_viagem = 10,
     kml = 10,
     valor_diaria = 335,
-    custo_fixo = 500,
     dias_treinamento = 5.5,
     min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
@@ -97,7 +98,6 @@ test_that("alocar_ucs returns expected structure", {
     custo_hora_viagem = 10,
     kml = 10,
     valor_diaria = 335,
-    custo_fixo = 500,
     dias_treinamento = 0,
     min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
@@ -114,7 +114,6 @@ test_that("alocar_ucs returns expected structure", {
     custo_hora_viagem = 10,
     kml = 10,
     valor_diaria = 335,
-    custo_fixo = 500,
     dias_treinamento = 0,
     min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
@@ -132,7 +131,6 @@ test_that("alocar_ucs returns expected structure", {
     custo_hora_viagem = 10,
     kml = 10,
     valor_diaria = 335,
-    custo_fixo = 500,
     dias_treinamento = 0,
     min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
