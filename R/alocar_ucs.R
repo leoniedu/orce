@@ -19,12 +19,12 @@
 #' @param custo_hora_viagem Custo de cada hora de viagem (em R$). Padrão: 10.
 #' @param kml Consumo médio de combustível do veículo (em km/l). Padrão: 10.
 #' @param valor_diaria Valor da diária para deslocamentos (em R$). Padrão: 335.
-#' @param max_diarias_funcionario Máximo de diárias que um funcionário pode receber. Padrão `Inf`.
-#' @param remuneracao_funcionario Remuneração por funcionário para o período da coleta. Padrão 0
-#' @param n_funcionarios_min Número mínimo de funcionários por agência. Padrão: 1
-#' @param ucs_por_funcionario Quantas UCs cada funcionário consegue coletar. Padrão: 1
+#' @param max_diarias_entrevistador Máximo de diárias que um entrevistador pode receber no período de referência. Padrão `Inf`.
+#' @param remuneracao_entrevistador Remuneração por entrevistador para todo o período de referência. Padrão 0
+#' @param n_entrevistadores_min Número mínimo de entrevistadores por agência. Padrão: 1
+#' @param ucs_por_entrevistador Número de UCs coletadas por entrevistador durante todo o período de referência. Padrão: 1
 #' @param dias_treinamento Número de dias/diárias para treinamento. Padrão: 0 (nenhum treinamento).
-#' @param min_uc_agencia Número mínimo de UCs por agência ativa. Só válido para agências não treinadas. Padrão: 1.
+#' @param min_uc_agencia Número mínimo de UCs por agência ativa. Padrão: 1.
 #' @param agencias_treinadas (Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. O custo dos APMs contratados nessas agências ainda será incluído no plano de otimização. Padrão: NULL.
 #' @param agencias_treinamento Código da(s) agência(s) onde o treinamento será realizado.
 #' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão 0
@@ -65,10 +65,10 @@ alocar_ucs <- function(ucs,
                        custo_hora_viagem = 10,
                        kml = 10,
                        valor_diaria = 335,
-                       max_diarias_funcionario=Inf,
-                       remuneracao_funcionario = 0,
-                       n_funcionarios_min=1,
-                       ucs_por_funcionario=1,
+                       max_diarias_entrevistador=Inf,
+                       remuneracao_entrevistador = 0,
+                       n_entrevistadores_min=1,
+                       ucs_por_entrevistador=1,
                        dias_treinamento = 0,
                        agencias_treinadas = NULL,
                        agencias_treinamento = NULL,
@@ -92,8 +92,8 @@ alocar_ucs <- function(ucs,
   checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
   checkmate::assert_data_frame(distancias_agencias, null.ok=dias_treinamento == 0)
   checkmate::assert_integerish(min_uc_agencia, lower = 1)
-  checkmate::assert_number(ucs_por_funcionario, lower = 1)
-  checkmate::assert_number(remuneracao_funcionario, lower = 0)
+  checkmate::assert_number(ucs_por_entrevistador, lower = 1)
+  checkmate::assert_number(remuneracao_entrevistador, lower = 0)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite')%in%names(distancias_ucs)))
   checkmate::assertTRUE(all(c('dias_coleta', 'viagens'
@@ -135,13 +135,6 @@ alocar_ucs <- function(ucs,
     agencias_t <- agencias_t |>
       dplyr::mutate(distancia_km_agencia_treinamento=NA_real_, duracao_horas_agencia_treinamento_km=NA_real_)
   }
-
-
-  # No minimum UCs required for trained agencies
-  #if (length(min_uc_agencia) == nrow(agencias_1)) {
-  #  min_uc_agencia[agencias_1$agencia_codigo %in% agencias_treinadas] <- 1
-  #}
-
   if (dias_treinamento==0) {
     custo_treinamento <- rep(0, nrow(agencias_t))
   } else {
@@ -155,7 +148,7 @@ alocar_ucs <- function(ucs,
     custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
   }
 
-  agencias_t$custo_treinamento_por_funcionario <- custo_treinamento
+  agencias_t$custo_treinamento_por_entrevistador <- custo_treinamento
 
 
   # Maximum UCs per agency
@@ -234,7 +227,7 @@ alocar_ucs <- function(ucs,
   n <- nrow(ucs_i)
   m <- nrow(agencias_sel)
   stopifnot((agencias_sel$j)==(1:nrow(agencias_sel)))
-  # alocar_ucs_model <- function(agencias_sel, n,m, transport_cost, remuneracao_funcionario, n_funcionarios_min, min_uc_agencia, max_diarias_funcionario, diarias_ij) {
+  # alocar_ucs_model <- function(agencias_sel, n,m, transport_cost, remuneracao_entrevistador, n_entrevistadores_min, min_uc_agencia, max_diarias_entrevistador, diarias_ij) {
   # }
   model <- MIPModel() |>
     # 1 iff (se e somente se) uc i vai para a agencia j
@@ -247,15 +240,15 @@ alocar_ucs <- function(ucs,
     set_objective(sum_over(
       transport_cost(i, j)* x[i, j] , i = 1:n, j = 1:m)
       + sum_over(
-        (agencias_sel$custo_fixo[j]) * y[j]+w[j]*({remuneracao_funcionario}+agencias_sel$custo_treinamento_por_funcionario[j]), j = 1:m), "min") |>
+        (agencias_sel$custo_fixo[j]) * y[j]+w[j]*({remuneracao_entrevistador}+agencias_sel$custo_treinamento_por_entrevistador[j]), j = 1:m), "min") |>
     # toda UC precisa estar associada a uma agencia
     add_constraint(sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
     # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
     add_constraint(x[i,j] <= y[j], i = 1:n, j = 1:m)|>
-    # se agencia está ativa, w tem que ser >= n_funcionarios_min
-    add_constraint((y[j]*{n_funcionarios_min}) <= w[j], i = 1:n, j = 1:m)|>
+    # se agencia está ativa, w tem que ser >= n_entrevistadores_min
+    add_constraint((y[j]*{n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m)|>
     # w tem que ser o suficiente para dar conta das ucs
-    add_constraint((sum_over(x[i,j], i=1:n)/{ucs_por_funcionario}) <= w[j], j = 1:m)
+    add_constraint((sum_over(x[i,j], i=1:n)/{ucs_por_entrevistador}) <= w[j], j = 1:m)
   if(any({{min_uc_agencia}}>1)) {
     model <- model|>
       # constraint com número mínimo de UCs por agência que for incluída
@@ -267,9 +260,9 @@ alocar_ucs <- function(ucs,
       # constraint com número máximo de UCs por agência
       add_constraint(sum_over(x[i, j], i = 1:n) <= agencias_sel$max_uc_agencia[j], j = 1:m)
   }
-  if (any(is.finite({max_diarias_funcionario}))) {
+  if (any(is.finite({max_diarias_entrevistador}))) {
     model <- model|>
-      add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (max_diarias_funcionario*w[j]), j = 1:m)
+      add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (max_diarias_entrevistador*w[j]), j = 1:m)
   }
   # Solve the model using solver
   result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, ...))
@@ -285,14 +278,14 @@ alocar_ucs <- function(ucs,
   workers <- result |>
     ompr::get_solution(w[j]) |>
     dplyr::filter(value > .9) |>
-    dplyr::select(j, funcionarios=value)
+    dplyr::select(j, entrevistadores=value)
   resultado_ucs_otimo <- matching|>
     dplyr::left_join(dist_uc_agencias|>select(-agencia_codigo_jurisdicao), by=c('i', 'j'))|>
     dplyr::select(-i, -j)
   resultado_ucs_jurisdicao <- dist_uc_agencias|>
     dplyr::filter(agencia_codigo_jurisdicao==agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -i, -j, -custo_troca_jurisdicao)
-  ags_group_vars <- c(names(agencias_sel),  'funcionarios')
+  ags_group_vars <- c(names(agencias_sel),  'entrevistadores')
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo'))|>
     dplyr::left_join(resultado_ucs_jurisdicao|>dplyr::select(uc, agencia_codigo_jurisdicao=agencia_codigo), by = c('uc'))|>
@@ -301,13 +294,13 @@ alocar_ucs <- function(ucs,
     dplyr::ungroup()|>
     dplyr::left_join(workers, by=c('j'))|>
     dplyr::select(-j)|>
-    dplyr::mutate(custo_total_funcionarios=funcionarios*{remuneracao_funcionario}+funcionarios*custo_treinamento_por_funcionario)
+    dplyr::mutate(custo_total_entrevistadores=entrevistadores*{remuneracao_entrevistador}+entrevistadores*custo_treinamento_por_entrevistador)
   resultado_agencias_jurisdicao <- agencias_t|>
     dplyr::inner_join(resultado_ucs_jurisdicao, by = c('agencia_codigo'))|>
     dplyr::group_by(pick(any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
-    dplyr::mutate(funcionarios=pmax(ceiling(n_ucs/{ucs_por_funcionario}), n_funcionarios_min),
-                  custo_total_funcionarios=funcionarios*{remuneracao_funcionario}+funcionarios*custo_treinamento_por_funcionario)|>
+    dplyr::mutate(entrevistadores=pmax(ceiling(n_ucs/{ucs_por_entrevistador}), n_entrevistadores_min),
+                  custo_total_entrevistadores=entrevistadores*{remuneracao_entrevistador}+entrevistadores*custo_treinamento_por_entrevistador)|>
     dplyr::ungroup()
   resultado <- list()
   resultado$resultado_ucs_otimo <- resultado_ucs_otimo

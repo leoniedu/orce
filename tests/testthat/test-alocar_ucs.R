@@ -144,7 +144,7 @@ test_that("alocar_ucs returns expected structure", {
   expect_type(result, "list")
 
   # Check if the 'ucs_alocadas' is a tibble/dataframe with expected columns
-  expect_setequal(names(result), c("resultado_ucs_otimo", "resultado_ucs_jurisdicao", "resultado_agencias_otimo", "resultado_agencias_jurisdicao", "ucs_agencias_todas"))
+  expect_setequal(names(result), c("resultado_ucs_otimo", "resultado_ucs_jurisdicao", "resultado_agencias_otimo", "resultado_agencias_jurisdicao", "ucs_agencias_todas", "otimizacao"))
 
   # Check if the all 'uc' in 'ucs_alocadas'
   expect_true(all(ucs$uc%in%result$resultado_ucs_otimo$uc))

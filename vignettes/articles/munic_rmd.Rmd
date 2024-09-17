@@ -688,6 +688,9 @@ amostra_uf <- amostra_mestra%>%
   mutate(
     dias_coleta = 5)#%>%ungroup()%>%slice_sample(n=100)
 
+n_trimestres <- amostra_mestra%>%ungroup%>%count(ano, trimestre)%>%nrow
+n_meses <- n_trimestres*3
+
 ## distancias upas
 distancias_upas <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
   rename(uc=setor)%>%
@@ -701,6 +704,7 @@ agencias_uf <-  amostra_uf%>%
   count(agencia_codigo, name="n_ucs_jurisdicao")%>%
   mutate(max_uc_agencia=Inf, custo_fixo=0)
 
+
 ## sem custo fixo nem custo de treinamento
 params_pnadc_0  <- list(ucs=amostra_uf,
                         agencias=agencias_uf,
@@ -709,8 +713,8 @@ params_pnadc_0  <- list(ucs=amostra_uf,
                         kml = 10,
                         valor_diaria = 335,
                         ## um trimestre de coleta
-                        ucs_por_funcionario=10,
-                        max_diarias_funcionario=10,
+                        ucs_por_funcionario=4*n_meses,
+                        max_diarias_funcionario=7*n_meses,
                         dias_treinamento = 0,
                         agencias_treinadas = NULL,
                         agencias_treinamento  = NULL,
@@ -725,7 +729,7 @@ estrategias_pnadc <- bind_rows(
   tibble(params=list(params_pnadc_0), 
          descricao='sem custo fixo / sem custo de treinamento'),
   tibble(params=list(modifyList(params_pnadc_0, 
-                                ## 3 meses, 1500 por mes por apm
+                                ## 1500 por mes por apm
                                 list(
                                   remuneracao_funcionario=4500
                                   #, gap_limit=2
