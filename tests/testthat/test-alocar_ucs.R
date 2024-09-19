@@ -48,17 +48,51 @@ test_that("alocar_ucs returns expected structure", {
     kml = 10,
     valor_diaria = 335,
     dias_treinamento = 5.5,
+    dias_coleta_entrevistador = 10,
     min_uc_agencia = 1,
-    ucs_por_entrevistador = 3,
     n_entrevistadores_min=2,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 10,
     agencias_treinamento = "A",
-    resultado_completo=TRUE,
-    first_feasible=TRUE
+    resultado_completo=TRUE
   )
 
+  result <- alocar_ucs(
+    ucs = ucs,
+    agencias = agencias,
+    custo_litro_combustivel =  6,
+    custo_hora_viagem = 10,
+    kml = 10,
+    valor_diaria = 335,
+    dias_treinamento = 5.5,
+    dias_coleta_entrevistador = 10,
+    min_uc_agencia = 1,
+    n_entrevistadores_min=2,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    agencias_treinamento = "A",
+    resultado_completo=TRUE,
+    adicional_troca_jurisdicao=1e6
+  )
+
+  result <- alocar_ucs(
+    ucs = ucs,
+    agencias = agencias,
+    custo_litro_combustivel =  6,
+    custo_hora_viagem = 10,
+    kml = 10,
+    valor_diaria = 335,
+    dias_treinamento = 5.5,
+    dias_coleta_entrevistador = 2,
+    min_uc_agencia = 1,
+    n_entrevistadores_min=2,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    agencias_treinamento = "A",
+    resultado_completo=TRUE,
+    adicional_troca_jurisdicao=1e6
+  )
 
   result <- alocar_ucs(
     ucs = ucs,
@@ -71,6 +105,7 @@ test_that("alocar_ucs returns expected structure", {
     min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
+    dias_coleta_entrevistador=3,
     adicional_troca_jurisdicao = 1000,
     agencias_treinamento = "A",
     resultado_completo=TRUE
@@ -78,6 +113,7 @@ test_that("alocar_ucs returns expected structure", {
 
   result <- alocar_ucs(
     ucs = ucs,
+    dias_coleta_entrevistador=100,
     custo_litro_combustivel =  6,
     custo_hora_viagem = 10,
     kml = 10,
@@ -104,7 +140,8 @@ test_that("alocar_ucs returns expected structure", {
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 1000,
     agencias_treinamento = "A",
-    resultado_completo=TRUE
+    resultado_completo=TRUE,
+    dias_coleta_entrevistador = 3
   )
 
   result <- alocar_ucs(
@@ -120,7 +157,8 @@ test_that("alocar_ucs returns expected structure", {
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 1000,
     agencias_treinamento = "A",
-    resultado_completo=FALSE
+    resultado_completo=FALSE,
+    dias_coleta_entrevistador = 1.1
   )
 
 
@@ -137,7 +175,8 @@ test_that("alocar_ucs returns expected structure", {
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 0,
     agencias_treinamento = "A",
-    resultado_completo=TRUE
+    resultado_completo=TRUE,
+    dias_coleta_entrevistador = 1.2
   )
 
   # Check if result is a list

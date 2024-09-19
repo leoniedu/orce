@@ -12,52 +12,53 @@
 #' @param agencias Um `tibble` ou `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo`: Código único da agência.
-#'   \item `max_uc_agencia`: (Opcional) Número máximo de UCs que a agência pode atender. Padrão: `Inf` (ilimitado).
-#'   \item `custo_fixo`: (Opcional) Custo fixo associado à agência (além do custo de treinamento e salários). Padrão: 0.
+#'   \item `max_uc_agencia`: Número máximo de UCs que a agência pode atender.
+#'   \item `custo_fixo`: Custo fixo associado à agência.
 #' }
 #' @param custo_litro_combustivel Custo do combustível por litro (em R$). Padrão: 6.
 #' @param custo_hora_viagem Custo de cada hora de viagem (em R$). Padrão: 10.
 #' @param kml Consumo médio de combustível do veículo (em km/l). Padrão: 10.
 #' @param valor_diaria Valor da diária para deslocamentos (em R$). Padrão: 335.
-#' @param max_diarias_entrevistador Máximo de diárias que um entrevistador pode receber no período de referência. Padrão `Inf`.
-#' @param remuneracao_entrevistador Remuneração por entrevistador para todo o período de referência. Padrão 0
-#' @param n_entrevistadores_min Número mínimo de entrevistadores por agência. Padrão: 1
-#' @param ucs_por_entrevistador Número de UCs coletadas por entrevistador durante todo o período de referência. Padrão: 1
+#' @param max_diarias_entrevistador Máximo de diárias que um entrevistador pode receber no período de referência. Padrão: `Inf`.
+#' @param remuneracao_entrevistador Remuneração por entrevistador para todo o período de referência. Padrão: 0.
+#' @param n_entrevistadores_min Número mínimo de entrevistadores por agência. Padrão: 1.
+#' @param dias_coleta_entrevistador Número de dias de coleta por entrevistador.
 #' @param dias_treinamento Número de dias/diárias para treinamento. Padrão: 0 (nenhum treinamento).
-#' @param min_uc_agencia Número mínimo de UCs por agência ativa. Padrão: 1.
-#' @param agencias_treinadas (Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. O custo dos APMs contratados nessas agências ainda será incluído no plano de otimização. Padrão: NULL.
+#' @param agencias_treinadas (Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. Padrão: NULL.
 #' @param agencias_treinamento Código da(s) agência(s) onde o treinamento será realizado.
-#' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão 0
 #' @param distancias_ucs Um `tibble` ou `data.frame` com as distâncias entre UCs e agências, incluindo:
 #' \itemize{
 #'   \item `uc`: Código da UC.
 #'   \item `agencia_codigo`: Código da agência.
 #'   \item `distancia_km`: Distância em quilômetros entre a UC e a agência.
-#'   \item `duracao_horas`: Duração da viagem em horas entre a UC e a agência
-#'   \item `diaria_municipio`: Indica se é necessária uma diária para deslocamento entre a UC e a agência, considerando o município da UC
-#'   \item `diaria_pernoite`: Indica se é necessária uma diária com pernoite para deslocamento entre a UC e a agência
+#'   \item `duracao_horas`: Duração da viagem em horas entre a UC e a agência.
+#'   \item `diaria_municipio`: Indica se é necessária uma diária para deslocamento entre a UC e a agência, considerando o município da UC.
+#'   \item `diaria_pernoite`: Indica se é necessária uma diária com pernoite para deslocamento entre a UC e a agência.
 #' }
 #' @param distancias_agencias Um `tibble` ou `data.frame` com as distâncias entre as agências, incluindo:
 #' \itemize{
-#'   \item `agencia_codigo_orig`: Código da agência de origem
-#'   \item `agencia_codigo_dest`: Código da agência de destino
-#'   \item `distancia_km`: Distância em quilômetros entre a agência de origem e a de destino
-#'   \item `duracao_horas`: Duração da viagem em horas entre a agência de origem e a de destino
+#'   \item `agencia_codigo_orig`: Código da agência de origem.
+#'   \item `agencia_codigo_dest`: Código da agência de destino.
+#'   \item `distancia_km`: Distância em quilômetros entre a agência de origem e a de destino.
+#'   \item `duracao_horas`: Duração da viagem em horas entre a agência de origem e a de destino.
 #' }
+#' @param min_uc_agencia Número mínimo de UCs por agência ativa. Padrão: 1.
+#' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão: 0.
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
-#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: glpk. Outras opções: cbc (instalação manual)
-#' @param ... Opções para o solver.
+#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "symphony". Outras opções: "glpk", "cbc" (instalação manual).
+#' @param ... Opções adicionais para o solver.
 #'
 #' @return Uma lista contendo:
 #' \itemize{
-#' * `resultado_ucs_otimo`: Um `tibble` com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
 #' * `resultado_ucs_jurisdicao`: Um `tibble` com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento.
-#' * `resultado_agencias_otimo`: Um `tibble` com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
 #' * `resultado_agencias_jurisdicao`: Um `tibble` com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
-#' * `ucs_agencias_todas` (opcional): Um `tibble` com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se `resultado_completo` for TRUE).
+#'   \item `resultado_ucs_otimo`: Um `tibble` com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
+#'   \item `resultado_agencias_otimo`: Um `tibble` com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
+#'   \item `ucs_agencias_todas` (opcional): Um `tibble` com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se `resultado_completo` for TRUE).
+#'   \item `otimizacao` (opcional): O resultado completo da otimização (retornado apenas se `resultado_completo` for TRUE).
 #' }
 #'
-#' @import dplyr ompr magrittr ompr.roi ROI.plugin.glpk checkmate
+#' @import dplyr ompr magrittr ompr.roi ROI.plugin.glpk ROI.plugin.symphony checkmate sf tibble tidyr
 #' @export
 alocar_ucs <- function(ucs,
                        agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), max_uc_agencia=Inf, custo_fixo=0),
@@ -68,7 +69,7 @@ alocar_ucs <- function(ucs,
                        max_diarias_entrevistador=Inf,
                        remuneracao_entrevistador = 0,
                        n_entrevistadores_min=1,
-                       ucs_por_entrevistador=1,
+                       dias_coleta_entrevistador,
                        dias_treinamento = 0,
                        agencias_treinadas = NULL,
                        agencias_treinamento = NULL,
@@ -92,7 +93,7 @@ alocar_ucs <- function(ucs,
   checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
   checkmate::assert_data_frame(distancias_agencias, null.ok=dias_treinamento == 0)
   checkmate::assert_integerish(min_uc_agencia, lower = 1)
-  checkmate::assert_number(ucs_por_entrevistador, lower = 1)
+  checkmate::assert_number(dias_coleta_entrevistador, lower = 1)
   checkmate::assert_number(remuneracao_entrevistador, lower = 0)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite')%in%names(distancias_ucs)))
@@ -161,6 +162,7 @@ alocar_ucs <- function(ucs,
     dplyr::arrange(uc)|>
     dplyr::transmute(i=1:n(), uc, #municipio_codigo,
                      agencia_codigo_jurisdicao=agencia_codigo, dias_coleta, viagens)
+  browser()
   ag_mun_grid <- tidyr::expand_grid(
     agencias_t|>
       transmute(municipio_codigo_agencia = substr(agencia_codigo, 1, 7), agencia_codigo),
@@ -184,7 +186,7 @@ alocar_ucs <- function(ucs,
       i, uc,
       j, agencia_codigo,
       agencia_codigo_jurisdicao,
-      distancia_km, duracao_horas,
+      distancia_km, duracao_horas, dias_coleta,
       diaria=diaria_municipio,
       diaria=dplyr::if_else(diaria_pernoite, TRUE, diaria),
       meia_diaria=(!diaria_pernoite) & diaria,
@@ -215,6 +217,12 @@ alocar_ucs <- function(ucs,
     tibble::tibble(i=i,j=j)|>
       dplyr::left_join(dist_uc_agencias, by=c("i", "j"))|>
       dplyr::pull(total_diarias)
+  }
+  dias_coleta_ij <- function(i,j) {
+    stopifnot(length(i) == length(j))
+    tibble::tibble(i=i,j=j)|>
+      dplyr::left_join(dist_uc_agencias, by=c("i", "j"))|>
+      dplyr::pull(dias_coleta)
   }
   transport_cost <- function(i,j) {
     stopifnot(length(i) == length(j))
@@ -248,7 +256,7 @@ alocar_ucs <- function(ucs,
     # se agencia está ativa, w tem que ser >= n_entrevistadores_min
     add_constraint((y[j]*{n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m)|>
     # w tem que ser o suficiente para dar conta das ucs
-    add_constraint((sum_over(x[i,j], i=1:n)/{ucs_por_entrevistador}) <= w[j], j = 1:m)
+    add_constraint((sum_over(x[i,j]*dias_coleta_ij(i,j), i=1:n)/{dias_coleta_entrevistador}) <= w[j], j = 1:m)
   if(any({{min_uc_agencia}}>1)) {
     model <- model|>
       # constraint com número mínimo de UCs por agência que for incluída
@@ -288,7 +296,7 @@ alocar_ucs <- function(ucs,
   ags_group_vars <- c(names(agencias_sel),  'entrevistadores')
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo'))|>
-    dplyr::left_join(resultado_ucs_jurisdicao|>dplyr::select(uc, agencia_codigo_jurisdicao=agencia_codigo), by = c('uc'))|>
+    dplyr::left_join(ucs_i|>dplyr::select(uc, agencia_codigo_jurisdicao), by = c('uc'))|>
     dplyr::group_by(pick(any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE), n_trocas_jurisdicao=sum(agencia_codigo!=agencia_codigo_jurisdicao))|>
     dplyr::ungroup()|>
@@ -298,9 +306,13 @@ alocar_ucs <- function(ucs,
   resultado_agencias_jurisdicao <- agencias_t|>
     dplyr::inner_join(resultado_ucs_jurisdicao, by = c('agencia_codigo'))|>
     dplyr::group_by(pick(any_of(ags_group_vars)))|>
-    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
-    dplyr::mutate(entrevistadores=pmax(ceiling(n_ucs/{ucs_por_entrevistador}), n_entrevistadores_min),
-                  custo_total_entrevistadores=entrevistadores*{remuneracao_entrevistador}+entrevistadores*custo_treinamento_por_entrevistador)|>
+    dplyr::summarise(dplyr::across(where(is.numeric), sum),
+                     n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
+    dplyr::mutate(entrevistadores=pmax(
+      ceiling(dias_coleta/dias_coleta_entrevistador),
+      ceiling(total_diarias/max_diarias_entrevistador),
+      n_entrevistadores_min),
+      custo_total_entrevistadores=entrevistadores*{remuneracao_entrevistador}+entrevistadores*custo_treinamento_por_entrevistador)|>
     dplyr::ungroup()
   resultado <- list()
   resultado$resultado_ucs_otimo <- resultado_ucs_otimo

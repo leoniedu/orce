@@ -718,7 +718,8 @@ uf_codigo_now <- 29
 ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
 
 carga_uf <- carga_br%>%
-  filter(substr(uc,1,2)==ufnow$uf_codigo)
+  filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
+  ungroup#%>%filter(agencia_codigo%in%c('291360600', '291480200', '292870300', '293290300', '290490200'))
 
 ## distancias uc
 distancias_ucs_all <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
@@ -745,19 +746,20 @@ params_carga_0  <- list(ucs=carga_uf,
                         valor_diaria = 335,
                         ## em um ano de coleta, um entrevistador consegue
                         ## 48 upas pnadc / 24 upas POF / 18 Municipios
-                        ucs_por_entrevistador=30,
+                        dias_coleta_entrevistador=200,
                         max_diarias_entrevistador=40,
                         dias_treinamento = 0,
                         agencias_treinadas = NULL,
                         agencias_treinamento  = NULL,
                         distancias_ucs=distancias_ucs_all,
-                        adicional_troca_jurisdicao  = 0,
                         ## for symphony solver
                         solver="symphony", 
                         verbosity=TRUE,
                         #first_feasible=TRUE
-                        gap_limit=10
+                        gap_limit=10,
+                        adicional_troca_jurisdicao  = 0
                         )
+
 library(tictoc)
 # tic()
 # tmp <- do.call(alocar_ucs, params_carga_0)
@@ -790,6 +792,7 @@ estrategias_carga <- bind_rows(
                                   ))), 
          descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo/limite 60 UCs por agência, n_entrevistadores_min=2')
 )%>%
+  head(3)%>%
   mutate(resultado=purrr::map(params, ~do.call(alocar_ucs, .x)))
 toc()
 
@@ -805,6 +808,7 @@ estrategias_carga_sum <-
       summarise(across(matches("custo|n_agencias"), ~sum(.x, na.rm=TRUE))))%>%
   mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
   select(descricao, modelo, n_agencias, custo_total, everything())
+report_plans(estrategias_carga$resultado[[2]])
 
 estrategias_carga_sum%>%
   group_by(descricao)%>%
