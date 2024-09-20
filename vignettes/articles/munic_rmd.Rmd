@@ -719,7 +719,8 @@ ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
 
 carga_uf <- carga_br%>%
   filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
-  ungroup#%>%filter(agencia_codigo%in%c('291360600', '291480200', '292870300', '293290300', '290490200'))
+  #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
+  ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
 
 ## distancias uc
 distancias_ucs_all <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
@@ -743,27 +744,31 @@ params_carga_0  <- list(ucs=carga_uf,
                         custo_litro_combustivel = 6,
                         custo_hora_viagem = 10,
                         kml = 10,
-                        valor_diaria = 335,
+                        valor_diaria = 335*2,
                         ## em um ano de coleta, um entrevistador consegue
                         ## 48 upas pnadc / 24 upas POF / 18 Municipios
                         dias_coleta_entrevistador=200,
-                        diarias_entrevistador_max=60,
+                        diarias_entrevistador_max=Inf,
                         dias_treinamento = 0,
                         agencias_treinadas = NULL,
                         agencias_treinamento  = NULL,
                         distancias_ucs=distancias_ucs_all,
+                        ## default solver cbc
                         ## for symphony solver
-                        solver="symphony", 
-                        verbosity=TRUE,
+                        #verbosity=TRUE,
                         #first_feasible=TRUE
-                        gap_limit=5, ## done with gap=10 symphony
-                        adicional_troca_jurisdicao  = 0
+                        #gap_limit=5, 
+                        adicional_troca_jurisdicao  = 0,
+                        ## solver=cbc
+                        rel_tol=.02, 
+                        max_time=60*10,
+                        resultado_completo=FALSE
                         )
 
 library(tictoc)
-tic()
-tmp <- do.call(alocar_municipios, params_carga_0)
-toc()
+# tic()
+# tmp <- do.call(alocar_municipios, params_carga_0)
+# toc()
 tic()
 estrategias_carga <- bind_rows(
   tibble(params=list(params_carga_0), 
@@ -784,9 +789,10 @@ estrategias_carga <- bind_rows(
   #        descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes total custo fixo'),
   tibble(params=list(modifyList(params_carga_0, 
                                 list(
+                                  #custo_fixo=10000*12,
                                   agencias=agencias_uf%>%
-                                    mutate(
-                                      custo_fixo=10000*12),
+                                  mutate(
+                                  custo_fixo=10000*12),
                                   n_entrevistadores_min=2,
                                   remuneracao_entrevistador=12*1500
                                 ))), 
@@ -821,6 +827,7 @@ estrategias_carga_sum%>%
   gt::cols_label(descricao='Modelo')%>%
   gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%
   print_gt()
+
 ```
 
 ## Conclusão

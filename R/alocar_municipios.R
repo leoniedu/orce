@@ -63,6 +63,7 @@
 #' @export
 alocar_municipios <- function(ucs,
                        agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), uc_agencia_max=Inf, custo_fixo=0),
+                       #custo_fixo=0,
                        custo_litro_combustivel = 6,
                        custo_hora_viagem = 10,
                        kml = 10,
@@ -78,12 +79,13 @@ alocar_municipios <- function(ucs,
                        distancias_agencias=NULL,
                        uc_agencia_min = 1,
                        adicional_troca_jurisdicao = 0,
-                       resultado_completo = FALSE, solver="symphony", ...) {
+                       resultado_completo = FALSE, solver="cbc", ...) {
   # Import required libraries explicitly
   requireNamespace("dplyr")
   require("ompr")
   require("ompr.roi")
   require(paste0("ROI.plugin.",solver),character.only = TRUE)
+
   # Verificação dos Argumentos
   checkmate::assertTRUE(!anyDuplicated(agencias[['agencia_codigo']]))
   checkmate::assertTRUE(!anyDuplicated(ucs[['uc']]))
@@ -267,7 +269,10 @@ alocar_municipios <- function(ucs,
     set_objective(sum_over(
       transport_cost(i, j)* x[i, j] , i = 1:n, j = 1:m)
       + sum_over(
-        (agencias_sel$custo_fixo[j]) * y[j]+w[j]*({remuneracao_entrevistador}+agencias_sel$custo_treinamento_por_entrevistador[j]), j = 1:m), "min") |>
+        #{custo_fixo} * y[j]+
+        (agencias_sel$custo_fixo[j]) * y[j]+
+        #(agencias_sel$custo_fixo[1]) * y[j]+
+        w[j]*({remuneracao_entrevistador}+agencias_sel$custo_treinamento_por_entrevistador[j]), j = 1:m), "min") |>
     # toda UC precisa estar associada a uma agencia
     add_constraint(sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
     # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
@@ -276,12 +281,6 @@ alocar_municipios <- function(ucs,
     add_constraint((y[j]*{n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m)|>
     # w tem que ser o suficiente para dar conta das ucs
     add_constraint((sum_over(x[i,j]*dias_coleta_ij(i,j), i=1:n)/{dias_coleta_entrevistador_max}) <= w[j], j = 1:m)
-  if(any({{uc_agencia_min}}>1)) {
-    model <- model|>
-      # constraint com número mínimo de UCs por agência que for incluída
-      # multiplica por y[j] por que só vale pra agencias incluídas, se não é >=0
-      add_constraint(sum_over(x[i, j], i = 1:n) >= (uc_agencia_min[j]*y[j]), j = 1:m)
-  }
   ## respeitar o máximo de dias de coleta por agencia
   if(any(is.finite(agencias_sel$dias_coleta_agencia_max))) {
     model <- model|>
@@ -293,9 +292,13 @@ alocar_municipios <- function(ucs,
       add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
   }
   # Solve the model using solver
-  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, ...))
+  ##browser()
+  result <- ompr::solve_model(model,ompr.roi::with_ROI(solver = {solver}, ...))
   if ({solver}=="symphony") {
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
+  }
+  if ({solver}=="cbc") {
+    result$status <- result$additional_solver_output$ROI$status$msg$message
   }
   stopifnot(result$status != "error")
   # Extract the solution
@@ -342,6 +345,7 @@ alocar_municipios <- function(ucs,
   resultado$resultado_municipios_jurisdicao <- resultado_municipios_jurisdicao
   resultado$resultado_agencias_otimo <- resultado_agencias_otimo
   resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao
+  attr(resultado, "solucao_status") <- result$status
   if(resultado_completo) {
     resultado$municipios_agencias_todas <- dist_municipios_agencias
     resultado$otimizacao <- result

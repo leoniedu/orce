@@ -2,6 +2,10 @@
 package <- new.env(parent = emptyenv())
 
 .onLoad <- function(libname, pkgname){
+  try({
+    ROI::ROI_plugin_register_solver_control("cbc",
+                                          "ratio", "rel_tol")
+  }, silent = TRUE)
   # data release
   package$name <- "orce"
   # local cache dir

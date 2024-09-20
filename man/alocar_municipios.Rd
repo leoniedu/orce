@@ -24,7 +24,7 @@ alocar_municipios(
   uc_agencia_min = 1,
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
-  solver = "symphony",
+  solver = "cbc",
   ...
 )
 }
