@@ -58,7 +58,7 @@
 #'   \item `otimizacao` (opcional): O resultado completo da otimização (retornado apenas se `resultado_completo` for TRUE).
 #' }
 #'
-#' @import dplyr ompr magrittr ompr.roi ROI.plugin.glpk ROI.plugin.symphony checkmate sf tibble tidyr
+#' @import dplyr ompr ompr.roi ROI.plugin.glpk ROI.plugin.symphony checkmate sf tibble tidyr
 #' @export
 alocar_ucs <- function(ucs,
                        agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), max_uc_agencia=Inf, custo_fixo=0),
@@ -160,9 +160,9 @@ alocar_ucs <- function(ucs,
     sf::st_drop_geometry()|>
     dplyr::ungroup()|>
     dplyr::arrange(uc)|>
-    dplyr::transmute(i=1:n(), uc, #municipio_codigo,
+    dplyr::transmute(i=1:n(),
+                     uc, #municipio_codigo,
                      agencia_codigo_jurisdicao=agencia_codigo, dias_coleta, viagens)
-  browser()
   ag_mun_grid <- tidyr::expand_grid(
     agencias_t|>
       transmute(municipio_codigo_agencia = substr(agencia_codigo, 1, 7), agencia_codigo),

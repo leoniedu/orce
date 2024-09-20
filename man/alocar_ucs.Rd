@@ -6,22 +6,26 @@
 \usage{
 alocar_ucs(
   ucs,
-  agencias = NULL,
+  agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo), max_uc_agencia =
+    Inf, custo_fixo = 0),
   custo_litro_combustivel = 6,
   custo_hora_viagem = 10,
   kml = 10,
   valor_diaria = 335,
-  custo_fixo = 0,
+  max_diarias_entrevistador = Inf,
+  remuneracao_entrevistador = 0,
+  n_entrevistadores_min = 1,
+  dias_coleta_entrevistador,
   dias_treinamento = 0,
   agencias_treinadas = NULL,
   agencias_treinamento = NULL,
   distancias_ucs,
   distancias_agencias = NULL,
   min_uc_agencia = 1,
-  max_uc_agencia = NULL,
-  semi_centralizada = NULL,
   adicional_troca_jurisdicao = 0,
-  resultado_completo = FALSE
+  resultado_completo = FALSE,
+  solver = "symphony",
+  ...
 )
 }
 \arguments{
@@ -36,6 +40,8 @@ alocar_ucs(
 \item{agencias}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
 \itemize{
 \item \code{agencia_codigo}: Código único da agência.
+\item \code{max_uc_agencia}: Número máximo de UCs que a agência pode atender.
+\item \code{custo_fixo}: Custo fixo associado à agência.
 }}
 
 \item{custo_litro_combustivel}{Custo do combustível por litro (em R$). Padrão: 6.}
@@ -46,11 +52,17 @@ alocar_ucs(
 
 \item{valor_diaria}{Valor da diária para deslocamentos (em R$). Padrão: 335.}
 
-\item{custo_fixo}{Custo fixo mensal da agência, como salário do entrevistador, custo de monitoramento, etc. (em R$). Padrão: 500.}
+\item{max_diarias_entrevistador}{Máximo de diárias que um entrevistador pode receber no período de referência. Padrão: \code{Inf}.}
 
-\item{dias_treinamento}{Número de dias/diárias para treinamento. Padrão: 5.5}
+\item{remuneracao_entrevistador}{Remuneração por entrevistador para todo o período de referência. Padrão: 0.}
 
-\item{agencias_treinadas}{(Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. O custo dos APMs contratados nessas agências ainda será incluído no plano de otimização. Padrão: NULL.}
+\item{n_entrevistadores_min}{Número mínimo de entrevistadores por agência. Padrão: 1.}
+
+\item{dias_coleta_entrevistador}{Número de dias de coleta por entrevistador.}
+
+\item{dias_treinamento}{Número de dias/diárias para treinamento. Padrão: 0 (nenhum treinamento).}
+
+\item{agencias_treinadas}{(Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. Padrão: NULL.}
 
 \item{agencias_treinamento}{Código da(s) agência(s) onde o treinamento será realizado.}
 
@@ -59,36 +71,40 @@ alocar_ucs(
 \item \code{uc}: Código da UC.
 \item \code{agencia_codigo}: Código da agência.
 \item \code{distancia_km}: Distância em quilômetros entre a UC e a agência.
-\item \code{duracao_horas}: Duração da viagem em horas entre a UC e a agência
-\item \code{diaria_municipio}: Indica se é necessária uma diária para deslocamento entre a UC e a agência, considerando o município da UC
+\item \code{duracao_horas}: Duração da viagem em horas entre a UC e a agência.
+\item \code{diaria_municipio}: Indica se é necessária uma diária para deslocamento entre a UC e a agência, considerando o município da UC.
+\item \code{diaria_pernoite}: Indica se é necessária uma diária com pernoite para deslocamento entre a UC e a agência.
 }}
 
 \item{distancias_agencias}{Um \code{tibble} ou \code{data.frame} com as distâncias entre as agências, incluindo:
 \itemize{
-\item \code{agencia_codigo_orig}: Código da agência de origem
-\item \code{agencia_codigo_dest}: Código da agência de destino
-\item \code{distancia_km}: Distância em quilômetros entre a agência de origem e a de destino
-\item \code{duracao_horas}: Duração da viagem em horas entre a agência de origem e a de destino
+\item \code{agencia_codigo_orig}: Código da agência de origem.
+\item \code{agencia_codigo_dest}: Código da agência de destino.
+\item \code{distancia_km}: Distância em quilômetros entre a agência de origem e a de destino.
+\item \code{duracao_horas}: Duração da viagem em horas entre a agência de origem e a de destino.
 }}
 
-\item{min_uc_agencia}{Número mínimo de UCs por agência. Só válido para agências não treinadas. Padrão: 1.}
+\item{min_uc_agencia}{Número mínimo de UCs por agência ativa. Padrão: 1.}
 
-\item{max_uc_agencia}{Número máximo de UCs por agência. Padrão: NULL (ilimitado).}
-
-\item{semi_centralizada}{(Opcional) Um vetor de caracteres com os códigos das agências que não terão limite máximo de UCs alocadas. Padrão: NULL.}
-
-\item{adicional_troca_jurisdicao}{Custo adicional quando há troca de agência de coleta. Padrão 0}
+\item{adicional_troca_jurisdicao}{Custo adicional quando há troca de agência de coleta. Padrão: 0.}
 
 \item{resultado_completo}{(Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.}
+
+\item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "symphony". Outras opções: "glpk", "cbc" (instalação manual).}
+
+\item{...}{Opções adicionais para o solver.}
 }
 \value{
 Uma lista contendo:
 \itemize{
-\item \code{resultado_ucs_otimo}: Um \code{tibble} com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
+\itemize{
 \item \code{resultado_ucs_jurisdicao}: Um \code{tibble} com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento.
-\item \code{resultado_agencias_otimo}: Um \code{tibble} com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
 \item \code{resultado_agencias_jurisdicao}: Um \code{tibble} com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
+\item \code{resultado_ucs_otimo}: Um \code{tibble} com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
+\item \code{resultado_agencias_otimo}: Um \code{tibble} com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
 \item \code{ucs_agencias_todas} (opcional): Um \code{tibble} com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se \code{resultado_completo} for TRUE).
+\item \code{otimizacao} (opcional): O resultado completo da otimização (retornado apenas se \code{resultado_completo} for TRUE).
+}
 }
 }
 \description{
