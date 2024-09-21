@@ -98,14 +98,12 @@ alocar_municipios(
 \value{
 Uma lista contendo:
 \itemize{
-\itemize{
 \item \code{resultado_municipios_jurisdicao}: Um \code{tibble} com os municipios e suas alocações originais (jurisdição), incluindo custos de deslocamento.
 \item \code{resultado_agencias_jurisdicao}: Um \code{tibble} com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
 \item \code{resultado_municipios_otimo}: Um \code{tibble} com os municípios e suas alocações otimizadas, incluindo custos de deslocamento.
 \item \code{resultado_agencias_otimo}: Um \code{tibble} com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
 \item \code{municipios_agencias_todas} (opcional): Um \code{tibble} com todas as combinações de municípios e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se \code{resultado_completo} for TRUE).
 \item \code{otimizacao} (opcional): O resultado completo da otimização (retornado apenas se \code{resultado_completo} for TRUE).
-}
 }
 }
 \description{

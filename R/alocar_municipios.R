@@ -51,12 +51,12 @@
 #'
 #' @return Uma lista contendo:
 #' \itemize{
-#' * `resultado_municipios_jurisdicao`: Um `tibble` com os municipios e suas alocações originais (jurisdição), incluindo custos de deslocamento.
-#' * `resultado_agencias_jurisdicao`: Um `tibble` com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
-#' \item `resultado_municipios_otimo`: Um `tibble` com os municípios e suas alocações otimizadas, incluindo custos de deslocamento.
-#' \item `resultado_agencias_otimo`: Um `tibble` com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
-#' \item `municipios_agencias_todas` (opcional): Um `tibble` com todas as combinações de municípios e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se `resultado_completo` for TRUE).
-#' \item `otimizacao` (opcional): O resultado completo da otimização (retornado apenas se `resultado_completo` for TRUE).
+#'   \item `resultado_municipios_jurisdicao`: Um `tibble` com os municipios e suas alocações originais (jurisdição), incluindo custos de deslocamento.
+#'   \item `resultado_agencias_jurisdicao`: Um `tibble` com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
+#'   \item `resultado_municipios_otimo`: Um `tibble` com os municípios e suas alocações otimizadas, incluindo custos de deslocamento.
+#'   \item `resultado_agencias_otimo`: Um `tibble` com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
+#'   \item `municipios_agencias_todas` (opcional): Um `tibble` com todas as combinações de municípios e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se `resultado_completo` for TRUE).
+#'   \item `otimizacao` (opcional): O resultado completo da otimização (retornado apenas se `resultado_completo` for TRUE).
 #' }
 #'
 #' @import dplyr ompr ompr.roi ROI.plugin.glpk ROI.plugin.symphony checkmate sf tibble tidyr
