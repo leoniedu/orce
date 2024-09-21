@@ -155,7 +155,6 @@ alocar_municipios <- function(ucs,
   agencias_t$custo_treinamento_por_entrevistador <- custo_treinamento
 
 
-  # Maximum UCs per agency
   agencias_sel <- agencias_sel|>
     dplyr::inner_join(agencias_t, by="agencia_codigo")
   # Combining UC and agency information
@@ -256,10 +255,8 @@ alocar_municipios <- function(ucs,
   n <- max(dist_municipios_agencias$i)
   m <- nrow(agencias_sel)
   stopifnot((agencias_sel$j)==(1:nrow(agencias_sel)))
-  # alocar_ucs_model <- function(agencias_sel, n,m, transport_cost, remuneracao_entrevistador, n_entrevistadores_min, uc_agencia_min, diarias_entrevistador_max, diarias_ij) {
-  # }
   model <- MIPModel() |>
-    # 1 iff (se e somente se) uc i vai para a agencia j
+    # 1 iff (se e somente se) municipio i vai para a agencia j
     add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
     # 1 iff (se e somente se) agencia j ativada
     add_variable(y[j], j = 1:m, type = "binary") |>
@@ -273,18 +270,18 @@ alocar_municipios <- function(ucs,
         (agencias_sel$custo_fixo[j]) * y[j]+
         #(agencias_sel$custo_fixo[1]) * y[j]+
         w[j]*({remuneracao_entrevistador}+agencias_sel$custo_treinamento_por_entrevistador[j]), j = 1:m), "min") |>
-    # toda UC precisa estar associada a uma agencia
+    # todo municipio precisa estar associada a uma agencia
     add_constraint(sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
-    # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
+    # se um municipio está designado a uma agencia, a agencia tem que ficar ativa
     add_constraint(x[i,j] <= y[j], i = 1:n, j = 1:m)|>
     # se agencia está ativa, w tem que ser >= n_entrevistadores_min
     add_constraint((y[j]*{n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m)|>
-    # w tem que ser o suficiente para dar conta das ucs
+    # w tem que ser o suficiente para dar conta dos municipios
     add_constraint((sum_over(x[i,j]*dias_coleta_ij(i,j), i=1:n)/{dias_coleta_entrevistador_max}) <= w[j], j = 1:m)
   ## respeitar o máximo de dias de coleta por agencia
   if(any(is.finite(agencias_sel$dias_coleta_agencia_max))) {
     model <- model|>
-      # constraint com número máximo de UCs por agência
+      # constraint com número máximo de dias de coleta por agência
       add_constraint(sum_over(x[i, j]*dias_coleta_ij(i,j), i = 1:n) <= agencias_sel$dias_coleta_agencia_max[j], j = 1:m)
   }
   if (any(is.finite({diarias_entrevistador_max}))) {
@@ -292,13 +289,9 @@ alocar_municipios <- function(ucs,
       add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
   }
   # Solve the model using solver
-  ##browser()
   result <- ompr::solve_model(model,ompr.roi::with_ROI(solver = {solver}, ...))
   if ({solver}=="symphony") {
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
-  }
-  if ({solver}=="cbc") {
-    #result$status <- result$additional_solver_output$ROI$status$msg$message
   }
   stopifnot(result$status != "error")
   # Extract the solution
@@ -312,7 +305,6 @@ alocar_municipios <- function(ucs,
     dplyr::select(j, entrevistadores=value)
   resultado_municipios_otimo <- matching|>
     dplyr::left_join(dist_municipios_agencias
-                     ## |>select(-agencia_codigo_jurisdicao)
                      , by=c('i', 'j'))|>
     dplyr::select(-i, -j)
   resultado_municipios_jurisdicao <- dist_municipios_agencias|>
@@ -321,7 +313,6 @@ alocar_municipios <- function(ucs,
   ags_group_vars <- c(names(agencias_sel),  'entrevistadores')
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_municipios_otimo, by = c('agencia_codigo'))|>
-    ##heredplyr::left_join(ucs_i|>dplyr::select(uc, agencia_codigo_jurisdicao), by = c('uc'))|>
     dplyr::group_by(pick(any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_municipios=dplyr::n_distinct(municipio_codigo, na.rm=TRUE), n_trocas_jurisdicao=sum(agencia_codigo!=agencia_codigo_jurisdicao))|>
     dplyr::ungroup()|>

@@ -161,7 +161,7 @@ alocar_ucs <- function(ucs,
     dplyr::ungroup()|>
     dplyr::arrange(uc)|>
     dplyr::transmute(i=1:n(),
-                     uc, #municipio_codigo,
+                     uc,
                      agencia_codigo_jurisdicao=agencia_codigo, dias_coleta, viagens)
 
   agencias_i <- ucs_i|>
@@ -244,8 +244,6 @@ alocar_ucs <- function(ucs,
   n <- nrow(ucs_i)
   m <- nrow(agencias_sel)
   stopifnot((agencias_sel$j)==(1:nrow(agencias_sel)))
-  # alocar_ucs_model <- function(agencias_sel, n,m, transport_cost, remuneracao_entrevistador, n_entrevistadores_min, min_uc_agencia, diarias_entrevistador_max, diarias_ij) {
-  # }
   model <- MIPModel() |>
     # 1 iff (se e somente se) uc i vai para a agencia j
     add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
@@ -287,9 +285,6 @@ alocar_ucs <- function(ucs,
   browser()
   if ({solver}=="symphony") {
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
-  }
-  if ({solver}=="cbc") {
-    #result$status <- result$additional_solver_output$ROI$status$msg$message
   }
   stopifnot(result$status != "error")
   # Extract the solution
