@@ -2,7 +2,7 @@
 % Please edit documentation in R/alocar_municipios.R
 \name{alocar_municipios}
 \alias{alocar_municipios}
-\title{Alocação Otimizada de Unidades de Coleta (UCs) a Agências}
+\title{Alocação Otimizada de Municípios a Agências}
 \usage{
 alocar_municipios(
   ucs,
@@ -43,6 +43,7 @@ alocar_municipios(
 \item \code{agencia_codigo}: Código único da agência.
 \item \code{uc_agencia_max}: Número máximo de UCs que a agência pode atender.
 \item \code{custo_fixo}: Custo fixo associado à agência.
+\item \code{dias_coleta_agencia_max}: Número máximo de dias de coleta que a agência pode realizar.
 }}
 
 \item{custo_litro_combustivel}{Custo do combustível por litro (em R$). Padrão: 6.}
@@ -91,7 +92,7 @@ alocar_municipios(
 
 \item{resultado_completo}{(Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.}
 
-\item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "symphony". Outras opções: "glpk", "cbc" (instalação manual).}
+\item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).}
 
 \item{...}{Opções adicionais para o solver.}
 }
@@ -103,11 +104,11 @@ Uma lista contendo:
 \item \code{resultado_agencias_jurisdicao}: Um \code{tibble} com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
 \item \code{resultado_municipios_otimo}: Um \code{tibble} com os municípios e suas alocações otimizadas, incluindo custos de deslocamento.
 \item \code{resultado_agencias_otimo}: Um \code{tibble} com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
-\item \code{ucs_agencias_todas} (opcional): Um \code{tibble} com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se \code{resultado_completo} for TRUE).
+\item \code{municipios_agencias_todas} (opcional): Um \code{tibble} com todas as combinações de municípios e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se \code{resultado_completo} for TRUE).
 \item \code{otimizacao} (opcional): O resultado completo da otimização (retornado apenas se \code{resultado_completo} for TRUE).
 }
 }
 }
 \description{
-Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências, custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+Esta função realiza a alocação otimizada de Municípios a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências, custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências, custos de treinamento e o número de entrevistadores necessários.
 }

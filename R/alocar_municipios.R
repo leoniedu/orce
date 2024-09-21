@@ -1,6 +1,6 @@
-#' Alocação Otimizada de Unidades de Coleta (UCs) a Agências
+#' Alocação Otimizada de Municípios a Agências
 #'
-#' Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências, custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+#' Esta função realiza a alocação otimizada de Municípios a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências, custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências, custos de treinamento e o número de entrevistadores necessários.
 #'
 #' @param ucs Um `tibble` ou `data.frame` contendo informações sobre as UCs, incluindo:
 #' \itemize{
@@ -15,6 +15,7 @@
 #'   \item `agencia_codigo`: Código único da agência.
 #'   \item `uc_agencia_max`: Número máximo de UCs que a agência pode atender.
 #'   \item `custo_fixo`: Custo fixo associado à agência.
+#'   \item `dias_coleta_agencia_max`: Número máximo de dias de coleta que a agência pode realizar.
 #' }
 #' @param custo_litro_combustivel Custo do combustível por litro (em R$). Padrão: 6.
 #' @param custo_hora_viagem Custo de cada hora de viagem (em R$). Padrão: 10.
@@ -46,17 +47,17 @@
 #' @param uc_agencia_min Número mínimo de UCs por agência ativa. Padrão: 1.
 #' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão: 0.
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
-#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "symphony". Outras opções: "glpk", "cbc" (instalação manual).
+#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).
 #' @param ... Opções adicionais para o solver.
 #'
 #' @return Uma lista contendo:
 #' \itemize{
 #' * `resultado_municipios_jurisdicao`: Um `tibble` com os municipios e suas alocações originais (jurisdição), incluindo custos de deslocamento.
 #' * `resultado_agencias_jurisdicao`: Um `tibble` com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
-#'   \item `resultado_municipios_otimo`: Um `tibble` com os municípios e suas alocações otimizadas, incluindo custos de deslocamento.
-#'   \item `resultado_agencias_otimo`: Um `tibble` com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
-#'   \item `ucs_agencias_todas` (opcional): Um `tibble` com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se `resultado_completo` for TRUE).
-#'   \item `otimizacao` (opcional): O resultado completo da otimização (retornado apenas se `resultado_completo` for TRUE).
+#' \item `resultado_municipios_otimo`: Um `tibble` com os municípios e suas alocações otimizadas, incluindo custos de deslocamento.
+#' \item `resultado_agencias_otimo`: Um `tibble` com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
+#' \item `municipios_agencias_todas` (opcional): Um `tibble` com todas as combinações de municípios e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se `resultado_completo` for TRUE).
+#' \item `otimizacao` (opcional): O resultado completo da otimização (retornado apenas se `resultado_completo` for TRUE).
 #' }
 #'
 #' @import dplyr ompr ompr.roi ROI.plugin.glpk ROI.plugin.symphony checkmate sf tibble tidyr
