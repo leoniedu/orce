@@ -6,13 +6,13 @@
 \usage{
 alocar_ucs(
   ucs,
-  agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo), max_uc_agencia =
-    Inf, custo_fixo = 0),
+  agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
+    dias_coleta_agencia_max = Inf, custo_fixo = 0),
   custo_litro_combustivel = 6,
   custo_hora_viagem = 10,
   kml = 10,
   valor_diaria = 335,
-  max_diarias_entrevistador = Inf,
+  diarias_entrevistador_max = Inf,
   remuneracao_entrevistador = 0,
   n_entrevistadores_min = 1,
   dias_coleta_entrevistador,
@@ -40,7 +40,7 @@ alocar_ucs(
 \item{agencias}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
 \itemize{
 \item \code{agencia_codigo}: Código único da agência.
-\item \code{max_uc_agencia}: Número máximo de UCs que a agência pode atender.
+\item \code{uc_agencia_max}: Número máximo de UCs que a agência pode atender.
 \item \code{custo_fixo}: Custo fixo associado à agência.
 }}
 
@@ -52,7 +52,7 @@ alocar_ucs(
 
 \item{valor_diaria}{Valor da diária para deslocamentos (em R$). Padrão: 335.}
 
-\item{max_diarias_entrevistador}{Máximo de diárias que um entrevistador pode receber no período de referência. Padrão: \code{Inf}.}
+\item{diarias_entrevistador_max}{Máximo de diárias que um entrevistador pode receber no período de referência. Padrão: \code{Inf}.}
 
 \item{remuneracao_entrevistador}{Remuneração por entrevistador para todo o período de referência. Padrão: 0.}
 

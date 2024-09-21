@@ -720,7 +720,7 @@ ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
 carga_uf <- carga_br%>%
   filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
   #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
-  ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
+  ungroup%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
 
 ## distancias uc
 distancias_ucs_all <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
@@ -761,7 +761,7 @@ params_carga_0  <- list(ucs=carga_uf,
                         adicional_troca_jurisdicao  = 0,
                         ## solver=cbc
                         rel_tol=.02, 
-                        max_time=60*10,
+                        max_time=1,#60*10,
                         resultado_completo=FALSE
                         )
 

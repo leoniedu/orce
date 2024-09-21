@@ -69,7 +69,7 @@ test_that("alocar_municipios returns expected structure", {
   # Check if the expected elements are present in the result
   expect_setequal(names(result), c("resultado_municipios_otimo", "resultado_municipios_jurisdicao", "resultado_agencias_otimo", "resultado_agencias_jurisdicao", "municipios_agencias_todas", "otimizacao"))
 
-  # Check if all 'municipio_codigo'  in 'resultado_municipios_otimo'
+  # Check if all 'municipio_codigo' in 'resultado_municipios_otimo'
   expect_true(all(ucs$municipio_codigo %in% result$resultado_municipios_otimo$municipio_codigo))
 
 })

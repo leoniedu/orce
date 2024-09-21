@@ -12,14 +12,14 @@
 #' @param agencias Um `tibble` ou `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo`: Código único da agência.
-#'   \item `max_uc_agencia`: Número máximo de UCs que a agência pode atender.
+#'   \item `uc_agencia_max`: Número máximo de UCs que a agência pode atender.
 #'   \item `custo_fixo`: Custo fixo associado à agência.
 #' }
 #' @param custo_litro_combustivel Custo do combustível por litro (em R$). Padrão: 6.
 #' @param custo_hora_viagem Custo de cada hora de viagem (em R$). Padrão: 10.
 #' @param kml Consumo médio de combustível do veículo (em km/l). Padrão: 10.
 #' @param valor_diaria Valor da diária para deslocamentos (em R$). Padrão: 335.
-#' @param max_diarias_entrevistador Máximo de diárias que um entrevistador pode receber no período de referência. Padrão: `Inf`.
+#' @param diarias_entrevistador_max Máximo de diárias que um entrevistador pode receber no período de referência. Padrão: `Inf`.
 #' @param remuneracao_entrevistador Remuneração por entrevistador para todo o período de referência. Padrão: 0.
 #' @param n_entrevistadores_min Número mínimo de entrevistadores por agência. Padrão: 1.
 #' @param dias_coleta_entrevistador Número de dias de coleta por entrevistador.
@@ -61,12 +61,12 @@
 #' @import dplyr ompr ompr.roi ROI.plugin.glpk ROI.plugin.symphony checkmate sf tibble tidyr
 #' @export
 alocar_ucs <- function(ucs,
-                       agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), max_uc_agencia=Inf, custo_fixo=0),
+                       agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), dias_coleta_agencia_max=Inf, custo_fixo=0),
                        custo_litro_combustivel = 6,
                        custo_hora_viagem = 10,
                        kml = 10,
                        valor_diaria = 335,
-                       max_diarias_entrevistador=Inf,
+                       diarias_entrevistador_max=Inf,
                        remuneracao_entrevistador = 0,
                        n_entrevistadores_min=1,
                        dias_coleta_entrevistador,
@@ -100,10 +100,10 @@ alocar_ucs <- function(ucs,
   checkmate::assertTRUE(all(c('dias_coleta', 'viagens'
                               #, 'municipio_codigo'
                               )%in%names(ucs)))
-  checkmate::assertTRUE(all(c('max_uc_agencia', 'custo_fixo')%in%names(agencias)))
+  checkmate::assertTRUE(all(c('dias_coleta_agencia_max', 'custo_fixo')%in%names(agencias)))
   agencias <- agencias|>
     dplyr::ungroup()|>
-    dplyr::select(agencia_codigo, max_uc_agencia, custo_fixo)
+    dplyr::select(agencia_codigo, dias_coleta_agencia_max, custo_fixo)
   # Creating jurisdiction allocation
   agencias_jurisdicao <- tibble::tibble(agencia_codigo=unique(ucs$agencia_codigo))
 
@@ -163,6 +163,15 @@ alocar_ucs <- function(ucs,
     dplyr::transmute(i=1:n(),
                      uc, #municipio_codigo,
                      agencia_codigo_jurisdicao=agencia_codigo, dias_coleta, viagens)
+
+  agencias_i <- ucs_i|>
+    dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao)|>
+    dplyr::summarise(dias_coleta_agencia_jurisdicao=sum(dias_coleta))
+  agencias_check <- agencias_i|>
+    dplyr::inner_join(agencias_t, by="agencia_codigo")
+
+  #with(agencias_check, stopifnot(dias_coleta_agencia_max>=dias_coleta_agencia_jurisdicao))
+
   ag_mun_grid <- tidyr::expand_grid(
     agencias_t|>
       transmute(municipio_codigo_agencia = substr(agencia_codigo, 1, 7), agencia_codigo),
@@ -228,14 +237,14 @@ alocar_ucs <- function(ucs,
     stopifnot(length(i) == length(j))
     tibble::tibble(i=i,j=j)|>
       dplyr::left_join(dist_uc_agencias, by=c("i", "j"))|>
-      mutate(custo_deslocamento_com_troca=custo_deslocamento+custo_troca_jurisdicao)|>
+      dplyr::mutate(custo_deslocamento_com_troca=custo_deslocamento+custo_troca_jurisdicao)|>
       dplyr::pull(custo_deslocamento_com_troca)
   }
   # Create optimization model using ompr package
   n <- nrow(ucs_i)
   m <- nrow(agencias_sel)
   stopifnot((agencias_sel$j)==(1:nrow(agencias_sel)))
-  # alocar_ucs_model <- function(agencias_sel, n,m, transport_cost, remuneracao_entrevistador, n_entrevistadores_min, min_uc_agencia, max_diarias_entrevistador, diarias_ij) {
+  # alocar_ucs_model <- function(agencias_sel, n,m, transport_cost, remuneracao_entrevistador, n_entrevistadores_min, min_uc_agencia, diarias_entrevistador_max, diarias_ij) {
   # }
   model <- MIPModel() |>
     # 1 iff (se e somente se) uc i vai para a agencia j
@@ -257,25 +266,30 @@ alocar_ucs <- function(ucs,
     add_constraint((y[j]*{n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m)|>
     # w tem que ser o suficiente para dar conta das ucs
     add_constraint((sum_over(x[i,j]*dias_coleta_ij(i,j), i=1:n)/{dias_coleta_entrevistador}) <= w[j], j = 1:m)
+  ## respeitar o máximo de dias de coleta por agencia
+  if(any(is.finite(agencias_sel$dias_coleta_agencia_max))) {
+    model <- model|>
+      # constraint com número máximo de UCs por agência
+      add_constraint(sum_over(x[i, j]*dias_coleta_ij(i,j), i = 1:n) <= agencias_sel$dias_coleta_agencia_max[j], j = 1:m)
+  }
   if(any({{min_uc_agencia}}>1)) {
     model <- model|>
       # constraint com número mínimo de UCs por agência que for incluída
       # multiplica por y[j] por que só vale pra agencias incluídas, se não é >=0
       add_constraint(sum_over(x[i, j], i = 1:n) >= (min_uc_agencia[j]*y[j]), j = 1:m)
   }
-  if(any(is.finite(agencias_sel$max_uc_agencia))) {
+  if (any(is.finite({diarias_entrevistador_max}))) {
     model <- model|>
-      # constraint com número máximo de UCs por agência
-      add_constraint(sum_over(x[i, j], i = 1:n) <= agencias_sel$max_uc_agencia[j], j = 1:m)
-  }
-  if (any(is.finite({max_diarias_entrevistador}))) {
-    model <- model|>
-      add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (max_diarias_entrevistador*w[j]), j = 1:m)
+      add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
   }
   # Solve the model using solver
   result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, ...))
+  browser()
   if ({solver}=="symphony") {
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
+  }
+  if ({solver}=="cbc") {
+    #result$status <- result$additional_solver_output$ROI$status$msg$message
   }
   stopifnot(result$status != "error")
   # Extract the solution
@@ -310,7 +324,7 @@ alocar_ucs <- function(ucs,
                      n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
     dplyr::mutate(entrevistadores=pmax(
       ceiling(dias_coleta/dias_coleta_entrevistador),
-      ceiling(total_diarias/max_diarias_entrevistador),
+      ceiling(total_diarias/diarias_entrevistador_max),
       n_entrevistadores_min),
       custo_total_entrevistadores=entrevistadores*{remuneracao_entrevistador}+entrevistadores*custo_treinamento_por_entrevistador)|>
     dplyr::ungroup()
@@ -319,6 +333,7 @@ alocar_ucs <- function(ucs,
   resultado$resultado_ucs_jurisdicao <- resultado_ucs_jurisdicao
   resultado$resultado_agencias_otimo <- resultado_agencias_otimo
   resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao
+  attr(resultado, "solucao_status") <- result$additional_solver_output$ROI$status$msg$message
   if(resultado_completo) {
     resultado$ucs_agencias_todas <- dist_uc_agencias
     resultado$otimizacao <- result

@@ -13,7 +13,6 @@
 #' @param agencias Um `tibble` ou `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo`: Código único da agência.
-#'   \item `uc_agencia_max`: Número máximo de UCs que a agência pode atender.
 #'   \item `custo_fixo`: Custo fixo associado à agência.
 #'   \item `dias_coleta_agencia_max`: Número máximo de dias de coleta que a agência pode realizar.
 #' }
@@ -63,7 +62,7 @@
 #' @import dplyr ompr ompr.roi ROI.plugin.glpk ROI.plugin.symphony checkmate sf tibble tidyr
 #' @export
 alocar_municipios <- function(ucs,
-                       agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), uc_agencia_max=Inf, custo_fixo=0),
+                       agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), dias_coleta_agencia_max=Inf, custo_fixo=0),
                        #custo_fixo=0,
                        custo_litro_combustivel = 6,
                        custo_hora_viagem = 10,
@@ -104,15 +103,15 @@ alocar_municipios <- function(ucs,
   checkmate::assertTRUE(all(c('dias_coleta', 'viagens'
                               , 'municipio_codigo'
                               )%in%names(ucs)))
-  checkmate::assertTRUE(all(c('uc_agencia_max', 'custo_fixo', 'dias_coleta_agencia_max')%in%names(agencias)))
+  checkmate::assertTRUE(all(c('custo_fixo', 'dias_coleta_agencia_max')%in%names(agencias)))
   # Creating jurisdiction allocation
   agencias_jurisdicao <- tibble::tibble(agencia_codigo=unique(ucs$agencia_codigo))
   if (is.null(agencias)) {
-    agencias <- agencias_jurisdicao|>mutate(uc_agencia_max=Inf, custo_fixo=0)
+    agencias <- agencias_jurisdicao|>dplyr::mutate(dias_coleta_agencia_max=Inf, custo_fixo=0)
   }
   agencias <- agencias|>
     dplyr::ungroup()|>
-    dplyr::select(agencia_codigo, uc_agencia_max, custo_fixo, dias_coleta_agencia_max)
+    dplyr::select(agencia_codigo, custo_fixo, dias_coleta_agencia_max)
 
   agencias_sel <- tibble::tibble(agencia_codigo=unique(agencias$agencia_codigo))|>
     dplyr::mutate(j=1:n())
@@ -173,7 +172,7 @@ alocar_municipios <- function(ucs,
   agencias_check <- agencias_i|>
     dplyr::inner_join(agencias_t, by="agencia_codigo")
 
-  with(agencias_check, stopifnot(dias_coleta_agencia_max>=dias_coleta_agencia_jurisdicao))
+  #with(agencias_check, stopifnot(dias_coleta_agencia_max>=dias_coleta_agencia_jurisdicao))
 
   ag_mun_grid <- tidyr::expand_grid(
     agencias_t|>
@@ -250,7 +249,7 @@ alocar_municipios <- function(ucs,
     stopifnot(length(i) == length(j))
     tibble::tibble(i=i,j=j)|>
       dplyr::left_join(dist_municipios_agencias, by=c("i", "j"))|>
-      mutate(custo_deslocamento_com_troca=custo_deslocamento+custo_troca_jurisdicao)|>
+      dplyr::mutate(custo_deslocamento_com_troca=custo_deslocamento+custo_troca_jurisdicao)|>
       dplyr::pull(custo_deslocamento_com_troca)
   }
   # Create optimization model using ompr package
@@ -299,7 +298,7 @@ alocar_municipios <- function(ucs,
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
   }
   if ({solver}=="cbc") {
-    result$status <- result$additional_solver_output$ROI$status$msg$message
+    #result$status <- result$additional_solver_output$ROI$status$msg$message
   }
   stopifnot(result$status != "error")
   # Extract the solution
@@ -346,7 +345,7 @@ alocar_municipios <- function(ucs,
   resultado$resultado_municipios_jurisdicao <- resultado_municipios_jurisdicao
   resultado$resultado_agencias_otimo <- resultado_agencias_otimo
   resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao
-  attr(resultado, "solucao_status") <- result$status
+  attr(resultado, "solucao_status") <- result$additional_solver_output$ROI$status$msg$message
   if(resultado_completo) {
     resultado$municipios_agencias_todas <- dist_municipios_agencias
     resultado$otimizacao <- result

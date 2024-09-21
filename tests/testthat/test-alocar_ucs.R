@@ -1,6 +1,8 @@
 # Load necessary libraries
 library(testthat)
 library(orce) # Replace 'your_package' with the actual package name
+library(dplyr)
+
 set.seed(20091975)
 # Simulate Fake Data
 ucs <- tibble::tibble(
@@ -15,7 +17,7 @@ agencias <- tibble::tibble(
   agencia_codigo = LETTERS[1:3],
   agencia_lon = runif(3, -50, -40),
   agencia_lat = runif(3, -20, -10),
-  max_uc_agencia=Inf,
+  dias_coleta_agencia_max=Inf,
   custo_fixo = 500
 )
 
@@ -49,6 +51,42 @@ test_that("alocar_ucs returns expected structure", {
     valor_diaria = 335,
     dias_treinamento = 5.5,
     dias_coleta_entrevistador = 10,
+    min_uc_agencia = 1,
+    n_entrevistadores_min=2,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    adicional_troca_jurisdicao = 10,
+    agencias_treinamento = "A",
+    resultado_completo=TRUE
+  )
+
+  result <- alocar_ucs(
+    ucs = ucs,
+    #agencias = agencias,
+    custo_litro_combustivel =  6,
+    custo_hora_viagem = 10,
+    kml = 10,
+    valor_diaria = 335,
+    dias_treinamento = 5.5,
+    dias_coleta_entrevistador = 10,
+    min_uc_agencia = 1,
+    n_entrevistadores_min=2,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    adicional_troca_jurisdicao = 10,
+    agencias_treinamento = "A",
+    resultado_completo=TRUE
+  )
+
+  result <- alocar_ucs(
+    ucs = ucs,
+    agencias = agencias%>%mutate(dias_coleta_agencia_max=10),
+    custo_litro_combustivel =  6,
+    custo_hora_viagem = 10,
+    kml = 10,
+    valor_diaria = 335,
+    dias_treinamento = 5.5,
+    dias_coleta_entrevistador = 3,
     min_uc_agencia = 1,
     n_entrevistadores_min=2,
     distancias_ucs = distancias_ucs,
