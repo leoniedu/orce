@@ -78,7 +78,7 @@ test_that("alocar_ucs returns expected structure", {
     resultado_completo=TRUE
   )
 
-  result <- alocar_ucs(
+  result <- try({alocar_ucs(
     ucs = ucs,
     agencias = agencias%>%mutate(dias_coleta_agencia_max=10),
     custo_litro_combustivel =  6,
@@ -94,7 +94,9 @@ test_that("alocar_ucs returns expected structure", {
     adicional_troca_jurisdicao = 10,
     agencias_treinamento = "A",
     resultado_completo=TRUE
-  )
+  )})
+  expect_s3_class(result, "try-error")
+
 
   result <- alocar_ucs(
     ucs = ucs,

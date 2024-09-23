@@ -15,16 +15,17 @@ alocar_ucs(
   diarias_entrevistador_max = Inf,
   remuneracao_entrevistador = 0,
   n_entrevistadores_min = 1,
-  dias_coleta_entrevistador,
+  dias_coleta_entrevistador_max,
   dias_treinamento = 0,
   agencias_treinadas = NULL,
   agencias_treinamento = NULL,
   distancias_ucs,
   distancias_agencias = NULL,
-  min_uc_agencia = 1,
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
-  solver = "symphony",
+  solver = "cbc",
+  rel_tol = 0.02,
+  max_time = 30 * 60,
   ...
 )
 }
@@ -40,7 +41,7 @@ alocar_ucs(
 \item{agencias}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
 \itemize{
 \item \code{agencia_codigo}: Código único da agência.
-\item \code{uc_agencia_max}: Número máximo de UCs que a agência pode atender.
+\item \code{dias_coleta_agencia_max}: Número máximo de dias de coleta que a agência pode realizar.
 \item \code{custo_fixo}: Custo fixo associado à agência.
 }}
 
@@ -58,7 +59,7 @@ alocar_ucs(
 
 \item{n_entrevistadores_min}{Número mínimo de entrevistadores por agência. Padrão: 1.}
 
-\item{dias_coleta_entrevistador}{Número de dias de coleta por entrevistador.}
+\item{dias_coleta_entrevistador_max}{Número de dias de coleta por entrevistador.}
 
 \item{dias_treinamento}{Número de dias/diárias para treinamento. Padrão: 0 (nenhum treinamento).}
 
@@ -84,13 +85,11 @@ alocar_ucs(
 \item \code{duracao_horas}: Duração da viagem em horas entre a agência de origem e a de destino.
 }}
 
-\item{min_uc_agencia}{Número mínimo de UCs por agência ativa. Padrão: 1.}
-
 \item{adicional_troca_jurisdicao}{Custo adicional quando há troca de agência de coleta. Padrão: 0.}
 
 \item{resultado_completo}{(Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.}
 
-\item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "symphony". Outras opções: "glpk", "cbc" (instalação manual).}
+\item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).}
 
 \item{...}{Opções adicionais para o solver.}
 }
@@ -108,5 +107,5 @@ Uma lista contendo:
 }
 }
 \description{
-Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências, custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
 }

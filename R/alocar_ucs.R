@@ -1,6 +1,6 @@
 #' Alocação Otimizada de Unidades de Coleta (UCs) a Agências
 #'
-#' Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências, custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+#' Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
 #'
 #' @param ucs Um `tibble` ou `data.frame` contendo informações sobre as UCs, incluindo:
 #' \itemize{
@@ -12,7 +12,7 @@
 #' @param agencias Um `tibble` ou `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo`: Código único da agência.
-#'   \item `uc_agencia_max`: Número máximo de UCs que a agência pode atender.
+#'   \item `dias_coleta_agencia_max`: Número máximo de dias de coleta que a agência pode realizar.
 #'   \item `custo_fixo`: Custo fixo associado à agência.
 #' }
 #' @param custo_litro_combustivel Custo do combustível por litro (em R$). Padrão: 6.
@@ -22,7 +22,7 @@
 #' @param diarias_entrevistador_max Máximo de diárias que um entrevistador pode receber no período de referência. Padrão: `Inf`.
 #' @param remuneracao_entrevistador Remuneração por entrevistador para todo o período de referência. Padrão: 0.
 #' @param n_entrevistadores_min Número mínimo de entrevistadores por agência. Padrão: 1.
-#' @param dias_coleta_entrevistador Número de dias de coleta por entrevistador.
+#' @param dias_coleta_entrevistador_max Número de dias de coleta por entrevistador.
 #' @param dias_treinamento Número de dias/diárias para treinamento. Padrão: 0 (nenhum treinamento).
 #' @param agencias_treinadas (Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. Padrão: NULL.
 #' @param agencias_treinamento Código da(s) agência(s) onde o treinamento será realizado.
@@ -42,10 +42,9 @@
 #'   \item `distancia_km`: Distância em quilômetros entre a agência de origem e a de destino.
 #'   \item `duracao_horas`: Duração da viagem em horas entre a agência de origem e a de destino.
 #' }
-#' @param min_uc_agencia Número mínimo de UCs por agência ativa. Padrão: 1.
 #' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão: 0.
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
-#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "symphony". Outras opções: "glpk", "cbc" (instalação manual).
+#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).
 #' @param ... Opções adicionais para o solver.
 #'
 #' @return Uma lista contendo:
@@ -69,15 +68,15 @@ alocar_ucs <- function(ucs,
                        diarias_entrevistador_max=Inf,
                        remuneracao_entrevistador = 0,
                        n_entrevistadores_min=1,
-                       dias_coleta_entrevistador,
+                       dias_coleta_entrevistador_max,
                        dias_treinamento = 0,
                        agencias_treinadas = NULL,
                        agencias_treinamento = NULL,
                        distancias_ucs,
                        distancias_agencias=NULL,
-                       min_uc_agencia = 1,
                        adicional_troca_jurisdicao = 0,
-                       resultado_completo = FALSE, solver="symphony", ...) {
+                       resultado_completo = FALSE,
+                       solver="cbc", rel_tol=.02, max_time=30*60, ...) {
   # Import required libraries explicitly
   requireNamespace("dplyr")
   require("ompr")
@@ -92,8 +91,7 @@ alocar_ucs <- function(ucs,
   checkmate::assert_number(dias_treinamento, lower = 0)
   checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
   checkmate::assert_data_frame(distancias_agencias, null.ok=dias_treinamento == 0)
-  checkmate::assert_integerish(min_uc_agencia, lower = 1)
-  checkmate::assert_number(dias_coleta_entrevistador, lower = 1)
+  checkmate::assert_number(dias_coleta_entrevistador_max, lower = 1)
   checkmate::assert_number(remuneracao_entrevistador, lower = 0)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite')%in%names(distancias_ucs)))
@@ -217,10 +215,6 @@ alocar_ucs <- function(ucs,
 
   stopifnot(all(!is.na(dist_uc_agencias$distancia_km)))
 
-  # Set default min_uc_agencia if it is a single value
-  if (length(min_uc_agencia) == 1) {
-    min_uc_agencia <- rep(min_uc_agencia, nrow(agencias_sel))
-  }
   diarias_ij <- function(i,j) {
     stopifnot(length(i) == length(j))
     tibble::tibble(i=i,j=j)|>
@@ -263,26 +257,19 @@ alocar_ucs <- function(ucs,
     # se agencia está ativa, w tem que ser >= n_entrevistadores_min
     add_constraint((y[j]*{n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m)|>
     # w tem que ser o suficiente para dar conta das ucs
-    add_constraint((sum_over(x[i,j]*dias_coleta_ij(i,j), i=1:n)/{dias_coleta_entrevistador}) <= w[j], j = 1:m)
+    add_constraint((sum_over(x[i,j]*dias_coleta_ij(i,j), i=1:n)/{dias_coleta_entrevistador_max}) <= w[j], j = 1:m)
   ## respeitar o máximo de dias de coleta por agencia
   if(any(is.finite(agencias_sel$dias_coleta_agencia_max))) {
     model <- model|>
       # constraint com número máximo de UCs por agência
       add_constraint(sum_over(x[i, j]*dias_coleta_ij(i,j), i = 1:n) <= agencias_sel$dias_coleta_agencia_max[j], j = 1:m)
   }
-  if(any({{min_uc_agencia}}>1)) {
-    model <- model|>
-      # constraint com número mínimo de UCs por agência que for incluída
-      # multiplica por y[j] por que só vale pra agencias incluídas, se não é >=0
-      add_constraint(sum_over(x[i, j], i = 1:n) >= (min_uc_agencia[j]*y[j]), j = 1:m)
-  }
   if (any(is.finite({diarias_entrevistador_max}))) {
     model <- model|>
       add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
   }
   # Solve the model using solver
-  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, ...))
-  browser()
+  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, max_time={max_time}, rel_tol={rel_tol}, ...))
   if ({solver}=="symphony") {
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
   }
@@ -318,7 +305,7 @@ alocar_ucs <- function(ucs,
     dplyr::summarise(dplyr::across(where(is.numeric), sum),
                      n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
     dplyr::mutate(entrevistadores=pmax(
-      ceiling(dias_coleta/dias_coleta_entrevistador),
+      ceiling(dias_coleta/dias_coleta_entrevistador_max),
       ceiling(total_diarias/diarias_entrevistador_max),
       n_entrevistadores_min),
       custo_total_entrevistadores=entrevistadores*{remuneracao_entrevistador}+entrevistadores*custo_treinamento_por_entrevistador)|>

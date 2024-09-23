@@ -21,15 +21,16 @@ alocar_municipios(
   agencias_treinamento = NULL,
   distancias_ucs,
   distancias_agencias = NULL,
-  uc_agencia_min = 1,
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
   solver = "cbc",
+  rel_tol = 0.02,
+  max_time = 30 * 60,
   ...
 )
 }
 \arguments{
-\item{ucs}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as UCs, incluindo:
+\item{ucs}{Uma \code{data.frame} contendo informações sobre as UCs, incluindo:
 \itemize{
 \item \code{uc}: Código único da UC.
 \item \code{municipio_codigo}: Código único do município.
@@ -38,7 +39,7 @@ alocar_municipios(
 \item \code{viagens}: Número de viagens necessárias para a coleta na UC.
 }}
 
-\item{agencias}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
+\item{agencias}{Uma \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
 \itemize{
 \item \code{agencia_codigo}: Código único da agência.
 \item \code{custo_fixo}: Custo fixo associado à agência.
@@ -67,9 +68,10 @@ alocar_municipios(
 
 \item{agencias_treinamento}{Código da(s) agência(s) onde o treinamento será realizado.}
 
-\item{distancias_ucs}{Um \code{tibble} ou \code{data.frame} com as distâncias entre UCs e agências, incluindo:
+\item{distancias_ucs}{Uma \code{data.frame} com as distâncias entre UCs e agências, incluindo:
 \itemize{
 \item \code{uc}: Código da UC.
+\item \code{municipio_codigo}: Código do município onde a UC está localizada.
 \item \code{agencia_codigo}: Código da agência.
 \item \code{distancia_km}: Distância em quilômetros entre a UC e a agência.
 \item \code{duracao_horas}: Duração da viagem em horas entre a UC e a agência.
@@ -77,7 +79,7 @@ alocar_municipios(
 \item \code{diaria_pernoite}: Indica se é necessária uma diária com pernoite para deslocamento entre a UC e a agência.
 }}
 
-\item{distancias_agencias}{Um \code{tibble} ou \code{data.frame} com as distâncias entre as agências, incluindo:
+\item{distancias_agencias}{Uma \code{data.frame} com as distâncias entre as agências, incluindo:
 \itemize{
 \item \code{agencia_codigo_orig}: Código da agência de origem.
 \item \code{agencia_codigo_dest}: Código da agência de destino.
@@ -85,15 +87,19 @@ alocar_municipios(
 \item \code{duracao_horas}: Duração da viagem em horas entre a agência de origem e a de destino.
 }}
 
-\item{uc_agencia_min}{Número mínimo de UCs por agência ativa. Padrão: 1.}
-
 \item{adicional_troca_jurisdicao}{Custo adicional quando há troca de agência de coleta. Padrão: 0.}
 
 \item{resultado_completo}{(Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.}
 
 \item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).}
 
+\item{rel_tol}{Tolerância relativa para a otimização. Valores menores levam a soluções mais precisas, mas podem aumentar o tempo de execução. Padrão: 0.02}
+
+\item{max_time}{Tempo máximo de execução (em segundos) permitido para o solver. Padrão: 30*60 (30 minutos)}
+
 \item{...}{Opções adicionais para o solver.}
+
+\item{uc_agencia_min}{Número mínimo de UCs por agência que for incluída. Padrão: 1}
 }
 \value{
 Uma lista contendo:

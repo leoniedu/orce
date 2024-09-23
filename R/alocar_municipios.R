@@ -2,7 +2,7 @@
 #'
 #' Esta função realiza a alocação otimizada de Municípios a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências, custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências, custos de treinamento e o número de entrevistadores necessários.
 #'
-#' @param ucs Um `tibble` ou `data.frame` contendo informações sobre as UCs, incluindo:
+#' @param ucs Uma `data.frame` contendo informações sobre as UCs, incluindo:
 #' \itemize{
 #'   \item `uc`: Código único da UC.
 #'   \item `municipio_codigo`: Código único do município.
@@ -10,7 +10,7 @@
 #'   \item `dias_coleta`: Número de dias de coleta na UC.
 #'   \item `viagens`: Número de viagens necessárias para a coleta na UC.
 #' }
-#' @param agencias Um `tibble` ou `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
+#' @param agencias Uma `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo`: Código único da agência.
 #'   \item `custo_fixo`: Custo fixo associado à agência.
@@ -27,26 +27,29 @@
 #' @param dias_treinamento Número de dias/diárias para treinamento. Padrão: 0 (nenhum treinamento).
 #' @param agencias_treinadas (Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. Padrão: NULL.
 #' @param agencias_treinamento Código da(s) agência(s) onde o treinamento será realizado.
-#' @param distancias_ucs Um `tibble` ou `data.frame` com as distâncias entre UCs e agências, incluindo:
+#' @param distancias_ucs Uma `data.frame` com as distâncias entre UCs e agências, incluindo:
 #' \itemize{
 #'   \item `uc`: Código da UC.
+#'   \item `municipio_codigo`: Código do município onde a UC está localizada.
 #'   \item `agencia_codigo`: Código da agência.
 #'   \item `distancia_km`: Distância em quilômetros entre a UC e a agência.
 #'   \item `duracao_horas`: Duração da viagem em horas entre a UC e a agência.
 #'   \item `diaria_municipio`: Indica se é necessária uma diária para deslocamento entre a UC e a agência, considerando o município da UC.
 #'   \item `diaria_pernoite`: Indica se é necessária uma diária com pernoite para deslocamento entre a UC e a agência.
 #' }
-#' @param distancias_agencias Um `tibble` ou `data.frame` com as distâncias entre as agências, incluindo:
+#' @param distancias_agencias Uma `data.frame` com as distâncias entre as agências, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo_orig`: Código da agência de origem.
 #'   \item `agencia_codigo_dest`: Código da agência de destino.
 #'   \item `distancia_km`: Distância em quilômetros entre a agência de origem e a de destino.
 #'   \item `duracao_horas`: Duração da viagem em horas entre a agência de origem e a de destino.
 #' }
-#' @param uc_agencia_min Número mínimo de UCs por agência ativa. Padrão: 1.
+#' @param uc_agencia_min Número mínimo de UCs por agência que for incluída. Padrão: 1
 #' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão: 0.
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
 #' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).
+#' @param rel_tol Tolerância relativa para a otimização. Valores menores levam a soluções mais precisas, mas podem aumentar o tempo de execução. Padrão: 0.02
+#' @param max_time Tempo máximo de execução (em segundos) permitido para o solver. Padrão: 30*60 (30 minutos)
 #' @param ... Opções adicionais para o solver.
 #'
 #' @return Uma lista contendo:
@@ -77,9 +80,9 @@ alocar_municipios <- function(ucs,
                        agencias_treinamento = NULL,
                        distancias_ucs,
                        distancias_agencias=NULL,
-                       uc_agencia_min = 1,
                        adicional_troca_jurisdicao = 0,
-                       resultado_completo = FALSE, solver="cbc", ...) {
+                       resultado_completo = FALSE,
+                       solver="cbc", rel_tol=.02, max_time=30*60, ...) {
   # Import required libraries explicitly
   requireNamespace("dplyr")
   require("ompr")
@@ -95,7 +98,6 @@ alocar_municipios <- function(ucs,
   checkmate::assert_number(dias_treinamento, lower = 0)
   checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
   checkmate::assert_data_frame(distancias_agencias, null.ok=dias_treinamento == 0)
-  checkmate::assert_integerish(uc_agencia_min, lower = 1)
   checkmate::assert_number(dias_coleta_entrevistador_max, lower = 1)
   checkmate::assert_number(remuneracao_entrevistador, lower = 0)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
@@ -227,10 +229,6 @@ alocar_municipios <- function(ucs,
 
   stopifnot(all(!is.na(dist_municipios_agencias$distancia_km)))
 
-  # Set default uc_agencia_min if it is a single value
-  if (length(uc_agencia_min) == 1) {
-    uc_agencia_min <- rep(uc_agencia_min, nrow(agencias_sel))
-  }
   diarias_ij <- function(i,j) {
     stopifnot(length(i) == length(j))
     tibble::tibble(i=i,j=j)|>
@@ -289,7 +287,7 @@ alocar_municipios <- function(ucs,
       add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
   }
   # Solve the model using solver
-  result <- ompr::solve_model(model,ompr.roi::with_ROI(solver = {solver}, ...))
+  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, max_time={max_time}, rel_tol={rel_tol}, ...))
   if ({solver}=="symphony") {
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
   }

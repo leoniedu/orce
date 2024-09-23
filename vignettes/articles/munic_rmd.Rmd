@@ -20,7 +20,10 @@ params:
   custo_fixo: 0
   valor_diaria: 335
   adicional_troca_jurisdicao: 100
-  ucs_por_entrevistador: 20
+  dias_coleta_entrevistador_max: 40
+  solver: 'cbc'
+  max_time: 60
+  rel_tol: .02
 ---
 
 
@@ -213,7 +216,9 @@ Estamos, agora, prontos para calcular os custos de coleta.
 
 ```{r}
 args_alocar_ucs <- params_se[names(params_se)%>%intersect(args(alocar_ucs)%>%as.list%>%names())]
-args_alocar_ucs$agencias <- agencias_now
+params_se[names(params_se)%>%setdiff(args(alocar_ucs)%>%as.list%>%names())]
+
+args_alocar_ucs$agencias <- agencias_now%>%mutate(dias_coleta_agencia_max=Inf)
 #args_alocar_ucs$distancias_agencias <- distancias_agencias
 args_alocar_ucs$distancias_ucs <- distancias_ucs
 args_alocar_ucs$ucs <- ucs_now
@@ -492,7 +497,9 @@ for (uf_codigo_now in ufs_sem_missing_dist) {
   args_alocar_ucs$agencias <- NULL
   args_alocar_ucs$distancias_ucs <- distancias_ucs%>%mutate(diaria_pernoite=duracao_horas>params_se$horas_viagem_pernoite)
   args_alocar_ucs$ucs <- ucs_now
-  args_alocar_ucs$resultado_completo <- TRUE
+  args_alocar_ucs$resultado_completo <- FALSE
+  #args_alocar_ucs$rel_tol <- .02
+  #args_alocar_ucs$max_time <- 60*30
   res <- do.call(what = alocar_ucs, 
                  args=args_alocar_ucs)
   
@@ -582,12 +589,16 @@ params_pof_0  <- list(ucs=amostra_uf,
            agencias_treinamento  = NULL,
            distancias_ucs=distancias_upas,
            adicional_troca_jurisdicao  = 0,
-           ucs_por_entrevistador=24,
            remuneracao_entrevistador=0,
-           n_entrevistadores_min=2, max_diarias_entrevistador=40,
+           n_entrevistadores_min=2, 
+           dias_coleta_entrevistador=200,
+           solver=params$solver,
+           max_time=params$max_time,
+           rel_tol=params$rel_tol
            ## for symphony solver
-           solver="symphony",
-           gap_limit=2
+           #solver="symphony",
+           #gap_limit=2,
+           #max_time=10*60,
            )
 
 dagencias <- distancias_agencias_osrm
@@ -720,7 +731,7 @@ ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
 carga_uf <- carga_br%>%
   filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
   #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
-  ungroup%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
+  ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
 
 ## distancias uc
 distancias_ucs_all <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
@@ -744,7 +755,7 @@ params_carga_0  <- list(ucs=carga_uf,
                         custo_litro_combustivel = 6,
                         custo_hora_viagem = 10,
                         kml = 10,
-                        valor_diaria = 335*2,
+                        valor_diaria = 335,
                         ## em um ano de coleta, um entrevistador consegue
                         ## 48 upas pnadc / 24 upas POF / 18 Municipios
                         dias_coleta_entrevistador=200,
@@ -760,8 +771,11 @@ params_carga_0  <- list(ucs=carga_uf,
                         #gap_limit=5, 
                         adicional_troca_jurisdicao  = 0,
                         ## solver=cbc
-                        rel_tol=.02, 
-                        max_time=1,#60*10,
+                        #rel_tol=.02, 
+                        #max_time=60*10,
+                        solver=params$solver,
+                        max_time=params$max_time,
+                        rel_tol=params$rel_tol,
                         resultado_completo=FALSE
                         )
 
