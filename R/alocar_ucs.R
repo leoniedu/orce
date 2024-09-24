@@ -290,6 +290,7 @@ alocar_ucs <- function(ucs,
     dplyr::filter(agencia_codigo_jurisdicao==agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -i, -j, -custo_troca_jurisdicao)
   ags_group_vars <- c(names(agencias_sel),  'entrevistadores')
+  if(!all(resultado_ucs_jurisdicao$uc%in%(resultado_ucs_otimo$uc))) stop("Solução não encontrada!")
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo'))|>
     dplyr::left_join(ucs_i|>dplyr::select(uc, agencia_codigo_jurisdicao), by = c('uc'))|>

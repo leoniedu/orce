@@ -54,7 +54,6 @@ test_that("alocar_municipios returns expected structure", {
     valor_diaria = 335,
     dias_treinamento = 5.5,
     dias_coleta_entrevistador_max = 10,
-    uc_agencia_min = 1,
     n_entrevistadores_min = 2,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,

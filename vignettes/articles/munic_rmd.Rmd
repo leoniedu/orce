@@ -22,7 +22,7 @@ params:
   adicional_troca_jurisdicao: 100
   dias_coleta_entrevistador_max: 40
   solver: 'cbc'
-  max_time: 60
+  max_time: 1800
   rel_tol: .02
 ---
 
@@ -690,7 +690,7 @@ Em todos os cenários, a otimização resultou em redução significativa do cus
 source(here::here("vignettes/articles/report_funs.R"))
 
 ## amostra mestra/pnadc
-amostra_mestra <- readr::read_rds("data-raw/amostra_br_2024_01_2025_06.rds")%>%
+amostra_mestra <- readr::read_rds(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))%>%
   filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"))
 
 amostra_pnadc <- amostra_mestra%>%
@@ -730,6 +730,8 @@ ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
 
 carga_uf <- carga_br%>%
   filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
+  ## Importante: Sem as agências de Salvador
+  filter(!grepl("2927408", agencia_codigo))%>%
   #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
   ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
 
@@ -753,64 +755,64 @@ agencias_uf <-  carga_uf%>%
 params_carga_0  <- list(ucs=carga_uf,
                         agencias=agencias_uf,
                         custo_litro_combustivel = 6,
-                        custo_hora_viagem = 10,
-                        kml = 10,
-                        valor_diaria = 335,
+                        custo_hora_viagem = params$custo_hora_viagem,
+                        kml = params$kml,
+                        valor_diaria = params$valor_diaria,
                         ## em um ano de coleta, um entrevistador consegue
                         ## 48 upas pnadc / 24 upas POF / 18 Municipios
-                        dias_coleta_entrevistador=200,
+                        dias_coleta_entrevistador_max=200,
                         diarias_entrevistador_max=Inf,
                         dias_treinamento = 0,
                         agencias_treinadas = NULL,
                         agencias_treinamento  = NULL,
                         distancias_ucs=distancias_ucs_all,
-                        ## default solver cbc
                         ## for symphony solver
-                        #verbosity=TRUE,
-                        #first_feasible=TRUE
                         #gap_limit=5, 
-                        adicional_troca_jurisdicao  = 0,
-                        ## solver=cbc
-                        #rel_tol=.02, 
-                        #max_time=60*10,
+                        adicional_troca_jurisdicao  = params$adicional_troca_jurisdicao,
                         solver=params$solver,
                         max_time=params$max_time,
                         rel_tol=params$rel_tol,
-                        resultado_completo=FALSE
+                        resultado_completo=FALSE 
                         )
 
 library(tictoc)
-# tic()
-# tmp <- do.call(alocar_municipios, params_carga_0)
-# toc()
 tic()
 estrategias_carga <- bind_rows(
   tibble(params=list(params_carga_0), 
          descricao='sem custo fixo / sem custo de treinamento'),
-  # tibble(params=list(modifyList(params_carga_0, 
-  #                               ## 1500 por mes por apm
-  #                               list(
-  #                                 remuneracao_entrevistador=12*1500
-  #                                 #, gap_limit=2
-  #                                 ))), 
-  #        descricao='remuneracao apm 1500 p/mes'),
-  # tibble(params=list(modifyList(params_carga_0, 
-  #                               ## 3 meses, 1500 por mes por apm
-  #                               list(
-  #                                 remuneracao_entrevistador=12*1500,
-  #                                 agencias=agencias_uf%>%
-  #                                   mutate(custo_fixo=12*10000)))), 
-  #        descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes total custo fixo'),
   tibble(params=list(modifyList(params_carga_0, 
                                 list(
-                                  #custo_fixo=10000*12,
+                                  agencias=agencias_uf%>%
+                                  mutate(
+                                  custo_fixo=10000*12),
+                                  n_entrevistadores_min=2,
+                                  remuneracao_entrevistador=12*1500,
+                                  #max_time=60*60
+                                  max_time=params$max_time
+                                ))), 
+         descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2'),
+    tibble(params=list(modifyList(params_carga_0, 
+                                list(
+                                  distancias_ucs=params_carga_0$distancias_ucs%>%
+                                    mutate(diaria_municipio=FALSE),
                                   agencias=agencias_uf%>%
                                   mutate(
                                   custo_fixo=10000*12),
                                   n_entrevistadores_min=2,
                                   remuneracao_entrevistador=12*1500
                                 ))), 
-         descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2')
+         descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2, reorganizacao jurisdicao'),
+  tibble(params=list(modifyList(params_carga_0, 
+                                list(
+                                  valor_diaria=params$valor_diaria*2,
+                                  distancias_ucs=params_carga_0$distancias_ucs,
+                                  agencias=agencias_uf%>%
+                                  mutate(
+                                  custo_fixo=10000*12),
+                                  n_entrevistadores_min=2,
+                                  remuneracao_entrevistador=12*1500
+                                ))), 
+         descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2, custo diaria 2x')
 )%>%
   #head(4)%>%
   mutate(resultado=purrr::map(params, ~do.call(alocar_municipios, .x)))
@@ -836,7 +838,7 @@ estrategias_carga_sum%>%
   select(-modelo)%>%
   summarise(across(everything(), diff))%>%
   select(descricao, n_agencias, custo_total, custo_total_entrevistadores, custo_diarias, custo_combustivel)%>%
-  arrange(-custo_total)%>%
+  #arrange(-custo_total)%>%
   gt::gt()%>%
   gt::cols_label(descricao='Modelo')%>%
   gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%

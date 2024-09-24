@@ -34,8 +34,8 @@ res <- curl::multi_download(cnefe_urls$url,
 library(readr)
 #tempdir <- file.path(tempdir(), "cnefe", '2022')
 #unlink(tempdir, recursive = TRUE)
-dest_files <- cnefe_urls$dest_file
-
+#dest_files <- cnefe_urls$dest_file
+dest_files <- dir(here::here("data-raw/cnefe/2022"), full.names = TRUE)
 for (k in dest_files) {
   print(k)
   cnefe_in <- readr::read_delim(file=k,

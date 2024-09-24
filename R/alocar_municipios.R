@@ -88,7 +88,6 @@ alocar_municipios <- function(ucs,
   require("ompr")
   require("ompr.roi")
   require(paste0("ROI.plugin.",solver),character.only = TRUE)
-
   # Verificação dos Argumentos
   checkmate::assertTRUE(!anyDuplicated(agencias[['agencia_codigo']]))
   checkmate::assertTRUE(!anyDuplicated(ucs[['uc']]))
@@ -287,10 +286,11 @@ alocar_municipios <- function(ucs,
       add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
   }
   # Solve the model using solver
-  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, max_time={max_time}, rel_tol={rel_tol}, ...))
+  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, max_time=as.numeric({max_time}), rel_tol={rel_tol}, ...))
   if ({solver}=="symphony") {
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
   }
+  cli::cli_alert(result$additional_solver_output$ROI$status$msg$message)
   stopifnot(result$status != "error")
   # Extract the solution
   matching <- result |>
@@ -308,6 +308,8 @@ alocar_municipios <- function(ucs,
   resultado_municipios_jurisdicao <- dist_municipios_agencias|>
     dplyr::filter(agencia_codigo_jurisdicao==agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -i, -j, -custo_troca_jurisdicao)
+  if(!all(resultado_municipios_jurisdicao$municipio_codigo%in%(resultado_municipios_otimo$municipio_codigo))) stop("Solução não encontrada!")
+
   ags_group_vars <- c(names(agencias_sel),  'entrevistadores')
   resultado_agencias_otimo <- agencias_sel|>
     dplyr::inner_join(resultado_municipios_otimo, by = c('agencia_codigo'))|>
