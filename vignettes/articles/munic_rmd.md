@@ -31,7 +31,12 @@ params:
   custo_fixo: 0
   custo_hora_viagem: 10
   dias_coleta: 2
+  dias_coleta_entrevistador_max: 40
   horas_viagem_pernoite: 1.5
+  kml: 10
+  max_time: 1800
+  rel_tol: 2.0e-2
+  solver: cbc
   valor_diaria: 335
   viagens: 1
 title: Otimizando a Coleta de Dados do IBGE com o Pacote R 'orce'
@@ -85,7 +90,7 @@ custos envolvidos.
         conta diversos fatores, como a distância entre os locais, o
         tempo de viagem, os custos fixos de cada agência e a necessidade
         de pagar diárias aos pesquisadores.
-    -   A função principal, alocar_upas permite que você personalize as
+    -   A função principal, alocar_ucs permite que você personalize as
         restrições, como a capacidade de cada agência e as preferências
         de localização, para que a alocação se adapte às necessidades
         específicas do seu projeto.
@@ -160,9 +165,10 @@ número relativamente pequeno municípios e agências, facilitando a
 exposição do processo de estimação. Espírito Santo tem 78 municípios, e
 10 agências do IBGE.
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
-![](munic_rmd_files/figure-markdown/unnamed-chunk-3-1.png)
+![](munic_rmd_files/figure-markdown/unnamed-chunk-3-1.png){fig-align="center"
+width="70%"}
 :::
 ::::
 
@@ -179,20 +185,20 @@ podemos estimar o custo da coleta? Partiremos de algumas premissas.
 5.  Quando não há pernoite, são feitas 2 viagem(ns) (ida e volta). Há
     pagamento de meia-diária nos casos especificados no item 1.
 6.  As viagens, feitas por veículos do IBGE, tem origem nas agências e
-    destino nos municípios de coleta. Os veículos fazem quilômetros por
-    litro, e o custo do combustível é de por litro. **Importante**: o
-    consumo de combustível pode ser reduzido significativamente fazendo
-    "roteiros", em que uma viagem percorre mais de um município. Vamos
-    ignorar, por enquanto, essa possibilidade.
+    destino nos municípios de coleta. Os veículos fazem 10 quilômetros
+    por litro, e o custo do combustível é de por litro. **Importante**:
+    o consumo de combustível pode ser reduzido significativamente
+    fazendo "roteiros", em que uma viagem percorre mais de um município.
+    Vamos ignorar, por enquanto, essa possibilidade.
 7.  Diárias são calculadas para apenas um funcionário e tem o valor de
     335.
 
 Os dados com as unidades de coleta tem a seguinte estrutura:
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="pdeexjqaaf" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="hnsgghinpn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Uc        Agencia Codigo   Dias Coleta   Viagens
@@ -225,10 +231,10 @@ importante saber quando é que diárias são devidas. Essa informação está
 na tabela `agencias_municipios_diaria`, disponível no pacote para todas
 as unidades da federação.
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="muovmvktbx" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="tafocfkjnl" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Agencia Codigo   Municipio Codigo   Diaria Municipio
@@ -253,10 +259,10 @@ cada sede municipal (disponível em
 `distancias_agencias_municipios_osrm`), que combinamos com as
 informações sobre as diárias (`agencias_municipios_diaria`).
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="ksqoybsnny" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="hjrxeuitcu" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Agencia Codigo   Uc        Distancia Km   Duracao Horas   Diaria Municipio   Diaria Pernoite
@@ -282,12 +288,29 @@ jurisdição da agência.
 
 Estamos, agora, prontos para calcular os custos de coleta.
 
+::: {.cell layout-align="center"}
+    #> $horas_viagem_pernoite
+    #> [1] 1,5
+    #> 
+    #> $viagens
+    #> [1] 1
+    #> 
+    #> $dias_coleta
+    #> [1] 2
+    #> 
+    #> $custo_fixo
+    #> [1] 0
+    #> 
+    #> $uf_sigla
+    #> [1] "ES"
+:::
+
 #### Custos por agência
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="lgyvgnojzv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="hopyyrwdzk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                               Municipios   Total Diarias   Custo Diarias   Distancia Total Km   Custo Combustivel
@@ -311,10 +334,10 @@ Estamos, agora, prontos para calcular os custos de coleta.
 
 #### Custos por município
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="yuxnzcnxul" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="rrretswzqt" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Municipio                Agencia                   Custo Diarias   Custo Combustivel
@@ -344,10 +367,10 @@ função `alocar_ucs` retorna, opcionalmente, a lista completa de
 combinações entre agências $X$ municípios, que permite facilmente
 responder essa pergunta.
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="imhrssufrm" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="yawvthpaou" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Agencia                   Distancia Km   Custo Diarias   Custo Combustivel
@@ -367,8 +390,8 @@ responder essa pergunta.
 :::
 ::::
 
-Nota-se que há outras agências que podem realizar a coleta no
-municípios, a um custo ligeiramente superior.
+Nota-se que outras agências podem realizar a coleta no municípios, e a
+qual custo.
 
 #### Otimizando a alocação de municípios
 
@@ -376,10 +399,10 @@ A pergunta que segue, naturalmente, é, há algum município que teria
 custos de coleta menores se a coleta fosse realizada por agência
 diferente da de jurisdição? A resposta é sim!
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="wjgcblzerh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="fgwhcoajmw" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Municipio               Agencia                   Distancia Km   Custo Diarias   Custo Combustivel
@@ -413,10 +436,10 @@ correspondente a R\$10. Além disso, só são propostas trocas que
 economizariam no mínimo R\$100 no custo de deslocamento para o
 município.
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="cjfydlgxso" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="zjlfssygjh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Municipio            Agencia Otimo             Agencia Jurisdicao        Distancia Km Otimo   Distancia Km Jurisdicao   Custo Deslocamento Otimo   Custo Deslocamento Jurisdicao
@@ -430,30 +453,34 @@ município.
 :::
 ::::
 
-::::::: cell
+::::::: {.cell layout-align="center"}
 ::: cell-output-display
-![](munic_rmd_files/figure-markdown/unnamed-chunk-17-1.png)
+![](munic_rmd_files/figure-markdown/unnamed-chunk-17-1.png){fig-align="center"
+width="70%"}
 :::
 
 ::: cell-output-display
-![](munic_rmd_files/figure-markdown/unnamed-chunk-17-2.png)
+![](munic_rmd_files/figure-markdown/unnamed-chunk-17-2.png){fig-align="center"
+width="70%"}
 :::
 
 ::: cell-output-display
-![](munic_rmd_files/figure-markdown/unnamed-chunk-17-3.png)
+![](munic_rmd_files/figure-markdown/unnamed-chunk-17-3.png){fig-align="center"
+width="70%"}
 :::
 
 ::: cell-output-display
-![](munic_rmd_files/figure-markdown/unnamed-chunk-17-4.png)
+![](munic_rmd_files/figure-markdown/unnamed-chunk-17-4.png){fig-align="center"
+width="70%"}
 :::
 :::::::
 
 #### Resumo da otimização
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="cdfaofpzut" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="zuzgmrzpkj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
   Name                 Jurisdicao   Otimo       Reducao   Reducao Pct
@@ -474,10 +501,10 @@ em combustível.
 
 ### Resultados para outras Superintendências Estaduais[^1]
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="dermhrnhsr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="fpmrbmgwxb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
                                           Jurisdição r   Ótimo r     Redução r   Redução
@@ -522,23 +549,22 @@ em combustível.
 :::
 ::::
 
-## Caso 2. A importância dos custos fixos (salário e treinamento): calculando os custos da coleta da POF para a SES/Bahia
+## Caso 2. A importância dos custos fixos (salário e treinamento): calculando os custos da coleta da POF para a Superintendência Estadua da Bahia (SES/BA)
 
-:::: cell
+:::: {.cell layout-align="center"}
 ::: cell-output-display
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
-<html><body><div id="tgbpfcpkew" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<html><body><div id="fmhfefcrxb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
   
 
-  Modelo                                                                              N Agencias   Custo Total   Custo Fixo Total   Custo Diarias   Custo Combustivel
-  ----------------------------------------------------------------------------------- ------------ ------------- ------------------ --------------- -------------------
-  sem custo fixo / sem custo de treinamento                                           0            −R\$18.142    R\$0               −R\$18.760      R\$363
-  custo de treinamento / redução diárias por pernoite                                 −15          −R\$46.536    −R\$62.111         R\$2.010        R\$10.574
-  custo de treinamento / limite de 24 UPAs por agência / adicional_troca_jurisdicao   −13          −R\$49.149    −R\$54.152         −R\$7.538       R\$9.897
-  custo de treinamento                                                                −15          −R\$51.468    −R\$62.501         −R\$4.355       R\$12.120
-  custo de treinamento / reorganização                                                −17          −R\$65.266    −R\$70.579         −R\$12.730      R\$14.180
-  custo de treinamento + salario de 1 apm / limite de 24 UPAs por agência             −35          −R\$503.702   −R\$777.251        R\$237.012      R\$30.102
-  custo de treinamento + salario de 1 apm                                             −37          −R\$510.744   −R\$821.790        R\$275.538      R\$29.137
+  Modelo                                                N Agencias   Custo Total     Custo Total Entrevistadores   Custo Diarias   Custo Combustivel
+  ----------------------------------------------------- ------------ --------------- ----------------------------- --------------- -------------------
+  sem custo fixo / sem custo de treinamento             0            −R\$19.978      R\$0                          −R\$18.760      −R\$1.209
+  custo de treinamento / redução diárias por pernoite   −15          −R\$51.909      −R\$65.648                    R\$2.010        R\$9.002
+  custo de treinamento / adicional_troca_jurisdicao     −14          −R\$54.547      −R\$62.102                    −R\$7.538       R\$11.729
+  com treinamento                                       −15          −R\$57.231      −R\$66.428                    −R\$4.355       R\$10.548
+  custo de treinamento / reorganização                  −17          −R\$71.413      −R\$74.890                    −R\$12.730      R\$12.608
+  custo de treinamento + salario de apms                −40          −R\$1.216.758   −R\$1.601.350                 R\$336.172      R\$39.971
 
   : Redução de custos promovido pela otimização da rede de coleta
 
@@ -552,34 +578,63 @@ número de agências envolvidas[^2].
 
 **Principais Observações:**
 
--   **Redução de Custos:** Em todos os cenários, a otimização resultou
-    em redução significativa do custo total. A maior economia foi
-    observada no cenário que inclui custos de treinamento e custos com
-    salário ("custo de treinamento + salário de 1 apm"), com redução de
-    R\$ 510.744.
+Em todos os cenários, a otimização resultou em redução significativa do
+custo total.
 
--   **Impacto dos Custos Fixos:** A redução do número de agências e a
-    consequente diminuição dos custos fixos (treinamento, salários,
-    etc.) são os principais fatores que impulsionam a economia de
-    custos. Isso fica evidente nos cenários que incluem o custo do
-    salário dos entrevistadores, onde a redução de custos é mais
-    expressiva.
+-   **Realocação de UPAs entre as agências:** Outras medidas também tem
+    seu impacto. A redistribuição ótima de UPAs entre as agências, sem
+    alteração no número de agências na coleta, tem o não desprezível
+    impacto de R\$ 18 mil.
 
--   **Custo de Deslocamento:** Em alguns cenários, o custo de
-    deslocamento (combustível e diárias) aumenta após a otimização. Isso
-    é explicado pela necessidade de percorrer distâncias maiores para
-    cobrir as UCs com uma rede menor de agências. No entanto, esse
-    aumento é mais do que compensado pela redução dos custos fixos,
-    resultando em uma economia geral.
+-   **Custo de treinamento:** Se incluímos os custos de treinamento (2
+    funcionários por agência) o número de agência ótimo diminui bastante
+    (cerca de 30%), e o valor economizado salta para cerca de R\$ 50
+    mil. O custo de deslocamento (combustível e diárias) aumenta após a
+    otimização. Isso é explicado pela necessidade de percorrer
+    distâncias maiores para cobrir as UCs com uma rede menor de
+    agências. No entanto, esse aumento é mais do que compensado pela
+    redução dos custos fixos, resultando em uma economia geral.
+
+-   **Reorganização da Jurisdição:** A reorganização da jurisdição das
+    agências também pode levar a uma redução de custos. Por exemplo,
+    quando incluímos o custo de treinamento e reorganizamos a jurisdição
+    das agências de modo a minimizar o pagamento de diárias, a economia
+    salta de R\$ 50 mil para R\$ 65 mil.
 
 -   **Limite de UPAs por Agência:** A imposição de um limite de 24 UPAs
     por agência contribui para um melhor balanceamento da carga de
-    trabalho, evitando a sobrecarga em algumas agências.
+    trabalho, evitando a sobrecarga em algumas agências. O impacto dessa
+    restrição na economia prevista é razoavelmente pequeno nos casos
+    analisados.
 
--   **Reorganização da Jurisdição:** A reorganização da jurisdição das
-    agências também pode levar a uma redução de custos, embora em menor
-    escala do que a redução de agências e a limitação de UPAs por
-    agência.
+-   **Redução de Custos de Pessoal:** Quando incluímos a despesa com
+    somente um entrevistador adicional por agência, além do de
+    treinamento para dois funcionários, a economia gerada passa de R\$
+    500 mil. É definitivamente aqui que está o mais efetivo instrumento
+    para reduzir os custos de coleta.
+
+## Caso 3. Um novo modelo de coleta nas Agências
+
+:::: {.cell layout-align="center"}
+    #> 0,052 sec elapsed
+
+::: cell-output-display
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html><body><div id="hpubtwwlbu" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+  
+
+  Modelo                                                                                                             N Agencias   Custo Total     Custo Total Entrevistadores   Custo Diarias   Custo Combustivel
+  ------------------------------------------------------------------------------------------------------------------ ------------ --------------- ----------------------------- --------------- -------------------
+  remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2                             −17          −R\$223.112     −R\$540.000                   R\$1.658.418    R\$566.967
+  remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2, custo diaria 2x            −15          −R\$1.548.620   −R\$522.000                   R\$596.635      R\$140.385
+  remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2, reorganizacao jurisdicao   −17          −R\$1.730.577   −R\$522.000                   R\$535.498      R\$236.972
+  sem custo fixo / sem custo de treinamento                                                                          0            −R\$108.432     R\$0                          −R\$121.605     R\$9.210
+
+  : Redução de custos promovido pela otimização da rede de coleta
+
+</div></body></html>
+:::
+::::
 
 ## Conclusão
 
@@ -588,7 +643,8 @@ impacto significativo na redução de custos, principalmente pela
 diminuição dos custos fixos associados às agências. A estratégia mais
 eficaz envolve a combinação da redução do número de agências, a
 imposição de limites de UPAs por agência e a reorganização da
-jurisdição.
+jurisdição, e é provavelmente vantajoso (impor o limite) para a boa
+gestão da coleta.
 
 É importante ressaltar que a otimização deve considerar não apenas os
 custos, mas também outros fatores como a qualidade dos dados coletados e
@@ -605,7 +661,10 @@ Este apêndice detalha o problema de otimização que o pacote orce
 resolve, que é a alocação ideal de Unidades de Coleta (UCs) às agências,
 com o objetivo de minimizar os custos totais, incluindo custos de
 deslocamento e custos fixos de cada agência. O modelo de otimização é
-baseado no problema clássico de localização de armazéns.
+baseado no problema clássico de localização de armazéns, e é baseado em
+["The Warehouse Location
+Problem"](https://dirkschumacher.github.io/ompr/articles/problem-warehouse-location.html),
+de Dirk Schumacher.
 
 ### O Desafio
 
