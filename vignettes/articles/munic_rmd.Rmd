@@ -3,8 +3,6 @@ title: "Otimizando a Coleta de Dados do IBGE com o Pacote R 'orce'"
 author: "Eduardo Leoni - SES/BA - IBGE"
 format: 
   html: default
-  markdown: default
-  docx: default
 lang: pt
 echo: false
 message: false
@@ -787,8 +785,8 @@ estrategias_carga <- bind_rows(
                                   custo_fixo=10000*12),
                                   n_entrevistadores_min=2,
                                   remuneracao_entrevistador=12*1500,
-                                  #max_time=60*60
-                                  max_time=params$max_time
+                                  max_time=max(params$max_time, 60*60)
+                                  #max_time=
                                 ))), 
          descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2'),
     tibble(params=list(modifyList(params_carga_0, 
@@ -988,8 +986,3 @@ A função `alocar_ucs` realiza a alocação otimizada de Unidades de Coleta (UC
 
 *   O cálculo de diárias já considera jurisdição, microrregiões, áreas metropolitanas e distância/necessidade de pernoite.
 *   A flexibilidade do pacote permite ajustar os parâmetros e restrições para atender às necessidades específicas do planejamento da coleta de dados.
-
-
-
-
-
