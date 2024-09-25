@@ -29,12 +29,12 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="active nav-item"><a class="nav-link" href="../articles/orce.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
+<li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/munic_rmd.html">Otimizando a Coleta de Dados do IBGE com o Pacote R 'orce'</a></li>
-    <li><a class="dropdown-item" href="../articles/Technical-details-of-the-optimization-procedure.html">Technical details of the optimization procedure</a></li>
+<li><a class="dropdown-item" href="../articles/Technical-details-of-the-optimization-procedure.html">Technical details of the optimization procedure</a></li>
   </ul>
 </li>
       </ul>
@@ -61,7 +61,7 @@ SES/BA - IBGE</h4>
             
       
 
-      <div class="d-none name"><code>munic_rmd.Rmd</code></div>
+      <div class="d-none name"><code>orce.Rmd</code></div>
     </div>
 
     
@@ -230,7 +230,7 @@ exposição do processo de estimação. Espírito Santo tem 78 municípios, e
 <span>  <span class="fu">geom_point</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y<span class="op">=</span><span class="va">municipio_sede_lat</span>, x<span class="op">=</span><span class="va">municipio_sede_lon</span>, color<span class="op">=</span><span class="va">agencia_nome_bdo</span><span class="op">)</span>, data<span class="op">=</span><span class="va">mnow</span>, alpha<span class="op">=</span><span class="fl">3</span><span class="op">/</span><span class="fl">4</span><span class="op">)</span><span class="op">+</span></span>
 <span>  <span class="fu">geom_point</span><span class="op">(</span><span class="fu">aes</span><span class="op">(</span>y<span class="op">=</span><span class="va">agencia_lat</span>, x<span class="op">=</span><span class="va">agencia_lon</span>, color<span class="op">=</span><span class="va">agencia_nome_bdo</span><span class="op">)</span>, data<span class="op">=</span><span class="va">mnow</span>, shape<span class="op">=</span><span class="fl">2</span>, size<span class="op">=</span><span class="fl">3</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu">labs</span><span class="op">(</span>x<span class="op">=</span><span class="st">""</span>, y<span class="op">=</span><span class="st">""</span>, color<span class="op">=</span><span class="st">""</span><span class="op">)</span></span></code></pre></div>
-<p><img src="munic_rmd_files/figure-html/unnamed-chunk-3-1.png" width="70%" style="display: block; margin: auto;"></p>
+<p><img src="orce_files/figure-html/unnamed-chunk-3-1.png" width="70%" style="display: block; margin: auto;"></p>
 <p>Vamos supor que seja necessário visitar todos os 78 municípios. Como
 podemos estimar o custo da coleta? Partiremos de algumas premissas.</p>
 <ol style="list-style-type: decimal">
@@ -4673,7 +4673,7 @@ município.</p>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p><img src="munic_rmd_files/figure-html/unnamed-chunk-17-1.png" width="70%" style="display: block; margin: auto;"><img src="munic_rmd_files/figure-html/unnamed-chunk-17-2.png" width="70%" style="display: block; margin: auto;"><img src="munic_rmd_files/figure-html/unnamed-chunk-17-3.png" width="70%" style="display: block; margin: auto;"><img src="munic_rmd_files/figure-html/unnamed-chunk-17-4.png" width="70%" style="display: block; margin: auto;"></p>
+<p><img src="orce_files/figure-html/unnamed-chunk-17-1.png" width="70%" style="display: block; margin: auto;"><img src="orce_files/figure-html/unnamed-chunk-17-2.png" width="70%" style="display: block; margin: auto;"><img src="orce_files/figure-html/unnamed-chunk-17-3.png" width="70%" style="display: block; margin: auto;"><img src="orce_files/figure-html/unnamed-chunk-17-4.png" width="70%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level5">
 <h5 id="resumo-da-otimização">Resumo da otimização<a class="anchor" aria-label="anchor" href="#resumo-da-otimiza%C3%A7%C3%A3o"></a>
@@ -6787,8 +6787,8 @@ reduzir os custos de coleta.</p></li>
 <span>                                  custo_fixo<span class="op">=</span><span class="fl">10000</span><span class="op">*</span><span class="fl">12</span><span class="op">)</span>,</span>
 <span>                                  n_entrevistadores_min<span class="op">=</span><span class="fl">2</span>,</span>
 <span>                                  remuneracao_entrevistador<span class="op">=</span><span class="fl">12</span><span class="op">*</span><span class="fl">1500</span>,</span>
-<span>                                  <span class="co">#max_time=60*60</span></span>
-<span>                                  max_time<span class="op">=</span><span class="va">params</span><span class="op">$</span><span class="va">max_time</span></span>
+<span>                                  max_time<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">params</span><span class="op">$</span><span class="va">max_time</span>, <span class="fl">60</span><span class="op">*</span><span class="fl">60</span><span class="op">)</span></span>
+<span>                                  <span class="co">#max_time=</span></span>
 <span>                                <span class="op">)</span><span class="op">)</span><span class="op">)</span>, </span>
 <span>         descricao<span class="op">=</span><span class="st">'remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2'</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList</a></span><span class="op">(</span><span class="va">params_carga_0</span>, </span>
@@ -6817,7 +6817,7 @@ reduzir os custos de coleta.</p></li>
 <span>  <span class="co">#head(4)%&gt;%</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>resultado<span class="op">=</span><span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="va">params</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">alocar_municipios</span>, <span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/tictoc/man/tic.html" class="external-link">toc</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 0,035 sec elapsed</span></span>
+<span><span class="co">#&gt; 0,052 sec elapsed</span></span>
 <span></span>
 <span><span class="va">estrategias_carga_sum</span> <span class="op">&lt;-</span> </span>
 <span>  <span class="va">estrategias_carga</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -7306,11 +7306,11 @@ reduzir os custos de coleta.</p></li>
 <tbody class="gt_table_body">
 <tr>
 <td headers="descricao" class="gt_row gt_left">remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2</td>
-<td headers="n_agencias" class="gt_row gt_right">−17</td>
-<td headers="custo_total" class="gt_row gt_right">−R$223.112</td>
-<td headers="custo_total_entrevistadores" class="gt_row gt_right">−R$540.000</td>
-<td headers="custo_diarias" class="gt_row gt_right">R$1.658.418</td>
-<td headers="custo_combustivel" class="gt_row gt_right">R$566.967</td>
+<td headers="n_agencias" class="gt_row gt_right">−16</td>
+<td headers="custo_total" class="gt_row gt_right">−R$965.095</td>
+<td headers="custo_total_entrevistadores" class="gt_row gt_right">−R$450.000</td>
+<td headers="custo_diarias" class="gt_row gt_right">R$1.124.092</td>
+<td headers="custo_combustivel" class="gt_row gt_right">R$226.650</td>
 </tr>
 <tr>
 <td headers="descricao" class="gt_row gt_left">remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2, custo diaria 2x</td>
@@ -7660,7 +7660,7 @@ dados.</li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
