@@ -8,7 +8,7 @@ echo: false
 message: false
 warning: false
 cache: false
-abstract: Apresentamos o pacote R `orce`, uma ferramenta criada para otimizar a alocação de Unidades de Coleta em pesquisas do IBGE, com o objetivo de minimizar os custos totais. Por meio de um modelo de otimização baseado em programação linear inteira mista, o pacote considera fatores como distâncias, tempo de viagem, custos fixos das agências e necessidade de diárias para encontrar a distribuição ideal das unidades de coleta. Estudos de caso realizados com a Pesquisa Nacional de Saúde (PNS) no Espírito Santo e a Pesquisa de Orçamentos Familiares (POF) na Bahia demonstram o potencial do orce para alcançar reduções significativas nos custos de coleta, chegando a até 40%. Além da economia financeira, o pacote promove um melhor balanceamento da carga de trabalho entre as agências e oferece flexibilidade para se adaptar às necessidades e restrições específicas de cada pesquisa. O artigo explora estratégias adicionais de otimização, como a reorganização da jurisdição das agências e o ajuste do tempo de viagem considerado para o pagamento de diárias. A análise dos resultados reforça a importância da redução dos custos fixos como fator crucial para alcançar maior eficiência e economia na coleta de dados. O `orce` demonstra potencial para melhorar a eficiência e reduzir custos na coleta de dados do IBGE, viabilizando pesquisas de alta qualidade com recursos otimizados."
+abstract: Apresentamos o pacote R `orce`, uma ferramenta criada para otimizar a alocação de Unidades de Coleta em pesquisas do IBGE, com o objetivo de minimizar os custos totais de coleta. Por meio de um modelo de otimização baseado em programação linear inteira mista, o pacote considera fatores como distâncias, tempo de viagem, custos fixos das agências e necessidade de diárias para encontrar a distribuição ideal das unidades de coleta. Estudos de caso realizados com a Pesquisa Nacional de Saúde (PNS) no Espírito Santo e a Pesquisa de Orçamentos Familiares (POF) na Bahia demonstram o potencial do orce para alcançar reduções significativas nos custos de coleta, chegando a até 40%. Além da economia financeira, o pacote permite atingir um melhor balanceamento da carga de trabalho entre as agências e oferece flexibilidade para se adaptar às necessidades e restrições específicas de cada pesquisa. O artigo explora estratégias adicionais de otimização, como a reorganização da jurisdição das agências e o ajuste do tempo de viagem considerado para o pagamento de diárias. A análise dos resultados reforça a importância da redução dos custos fixos como fator crucial para alcançar maior eficiência e economia na coleta de dados. O `orce` demonstra potencial para melhorar a eficiência da coleta de dados do IBGE, viabilizando pesquisas de alta qualidade com em um ambiente de restrição de gastos públicos."
 params:
   horas_viagem_pernoite: 1.5
   custo_hora_viagem: 10
@@ -16,6 +16,7 @@ params:
   kml: 10
   valor_diaria: 335
   adicional_troca_jurisdicao: 100
+  remuneracao_entrevistador: 1500
   uf_sigla_munic: "ES"
   viagens_munic: 1
   viagens_pnadc: 1
@@ -34,7 +35,7 @@ params:
   dias_coleta_agencia_max_munic: Inf
   dias_treinamento_pof: 5.5
   solver: 'cbc'
-  max_time: 1800
+  max_time: 9000
   rel_tol: .02
 ---
 
@@ -55,7 +56,7 @@ library(ggplot2)
 library(gt)
 library(orce)
 library(dplyr)
-
+params_alocar_ucs <- setdiff(args(alocar_ucs)%>%as.list%>%names(), c("...", ""))
 
 options(OutDec = ",", scipen=100)
 
@@ -64,7 +65,7 @@ options(OutDec = ",", scipen=100)
 
 # Introdução
 
-A otimização da coleta de dados é um desafio comum em instituições de pesquisa que lidam com grandes volumes de informações distribuídas geograficamente. No caso do IBGE, a necessidade de otimizar a alocação das Unidades de Coleta (UCs) se torna essencial, dada a complexidade logística e os elevados custos envolvidos no processo.
+A otimização dos custos de coleta de dados é um desafio comum em instituições de pesquisa que lidam com grandes volumes de informações distribuídas geograficamente. No caso do IBGE, a necessidade de otimizar a alocação de setores censitários, escolas, ou empresas, às agências de coleta do IBGE, se torna essencial, dada a complexidade logística e os elevados custos envolvidos no processo.
 
 As pesquisas MUNIC (Pesquisa de Informações Básicas Municipais) e POF (Pesquisa de Orçamentos Familiares) são dois exemplos que ilustram a importância dessa otimização. A MUNIC, que coleta dados sobre a gestão e estrutura dos municípios brasileiros, e a POF, que investiga os hábitos de consumo das famílias brasileiras, envolvem a coleta de dados em milhares de domicílios e municípios, gerando altos custos logísticos.
 
@@ -76,13 +77,13 @@ Coletar dados em milhares de domicílios espalhados por um vasto território é 
 
 1.  **Roteamento e Geocodificação:**
 
-    *   Utiliza o banco de dados do CNEFE para obter coordenadas geográficas precisas para cada UC, garantindo a acurácia no cálculo de distâncias e rotas.
-    *   A função `ponto_setor_densidade` auxilia na identificação de locais representativos dentro dos setores censitários, priorizando áreas de alta densidade populacional para facilitar o acesso e garantir que o algorítimo de roteamento tenha destinos/origens válidos.
+    *   Para o caso em que as unidades de coleta são setores censitários, a função `ponto_setor_densidade` auxilia na identificação de locais representativos dentro dos setores censitários, priorizando áreas de alta densidade populacional para facilitar o acesso e garantir que o algorítimo de roteamento tenha destinos/origens válidos.
 
 2.  **Otimização Avançada da Alocação:**
 
-    *   O orce implementa um algoritmo inteligente que encontra a melhor forma de distribuir as UCs entre as agências do IBGE, levando em conta diversos fatores, como a distância entre os locais, o tempo de viagem, os custos fixos de cada agência e a necessidade de pagar diárias aos pesquisadores.
-    *  A função principal, alocar_ucs permite que você personalize as restrições, como a capacidade de cada agência e as preferências de localização, para que a alocação se adapte às necessidades específicas do seu projeto.
+    *   O `orce` implementa um algoritmo inteligente que encontra a melhor forma de distribuir as UCs entre as agências do IBGE, levando em conta diversos fatores, como a distância entre os locais, o tempo de viagem, os custos fixos de cada agência e a necessidade de pagar diárias aos pesquisadores.
+    *  A função `alocar_ucs` permite que você personalize as restrições, como a capacidade de cada agência e as preferências de localização, para que a alocação se adapte às necessidades específicas do seu projeto. A função `alocar_municipios`, por sua vez, otimiza a alocação mantendo as unidades de coleta de um mesmo município com uma só agência.
+    
 
 3.  **Cálculo de Custos Detalhados:**
 
@@ -91,7 +92,7 @@ Coletar dados em milhares de domicílios espalhados por um vasto território é 
 
 4.  **Flexibilidade e Adaptabilidade:**
 
-    *   O orce permite que você personalize vários parâmetros, como o custo do combustível, o custo por hora de viagem, o consumo de combustível por quilômetro e as restrições específicas de cada agência.
+    *   O `orce` permite que você personalize vários parâmetros, como o custo do combustível, o custo por hora de viagem, o consumo de combustível por quilômetro e as restrições específicas de cada agência.
     *   Essa flexibilidade garante que o pacote possa ser adaptado a diferentes tipos de pesquisas e necessidades de coleta de dados, tornando-o uma ferramenta versátil para o IBGE.
 
 ## Impacto e Aplicações
@@ -111,9 +112,6 @@ A Pesquisa de Informações Básicas Municipais (MUNIC) realizada pelo Instituto
 A alocação eficiente dos municípios às agências do IBGE responsáveis pela coleta de dados é um aspecto importante para o sucesso da pesquisa MUNIC, principalmente nas Unidades da Federação com maior número de agências e municípios. O processo envolve atribuir cada município à agência mais adequada, considerando fatores como proximidade geográfica, capacidade da agência e custos de viagem. A complexidade dessa tarefa aumenta com o número de municípios e agências envolvidas, tornando a alocação manual desafiadora e potencialmente levando a atribuições abaixo do ideal.
 
 Para enfrentar esse desafio, o pacote `orce` utiliza algoritmos avançados de otimização e incorpora vários fatores de custo para identificar a estratégia de alocação mais eficiente, minimizando despesas de viagem, carga de trabalho da equipe e custos gerais da pesquisa.
-
-
-
 
 
 ```{r, include = FALSE}
@@ -136,8 +134,6 @@ assistencias <- if(ufnow$uf_codigo==29) {
     transmute(agencia_codigo, assistencia_nome="")
 }
 
-
-#plot(10^seq(1,4), (365/sqrt(10^seq(4,7)))*7)
 agencias_now <- agencias_now%>%
   filter(uf_codigo==ufnow$uf_codigo)
 agencias_municipios_diaria_now <- agencias_municipios_diaria
@@ -147,7 +143,7 @@ agencias_municipios_diaria_now <- agencias_municipios_diaria
 ```
 
 
-Vamos começar a Superintendência Estadual do `r ufnow[["uf_nome"]]`, que tem um número relativamente pequeno municípios e agências, facilitando a exposição do processo de estimação. `r ufnow[["uf_nome"]]` tem `r nrow(mnow)` municípios, e `r nrow(agencias_now)` agências do IBGE.
+Vamos começar a Superintendência Estadual do `r ufnow[["uf_nome"]]`, que  tem `r nrow(mnow)` municípios, e `r nrow(agencias_now)` agências do IBGE.
 
 
 ```{r}
@@ -233,29 +229,17 @@ Observação: A coluna `diaria_pernoite` é calculada com base na duração da v
 Estamos, agora, prontos para calcular os custos de coleta.
 
 ```{r}
-params_alocar_ucs <- setdiff(args(alocar_ucs)%>%as.list%>%names(), c("...", ""))
 params_munic <- params[names(params)%in%params_alocar_ucs]
+params_munic$remuneracao_entrevistador <- 0
 
 params_munic$agencias <- agencias_now%>%mutate(dias_coleta_agencia_max=params$dias_coleta_agencia_max_munic)
-#params_munic$distancias_agencias <- distancias_agencias
 params_munic$distancias_ucs <- distancias_ucs
 params_munic$ucs <- ucs_now
 params_munic$resultado_completo <- TRUE
 params_munic$dias_coleta_entrevistador_max <- params$dias_coleta_entrevistador_max_munic
 
+print(lapply(params_munic,head,2))
 print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_munic)), collapse=", ")))
-# capture <- function(what, args) {
-#   tfile <- tempfile()
-#   zz <- file(tfile, "w")
-#   sink(file=zz, type="message", split=FALSE)
-#   res <- do.call(what=what, args=args)
-#   sink()
-#   close(zz)
-#   res$output <- paste(readLines(tfile), collapse="\n")
-#   unlink(tfile)
-#   res
-# }
-
 res <- do.call(what = alocar_ucs, 
               args=params_munic)
 
@@ -343,7 +327,7 @@ res$ucs_agencias_todas%>%
   semi_join(munnow, by=c("uc"="municipio_codigo"))%>%
   left_join(agencias_now, by="agencia_codigo")%>%
   mutate(jurisdicao=agencia_codigo_jurisdicao==agencia_codigo)|>
-  transmute(agencia_nome=glue::glue("{agencia_nome} {if_else(jurisdicao, '(Jurisdição)', '')}"), distancia_km, custo_diarias, custo_combustivel)%>%
+  transmute(agencia_nome=glue::glue("{agencia_nome} {if_else(jurisdicao, '(Jurisdição)', '')}"), duracao_horas, distancia_km, custo_diarias, custo_combustivel)%>%
   arrange(custo_diarias+custo_combustivel)%>%
   gt::gt()|>
   print_gt()
@@ -363,9 +347,10 @@ res$ucs_agencias_todas%>%
   slice(1)%>%
   filter(agencia_codigo_jurisdicao!=agencia_codigo)|>
   left_join(agencias_now, by="agencia_codigo")%>%
-  left_join(mnow%>%sf::st_drop_geometry()%>%select(municipio_codigo,municipio_nome))%>%
+  left_join(mnow%>%sf::st_drop_geometry()%>%
+              select(municipio_codigo,municipio_nome))%>%
   ungroup%>%
-  transmute(municipio_nome, agencia_nome, distancia_km, custo_diarias, custo_combustivel)%>%
+  transmute(municipio_nome, agencia_nome, distancia_km, duracao_horas, custo_diarias, custo_combustivel)%>%
   arrange(custo_diarias+custo_combustivel)%>%
   gt::gt()|>
   print_gt()
@@ -446,7 +431,7 @@ resumo_planos%>%
 
 ```{r}
 economia_diarias <- resumo_planos%>%filter(name=="custo_diarias")%>%pull(reducao_pct)
-economia_combustivel <- resumo_planos%>%filter(name=="custo_combustivel")%>%pull(reducao_pct)%>%round(1)
+economia_combustivel <- resumo_planos%>%filter(name=="custo_combustivel")%>%pull(reducao_pct)%>%round(2)
 if (economia_combustivel > 0) {
   economia_combustivel_str <-   glue::glue("{round(economia_combustivel*100,1)}% a **menos**")
 } else if (economia_combustivel<0) {
@@ -470,7 +455,7 @@ ufs_sem_missing_dist <- ufs_sem_missing_dist[ufs_sem_missing_dist!=53]
 ```
 
 
-### Resultados para outras Superintendências Estaduais^[Foram excluídas Superintendências Estaduais onde não há rotas rodoviárias para todos os municípios: `r paste(setdiff(ufs$uf_codigo, ufs_sem_missing_dist), collapse=", ")`]
+### Resultados para outras Superintendências Estaduais^[Foram excluídas Superintendências Estaduais onde não há rotas rodoviárias para todos os municípios: `r paste(ufs%>%filter(!uf_codigo%in%ufs_sem_missing_dist)%>%pull(uf_nome), collapse=", ")`]
 
 
 
@@ -563,6 +548,7 @@ Vamos agora considerar a coleta da Pesquisa de Orçamentos Familiares (POF) na B
 
 ```{r}
 
+
 uf_codigo_now <- 29
 ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
 ## amostra_pof
@@ -590,6 +576,8 @@ distancias_upas <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencia
 
 
 
+### Parâmetros iniciais
+
 ```{r}
 ## sem custo fixo nem custo de treinamento
 params_pof_0  <- list(ucs=amostra_uf,
@@ -609,14 +597,17 @@ params_pof_0  <- list(ucs=amostra_uf,
            max_time=params$max_time,
            rel_tol=params$rel_tol
            )
+
+print(lapply(params_pof_0, head))
 print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_pof_0)), collapse=", ")))
 
-dagencias <- distancias_agencias_osrm
+
 ```
 
-
+Por conta de restrições no cronograma de coleta, que deve ser realizada em períodos específicos, a POF tem um mínimo de dois entrevistadores por agência. Em um ano de coleta, cada entrevistador poderá trabalhar  `r params$dias_coleta_entrevistador_max_pof` dias. Quando a coleta é feita com diária (pernoite), são necessárias `r params$viagens_pof` viagens. O total de dias de coleta por Unidade Primária de Amostragem (composta por um ou mais setores censitários) é `r params$dias_coleta_pof`. O deslocamento envolve, portanto, `r params$dias_coleta_pof` idas e voltas para setores sem pernoite, ou `r params$viagens_pof` idas e voltas para os casos sem pernoite.
 
 ```{r}
+dagencias <- distancias_agencias_osrm
 params_pof_1 <- modifyList(params_pof_0, 
                            list(
                              distancias_agencias=distancias_agencias_osrm,
@@ -636,15 +627,13 @@ estrategias_pof <- bind_rows(
   #                                   mutate(diaria_pernoite=duracao_horas>2)))), 
   #        descricao="Custo de treinamento + redução diárias por pernoite"),
   tibble(params_pof=list(modifyList(params_pof_1, 
-                                list(remuneracao_entrevistador=1500*12))), descricao='Custo de treinamento + remuneração dos apms'),
+                                list(remuneracao_entrevistador=params$remuneracao_entrevistador*12))), descricao='Custo de treinamento + remuneração dos apms'),
   # , tibble(params_pof=list(modifyList(params_pof_1, 
   #                               list(
   #                                 adicional_troca_jurisdicao=300))), 
   #        descricao='custo de treinamento  + Adicional troca de jurisdição R$300')
   )%>%
   mutate(resultado=purrr::map(params_pof, ~do.call(alocar_ucs, .x), .progress = TRUE))
-
-
 
 estrategias_pof_sum <- 
   estrategias_pof%>%
@@ -660,6 +649,22 @@ estrategias_pof_sum <-
         ))%>%
   mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
   select(descricao, modelo, n_agencias, custo_total, everything())
+
+```
+
+Nesse caso básico, sem incluindo somente os custos de deslocamento, o resultado é o seguinte.
+
+
+```{r}
+report_plans(estrategias_pof$resultado[[1]])%>%
+  gt::cols_hide(-matches(c("agencia_nome", "n_uc", "total_diarias", "combustivel", "custo_total", "custo_troca")))
+```
+
+
+
+
+```{r}
+
 
 vs <- c("n_agencias", "custo_total", 'custo_total_entrevistadores', 'custo_diarias', 'custo_combustivel')
 pct <- function(x) (x[2]/x[1])-1
@@ -818,27 +823,46 @@ estrategias_carga <- bind_rows(
   tibble(params_carga=list(params_carga_0), 
          descricao='sem custo fixo / sem custo de treinamento'),
   tibble(params_carga=list(modifyList(params_carga_0, 
-                                list(
+                                      list( remuneracao_entrevistador=12*2500)
+  )), 
+  descricao='sem mínimo de entrevistador, remuneracao 2500, sem custo fixo'),
+  tibble(params_carga=list(modifyList(params_carga_0, 
+                                      list(
+                                        agencias=agencias_uf,
+                                        remuneracao_entrevistador=12*params$remuneracao_entrevistador)
+  )), 
+  descricao='sem mínimo de entrevistador, sem custo fixo'),
+  
+  tibble(params_carga=list(modifyList(params_carga_0, 
+                                      list(n_entrevistadores_min=2,
+                                        remuneracao_entrevistador=12*params$remuneracao_entrevistador,
+                                        max_time=params$max_time)
+  )), 
+  descricao='mínimo de 2 entrevistadores, sem custo fixo'),
+  
+  
+  tibble(params_carga=list(modifyList(params_carga_0, 
+                                      list(
+                                        agencias=agencias_uf%>%
+                                          mutate(
+                                            custo_fixo=10000*12),
+                                        n_entrevistadores_min=2,
+                                        remuneracao_entrevistador=12*params$remuneracao_entrevistador,
+                                        max_time=max(params$max_time, 60*60)
+                                        #max_time=
+                                      ))), 
+         descricao='mínimo de 2 entrevistadores /2 Técnicos 10000 p/ mes (custo fixo)'),
+  tibble(params_carga=list(modifyList(params_carga_0, 
+                                      list(
+                                        distancias_ucs=params_carga_0$distancias_ucs%>%
+                                          mutate(diaria_municipio=FALSE),
                                   agencias=agencias_uf%>%
                                   mutate(
                                   custo_fixo=10000*12),
                                   n_entrevistadores_min=2,
-                                  remuneracao_entrevistador=12*1500,
-                                  max_time=max(params$max_time, 60*60)
-                                  #max_time=
+                                  remuneracao_entrevistador=12*params$remuneracao_entrevistador
                                 ))), 
-         descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2'),
-    tibble(params_carga=list(modifyList(params_carga_0, 
-                                list(
-                                  distancias_ucs=params_carga_0$distancias_ucs%>%
-                                    mutate(diaria_municipio=FALSE),
-                                  agencias=agencias_uf%>%
-                                  mutate(
-                                  custo_fixo=10000*12),
-                                  n_entrevistadores_min=2,
-                                  remuneracao_entrevistador=12*1500
-                                ))), 
-         descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2, reorganizacao jurisdicao'),
+         descricao='mínimo 2 entrevistadores /2 Técnicos (10000 p/ mes custo fixo), reorganizacao jurisdicao'),
   tibble(params_carga=list(modifyList(params_carga_0, 
                                 list(
                                   valor_diaria=params$valor_diaria*2,
@@ -847,11 +871,11 @@ estrategias_carga <- bind_rows(
                                   mutate(
                                   custo_fixo=10000*12),
                                   n_entrevistadores_min=2,
-                                  remuneracao_entrevistador=12*1500
+                                  remuneracao_entrevistador=12*params$remuneracao_entrevistador
                                 ))), 
-         descricao='remuneracao apm 1500 p/mes/2 Técnicos 10000 p/ mes custo fixo, n_entrevistadores_min=2, custo diaria 2x')
+         descricao='mínimo de 2 entrevistadores/2 Técnicos 10000 p/ mes (custo fixo)/ custo diaria 2x')
 )%>%
-  #head(4)%>%
+  #ungroup%>%slice(-1)%>%
   mutate(resultado=purrr::map(params_carga, ~do.call(alocar_municipios, .x)))
 #toc()
 
@@ -874,6 +898,7 @@ estrategias_carga_sum%>%
   arrange(descricao, modelo)%>%
   select(-modelo)%>%
   summarise(across(everything(), diff))%>%
+  arrange(desc(n_agencias), custo_total)%>%
   select(descricao, n_agencias, custo_total, custo_total_entrevistadores, custo_diarias, custo_combustivel)%>%
   #arrange(-custo_total)%>%
   gt::gt()%>%

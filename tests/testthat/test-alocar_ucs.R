@@ -51,7 +51,6 @@ test_that("alocar_ucs returns expected structure", {
     valor_diaria = 335,
     dias_treinamento = 5.5,
     dias_coleta_entrevistador = 10,
-    min_uc_agencia = 1,
     n_entrevistadores_min=2,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
@@ -69,13 +68,13 @@ test_that("alocar_ucs returns expected structure", {
     valor_diaria = 335,
     dias_treinamento = 5.5,
     dias_coleta_entrevistador = 10,
-    min_uc_agencia = 1,
     n_entrevistadores_min=2,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 10,
     agencias_treinamento = "A",
-    resultado_completo=TRUE
+    resultado_completo=TRUE,
+    solver="highs"
   )
 
   result <- try({alocar_ucs(
@@ -87,13 +86,13 @@ test_that("alocar_ucs returns expected structure", {
     valor_diaria = 335,
     dias_treinamento = 5.5,
     dias_coleta_entrevistador = 3,
-    min_uc_agencia = 1,
     n_entrevistadores_min=2,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 10,
     agencias_treinamento = "A",
-    resultado_completo=TRUE
+    resultado_completo=TRUE,
+    solver="symphony"
   )})
   expect_s3_class(result, "try-error")
 
@@ -107,13 +106,13 @@ test_that("alocar_ucs returns expected structure", {
     valor_diaria = 335,
     dias_treinamento = 5.5,
     dias_coleta_entrevistador = 10,
-    min_uc_agencia = 1,
     n_entrevistadores_min=2,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     agencias_treinamento = "A",
     resultado_completo=TRUE,
-    adicional_troca_jurisdicao=1e6
+    adicional_troca_jurisdicao=1e6,
+    solver="glpk"
   )
 
   result <- alocar_ucs(
@@ -122,16 +121,16 @@ test_that("alocar_ucs returns expected structure", {
     custo_litro_combustivel =  6,
     custo_hora_viagem = 10,
     kml = 10,
-    valor_diaria = 335,
+    valor_diaria = 335+runif(1),
     dias_treinamento = 5.5,
     dias_coleta_entrevistador = 2,
-    min_uc_agencia = 1,
     n_entrevistadores_min=2,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     agencias_treinamento = "A",
     resultado_completo=TRUE,
-    adicional_troca_jurisdicao=1e6
+    adicional_troca_jurisdicao=1e6,
+    solver="symphony"
   )
 
   result <- alocar_ucs(
@@ -142,7 +141,6 @@ test_that("alocar_ucs returns expected structure", {
     kml = 10,
     valor_diaria = 335,
     dias_treinamento = 5.5,
-    min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     dias_coleta_entrevistador=3,
@@ -159,7 +157,6 @@ test_that("alocar_ucs returns expected structure", {
     kml = 10,
     valor_diaria = 335,
     dias_treinamento = 5.5,
-    min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 1000,
@@ -175,7 +172,6 @@ test_that("alocar_ucs returns expected structure", {
     kml = 10,
     valor_diaria = 335,
     dias_treinamento = 0,
-    min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 1000,
@@ -192,7 +188,6 @@ test_that("alocar_ucs returns expected structure", {
     kml = 10,
     valor_diaria = 335,
     dias_treinamento = 0,
-    min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 1000,
@@ -210,7 +205,6 @@ test_that("alocar_ucs returns expected structure", {
     kml = 10,
     valor_diaria = 335,
     dias_treinamento = 0,
-    min_uc_agencia = 1,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
     adicional_troca_jurisdicao = 0,
@@ -223,7 +217,7 @@ test_that("alocar_ucs returns expected structure", {
   expect_type(result, "list")
 
   # Check if the 'ucs_alocadas' is a tibble/dataframe with expected columns
-  expect_setequal(names(result), c("resultado_ucs_otimo", "resultado_ucs_jurisdicao", "resultado_agencias_otimo", "resultado_agencias_jurisdicao", "ucs_agencias_todas", "otimizacao"))
+  expect_setequal(names(result), c("resultado_ucs_otimo", "resultado_ucs_jurisdicao", "resultado_agencias_otimo", "resultado_agencias_jurisdicao", "ucs_agencias_todas", "otimizacao", "log"))
 
   # Check if the all 'uc' in 'ucs_alocadas'
   expect_true(all(ucs$uc%in%result$resultado_ucs_otimo$uc))

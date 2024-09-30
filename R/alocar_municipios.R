@@ -98,6 +98,7 @@ alocar_municipios <- function(ucs,
   checkmate::assert_character(agencias_treinamento, null.ok=dias_treinamento == 0)
   checkmate::assert_data_frame(distancias_agencias, null.ok=dias_treinamento == 0)
   checkmate::assert_number(dias_coleta_entrevistador_max, lower = 1)
+  checkmate::assert_number(rel_tol, lower = 0, upper = 1)
   checkmate::assert_number(remuneracao_entrevistador, lower = 0)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite')%in%names(distancias_ucs)))
@@ -286,8 +287,12 @@ alocar_municipios <- function(ucs,
       add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
   }
   # Solve the model using solver
-  result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, max_time=as.numeric({max_time}), rel_tol={rel_tol}, ...))
   if ({solver}=="symphony") {
+    log <- utils::capture.output(result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, max_time=as.numeric({max_time}), gap_limit={rel_tol}*100, ...)))
+  } else {
+    log <- utils::capture.output(result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, max_time=as.numeric({max_time}), rel_tol={rel_tol}, ...)))
+  }
+  if ({solver}=="symphony") { ## adicionar highs aqui
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
   }
   cli::cli_alert(result$additional_solver_output$ROI$status$msg$message)
@@ -341,5 +346,6 @@ alocar_municipios <- function(ucs,
     resultado$municipios_agencias_todas <- dist_municipios_agencias
     resultado$otimizacao <- result
   }
+  resultado$log <- tail(log,100)
   resultado
 }

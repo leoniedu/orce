@@ -59,21 +59,51 @@ plano_municipios <- function(r) {
 
 #' @export
 report_plans <- function(r) {
-  vs <- c('agencia_nome', 'n_ucs', 'total_diarias', 'custo_diarias', 'custo_combustivel', 'distancia_total_km', 'custo_deslocamento',  'custo_fixo', 'entrevistadores', 'custo_total')
+  vs <- c('agencia_codigo', 'agencia_nome', 'n_ucs', 'total_diarias', 'custo_diarias', 'custo_combustivel', 'distancia_total_km', 'custo_deslocamento',  'custo_fixo', 'entrevistadores', 'custo_total', 'custo_troca_jurisdicao', "perde_ucs", "recebe_ucs")
+  trocas_0 <- r$resultado_ucs_otimo|>
+  dplyr::left_join(r$resultado_ucs_jurisdicao|>
+                     dplyr::select(agencia_codigo, uc), by="uc",
+                   suffix=c("_otimo", "_jurisdicao"))|>
+    dplyr::mutate(troca=agencia_codigo_jurisdicao!=agencia_codigo_otimo)
+  trocas_1 <- trocas_0|>
+    dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao)|>
+    dplyr::summarise(perde_ucs=sum(troca))
+  trocas_2 <- trocas_0|>
+    dplyr::group_by(agencia_codigo=agencia_codigo_otimo)|>
+    dplyr::summarise(recebe_ucs=sum(troca))
+  trocas <- trocas_1|>full_join(trocas_2, by="agencia_codigo")|>
+    dplyr::mutate(across(everything(),  ~tidyr::replace_na(.x,0)))
   r1 <- r$resultado_agencias_otimo|>
-    dplyr::left_join(agencias_bdo, by="agencia_codigo")|>
     dplyr::transmute(n_agencias=1, custo_total=custo_fixo+custo_deslocamento+custo_total_entrevistadores,
                      dplyr::pick(any_of(vs)))
   r2 <- r$resultado_agencias_jurisdicao|>
-    dplyr::left_join(agencias_bdo, by="agencia_codigo")|>
     dplyr::transmute(n_agencias=1, custo_total=custo_fixo+custo_deslocamento+custo_total_entrevistadores, dplyr::pick(any_of(vs)))
   rr <- r1|>
-    dplyr::full_join(r2, by="agencia_nome", suffix=c("_otimo","_jurisdicao"))|>
+    dplyr::full_join(r2, by="agencia_codigo", suffix=c("_otimo","_jurisdicao"))|>
     dplyr::ungroup()|>
-    dplyr::select(any_of(matches(vs)))|>
-    dplyr::mutate(agencia_nome=if_else(agencia_nome%in%r1$agencia_nome, capitalizar(agencia_nome), "Demais agências"))|>
-    dplyr::group_by(agencia_nome)|>
-    dplyr::summarise(across(where(is.numeric), sum))|>
-    dplyr::arrange(agencia_nome)
-  gt::gt(rr|>sf::st_drop_geometry(), rowname_col = "agencia_nome" )|>gt::grand_summary_rows(fns=list(fn='sum', label="Total Superintendência"), columns = where(is.numeric),fmt = ~fmt_nums(.x, decimal_num = 0, decimal_currency = 0))|>print_gt(decimal_num = 0, decimal_currency = 0)
+    dplyr::full_join(trocas, by=c("agencia_codigo"="agencia_codigo"))|>
+    dplyr::select(any_of(dplyr::matches(vs)))|>
+    dplyr::left_join(agencias_bdo%>%sf::st_drop_geometry()|>dplyr::select(agencia_codigo, agencia_nome))%>%
+    dplyr::mutate(agencia_nome=capitalizar(agencia_nome),
+                  agencia_nome_rec=case_when(
+      (perde_ucs==0)&(recebe_ucs==0) ~ "Agências sem alteração*",
+      coalesce(n_ucs_otimo,0) ==0 ~ "Agências excluídas**",
+      TRUE ~ agencia_nome
+    ))|>
+    dplyr::group_by(agencia_nome_rec)|>
+    dplyr::summarise(across(where(is.numeric), ~sum(.x, na.rm=TRUE)), agencias_nomes=paste(agencia_nome, collapse=", "))|>
+    dplyr::arrange(grepl("\\*", agencia_nome_rec), agencia_nome_rec, desc(n_ucs_jurisdicao))|>
+    dplyr::ungroup()
+  out <- gt::gt(rr|>sf::st_drop_geometry(), rowname_col = "agencia_nome_rec" )|>
+    gt::grand_summary_rows(fns=list(fn='sum', label="Total Superintendência"), columns = where(is.numeric),fmt = ~fmt_nums(.x, decimal_num = 0, decimal_currency = 0))|>
+    print_gt(decimal_num = 0, decimal_currency = 0)|>
+    gt::cols_hide(agencias_nomes)
+  if (any(grepl("sem alteração", rr$agencia_nome_rec))) {
+    out <- out%>%
+      gt::tab_footnote(paste0("** Agências sem alteração: ", rr%>%filter(grepl("sem alteração", agencia_nome_rec))%>%pull(agencias_nomes)))
+  }
+  if (any(grepl("excluídas", rr$agencia_nome_rec))) {
+    out <- out|>gt::tab_footnote(paste0("* Agências excluídas: ", rr%>%filter(grepl("excluídas", agencia_nome_rec))%>%pull(agencias_nomes)))
+  }
+  out
 }
