@@ -329,6 +329,7 @@ res$ucs_agencias_todas%>%
   mutate(jurisdicao=agencia_codigo_jurisdicao==agencia_codigo)|>
   transmute(agencia_nome=glue::glue("{agencia_nome} {if_else(jurisdicao, '(Jurisdição)', '')}"), duracao_horas, distancia_km, custo_diarias, custo_combustivel)%>%
   arrange(custo_diarias+custo_combustivel)%>%
+  head(4)%>%
   gt::gt()|>
   print_gt()
 ```
@@ -357,9 +358,9 @@ res$ucs_agencias_todas%>%
 
 ```
 
-Sabemos que os custos com combustível e diárias estão longe de ser os únicos fatores para selecionar a agência de coleta. A própria troca de agência de coleta tem um custo não desprezível. Os funcionários da agência de jurisdição provavelmente conhecem melhor o município de coleta, e até na gerência da coleta (que agência mesmo coleta o município X?) coloca um custo não trivial. Outras possibilidade é a distância em quilômetros ser menor, mas o tempo de viagem (por conta de qualidade da estrada, por exemplo) ser maior. O tempo gasto viajando certamente tem um custo para além das diárias e combustível.
+Sabemos que os custos com combustível e diárias estão longe de ser os únicos fatores para selecionar a agência de coleta. A própria troca de agência de coleta tem um custo não desprezível. Os funcionários da agência de jurisdição provavelmente conhecem melhor o município de coleta, e até na gerência da coleta (que agência mesmo coleta o município X?) têm custos. Outras possibilidade é a distância em quilômetros ser menor, mas o tempo de viagem (por conta de qualidade da estrada, por exemplo) ser maior. O tempo gasto viajando certamente tem um custo para além das diárias e combustível.
 
-Propomos avaliar o custo de deslocamento como a soma do custo de diárias, combustível, e custo adicional por hora de viagem correspondente a R$`r params$custo_hora_viagem`. Além disso, só são propostas trocas que economizariam no mínimo R$`r params$adicional_troca_jurisdicao` no custo de deslocamento para o município.
+Propomos avaliar o custo de deslocamento como a soma do custo de diárias, combustível, e custo adicional por hora de viagem correspondente a R\$`r params$custo_hora_viagem`. Além disso, só são propostas trocas que economizariam no mínimo R\$`r params$adicional_troca_jurisdicao` no custo de deslocamento para o município.
 
 
 ```{r }

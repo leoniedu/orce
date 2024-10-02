@@ -1,5 +1,6 @@
 library(dplyr)
 library(sf)
+library(lubridate)
 source(here::here("R/rename_ibge.R"))
 source(here::here("R/calcula_distancias.R"))
 #source(here::here("R/add_coordinates.R"))
@@ -8,9 +9,9 @@ load(here::here("data/pontos_setores.rda"))
 load(here::here("data/municipios_22.rda"))
 distancias_setores_path <- "~/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds"
 distancias_agencias_setores_osrm_done <- readr::read_rds(distancias_setores_path)
-uf_codigo_now <- 29
+uf_codigo_now <- 43
 
-amostra_mestra <- readRDS("data-raw/amostra_mestra_2025_t1.rds")
+amostra_mestra <- readRDS(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))
 amostra_pof <- readxl::read_excel("~/gitlab/pof2024ba/data-raw/Alocação_trimestre_POF2425_1907.xls")%>%
   rename_ibge()
 amostra_pof_uf <- amostra_pof%>%
@@ -18,8 +19,8 @@ amostra_pof_uf <- amostra_pof%>%
   distinct(setor, upa, agencia_codigo)
 amostra_uf <- amostra_mestra%>%
   filter(uf_codigo==uf_codigo_now)%>%
-  mutate(ano_mes=lubridate::make_date(ano,mes), agencia_codigo=as.character(codigo_agencia_sugerida))%>%
-  distinct(setor=codigo_controle, upa, agencia_codigo)%>%
+  mutate(ano_mes=lubridate::make_date(ano,mes_codigo), agencia_codigo=as.character(agencia_codigo))%>%
+  distinct(setor=setor, upa, agencia_codigo)%>%
   bind_rows(amostra_pof_uf)
 
 
@@ -39,14 +40,15 @@ distancias_amostra_toget_0 <- rbind(
   distancias_amostra_toget_2%>%
     transmute(setor,ponto_origem="municipios_22", setor_lat=municipio_sede_lat,setor_lon=municipio_sede_lon)
 )
-distancias_amostra_toget <- distancias_amostra_toget_0%>%anti_join(distancias_agencias_setores_osrm_done, by = join_by(setor))
+distancias_amostra_toget <- distancias_amostra_toget_0%>%anti_join(distancias_agencias_setores_osrm_done, by = join_by(setor))%>%
+  unique()
 
 stopifnot(nrow(distancias_amostra_toget)>1)
-distancias_amostra_1 <- calcula_distancias(distancias_amostra_toget, agencias_uf, nmax = 1000)
+distancias_amostra_1 <- calcula_distancias(distancias_amostra_toget, agencias_uf, nmax = 5000)
 
 distancias_agencias_setores_osrm_1 <- bind_rows(distancias_amostra_1)%>%
-  select(setor,agencia_codigo,distancia_km, duracao_horas, agencia_lat, agencia_lon)%>%
-  left_join(distancias_amostra_toget%>%sf::st_drop_geometry())
+  distinct(setor,agencia_codigo,distancia_km, duracao_horas, agencia_lat, agencia_lon)%>%
+  left_join(distancias_amostra_toget%>%unique%>%sf::st_drop_geometry())
 
 distancias_agencias_setores_osrm <- bind_rows(distancias_agencias_setores_osrm_done, distancias_agencias_setores_osrm_1)%>%distinct()
 distancias_agencias_setores_osrm%>%anti_join(amostra_uf, by="setor")

@@ -1,5 +1,5 @@
 Package: orce
-Title: What the Package Does (One Line, Title Case)
+Title: orce: Otimização de Redes de Coleta Estatística 
 Version: 0.0.0.9000
 Authors@R: 
     person("Eduardo", "Leoni", , "eduardo.leoni@ibge.gov.br", role = c("aut", "cre"),
