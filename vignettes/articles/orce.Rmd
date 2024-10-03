@@ -57,6 +57,7 @@ library(ggplot2)
 library(gt)
 library(orce)
 library(dplyr)
+library(sf)
 params_alocar_ucs <- setdiff(args(alocar_ucs)%>%as.list%>%names(), c("...", ""))
 
 options(OutDec = ",", scipen=100)
@@ -116,7 +117,8 @@ Para enfrentar esse desafio, o pacote `orce` utiliza algoritmos avançados de ot
 
 
 ```{r, include = FALSE}
-ufnow <- ufs%>%filter(uf_sigla==params$uf_sigla_munic)
+ufnow <- ufs%>%
+  dplyr::filter(uf_sigla==params$uf_sigla_munic)
 agencias_now <- mutate(agencias_bdo%>%filter(uf_codigo==ufnow$uf_codigo), 
                        agencia_nome=capitalizar(agencia_nome), custo_fixo=0, max_uc_agencia=Inf)
 ufs <- ufs%>%mutate(uf_nome=capitalizar(uf_nome))

@@ -1,3 +1,4 @@
+#' @export
 capitalizar <- function(..., locale="pt") ToTitleCasePT(..., abbreviations=c("ibge", "pof"))
 
 #' @export

@@ -6,6 +6,10 @@ ufs <- geobr::read_state(year = 2020)%>%
   sf::st_centroid()%>%
   add_coordinates(lat = "uf_lat", lon = "uf_lon")%>%
   rename_ibge()
+
+usethis::use_data(ufs, overwrite = TRUE)
+
+
 municipios2022 <- geobr::read_municipality(year=2022)%>%
   sf::st_centroid()%>%
   rename_ibge()
@@ -36,5 +40,4 @@ municipios_22 <- pontos_municipios_sede%>%
   full_join(pop2022, by="municipio_codigo")
 
 
-usethis::use_data(ufs, overwrite = TRUE)
 usethis::use_data(municipios_22, overwrite = TRUE)
