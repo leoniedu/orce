@@ -35,21 +35,17 @@ library(readr)
 #tempdir <- file.path(tempdir(), "cnefe", '2022')
 #unlink(tempdir, recursive = TRUE)
 #dest_files <- cnefe_urls$dest_file
-dest_files <- dir(here::here("data-raw/cnefe/2022"), full.names = TRUE)
+dest_files <- dir(here::here("data-raw/cnefe/2022"), full.names = TRUE, pattern = "zip$")
 for (k in dest_files) {
   print(k)
   cnefe_in <- readr::read_delim(file=k,
                                 delim = ";",
                                 locale = locale(decimal_mark = "."),
-                                col_select=c(setor_cnefe=COD_SETOR, latitude=LATITUDE, longitude=LONGITUDE, nv_geo_coord=NV_GEO_COORD))%>%
-    count(setor=substr(setor_cnefe,1,15),latitude,longitude,nv_geo_coord)
+                                col_select=c(setor_cnefe=COD_SETOR, latitude=LATITUDE, longitude=LONGITUDE, nv_geo_coord=NV_GEO_COORD, especie_codigo=COD_ESPECIE))%>%
+    count(setor=substr(setor_cnefe,1,15),latitude,longitude,nv_geo_coord, especie_codigo)
   cnefe_in%>%group_by(uf_codigo=substr(setor,1,2))%>%arrow::write_dataset(file.path(out_dir,"arrow"))
 }
 
-
-cnefe <- open_dataset(file.path(out_dir,"arrow"))#%>%filter(substr(setor,1,2)=='11')
-pontos_municipios <- ponto_grid_densidade(cnefe%>%mutate(municipio_codigo=substr(setor,1,7)), municipio_codigo)
-pontos_setores <- ponto_grid_densidade(cnefe%>%filter(setor=="110001505000001"), setor)
 
 ## "EPSG:4674" = Sirgas 2000
 pontos_setores <- sf::st_as_sf(pontos_setores, crs=sf::st_crs("EPSG:4674"))%>%
