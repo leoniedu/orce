@@ -1,3 +1,26 @@
+#' Calcula o Ponto de Densidade de Unidades Espaciais
+#'
+#' Esta função calcula a unidade com maior densidade populacional para cada unidade espacial
+#' (e.g., setor censitário, município) em um objeto `sf`, com base no número de
+#' estabelecimentos (ou outro tipo de ponto) em cada unidade.
+#'
+#' @param cnefe Um objeto `sf` contendo a geometria das unidades espaciais e o número de
+#'   estabelecimentos em cada unidade. Deve conter uma coluna chamada `n` com o número
+#'   de estabelecimentos e uma coluna com o código da unidade espacial, cujo nome é
+#'   especificado no argumento `geoid`.
+#' @param geoid O nome da coluna em `cnefe` que contém o código único da unidade espacial
+#'   (e.g., "cod_setor", "cod_municipio").
+#'
+#' @return Um `data.frame` com o código da unidade espacial (`geoid`) e as coordenadas
+#'   do ponto de maior densidade (latitude e longitude) para cada unidade.
+#'
+#' @details
+#' A função utiliza o pacote `spatstat` para calcular a densidade de pontos em cada
+#' unidade espacial. O ponto de densidade é definido como o ponto com a maior
+#' densidade de pontos dentro da unidade. A densidade é calculada usando um kernel
+#' gaussiano com largura de banda `sigma` definida como o máximo entre 10% da
+#' amplitude da unidade espacial e 30 metros.
+#'
 #' @export
 ponto_densidade <- function(cnefe, geoid) {
   stopifnot(all(c("geometry", "n")%in%names(cnefe)))
@@ -19,7 +42,7 @@ ponto_densidade <- function(cnefe, geoid) {
     cnefe_u|>dplyr::slice(dpmax)|>dplyr::select({{geoid}})|>orce::add_coordinates()|>sf::st_drop_geometry()
   }
   geoids <- cnefe_0|>
-    sf::st_drop_geometry()%>%
+    sf::st_drop_geometry()|>
     dplyr::ungroup()|>
     dplyr::count({{geoid}})
   res1 <- purrr::map(geoids|>

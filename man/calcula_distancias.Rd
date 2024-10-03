@@ -10,10 +10,20 @@ calcula_distancias(destinos, origens, nmax = 2000)
 \item{destinos}{Um objeto \code{sf} representando os pontos de destino.}
 
 \item{origens}{Um objeto \code{sf} representando os pontos de origem.}
+
+\item{nmax}{Número máximo de pares origem-destino para cada requisição ao serviço OSRM.
+Utilizado para evitar o limite de número de pares por requisição. Padrão: 2000.}
 }
 \value{
-Um data frame com as distâncias (em quilômetros) e durações (em horas) entre cada par de origem e destino.
+Um \code{data.frame} com as distâncias (em quilômetros) e durações (em horas) entre cada par
+de origem e destino, além dos atributos originais de \code{origens} e \code{destinos}.
 }
 \description{
 Esta função calcula a distância e duração entre conjuntos de pontos de origem e destino usando o serviço OSRM.
+}
+\details{
+A função utiliza o pacote \code{osrm} para calcular as distâncias e durações entre os pontos de origem e
+destino. O parâmetro \code{nmax} permite dividir as requisições ao serviço OSRM em lotes menores,
+evitando o erro "Too many table coordinates" que ocorre quando o número de pares origem-destino é
+muito grande.
 }

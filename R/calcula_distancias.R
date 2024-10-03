@@ -4,17 +4,18 @@
 #'
 #' @param destinos Um objeto `sf` representando os pontos de destino.
 #' @param origens Um objeto `sf` representando os pontos de origem.
+#' @param nmax Número máximo de pares origem-destino para cada requisição ao serviço OSRM.
+#'   Utilizado para evitar o limite de número de pares por requisição. Padrão: 2000.
 #'
-#' @return Um data frame com as distâncias (em quilômetros) e durações (em horas) entre cada par de origem e destino.
+#' @return Um `data.frame` com as distâncias (em quilômetros) e durações (em horas) entre cada par
+#'   de origem e destino, além dos atributos originais de `origens` e `destinos`.
 #'
-#' @importFrom dplyr mutate ungroup left_join select bind_rows n
-#' @importFrom sf st_drop_geometry
-#' @importFrom purrr map
-#' @importFrom rlang .data
-#' @importFrom checkmate assert_class
-#' @importFrom osrm osrmTable
-#' @importFrom glue glue
-#' @importFrom stats runif
+#' @details
+#' A função utiliza o pacote `osrm` para calcular as distâncias e durações entre os pontos de origem e
+#' destino. O parâmetro `nmax` permite dividir as requisições ao serviço OSRM em lotes menores,
+#' evitando o erro "Too many table coordinates" que ocorre quando o número de pares origem-destino é
+#' muito grande.
+#'
 #' @export
 calcula_distancias <- function(destinos, origens, nmax=2000) {
   checkmate::assert_class(destinos, "sf")

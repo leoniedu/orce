@@ -1,5 +1,6 @@
 library(furrr)
-plan("future::multisession", workers=4)
+library(tictoc)
+plan("future::multisession", workers=5)
 
 library(dplyr)
 library(arrow)
@@ -37,14 +38,15 @@ setores <- open_dataset(file.path(out_dir,"arrow"))%>%
   collect()%>%
   arrange(setor)%>%
   anti_join(pontos_setores%>%sf::st_drop_geometry(), by="setor")%>%
-  head(100e3)%>%
+  head(10e3)%>%
   pull(setor)
 print("done")
 print(nrow(pontos_setores))
 print("doing")
 print(length(setores))
-
+tic()
 tmp <- furrr::future_map(setores, get_ponto_setor, .progress = TRUE)
+toc()
 #tmp <- purrr::map(setores, get_ponto_setor, .progress = TRUE)
 pontos_setores_new <- bind_rows(tmp)%>%
   sf::st_as_sf(coords=c("lon", "lat"), remove=FALSE, crs=sf::st_crs("EPSG:4674"))%>%

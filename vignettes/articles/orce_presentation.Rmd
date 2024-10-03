@@ -1,0 +1,137 @@
+---
+title: "Otimizando a Coleta de Dados do IBGE com o Pacote R 'orce'"
+author: "SES/BA - IBGE"
+output: 
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+---
+
+## Resumo
+
+O pacote R 'orce' é uma ferramenta para otimizar a alocação de Unidades de Coleta (UCs) em pesquisas do IBGE, visando minimizar os custos totais de coleta. Principais características:
+
+- Usa programação linear inteira mista
+- Considera fatores como distâncias, tempo de viagem, custos fixos e diárias
+- Estudos de caso mostram reduções de até 40% nos custos
+- Permite melhor balanceamento da carga de trabalho entre agências
+- Flexível para se adaptar a diferentes pesquisas
+
+## Introdução
+
+- Otimização de custos é um desafio para instituições de pesquisa
+- IBGE deve otimizar alocação de setores censitários, escolas, empresas às agências
+- Pacote 'orce' otimiza alocação de Unidades de Coleta (UCs) às agências do IBGE
+- Crucial para coleta econômica e eficaz em pesquisas de grande escala
+
+## Principais Características do 'orce'
+
+1. Roteamento e Geocodificação
+2. Otimização Avançada da Alocação
+3. Cálculo de Custos Detalhados
+4. Flexibilidade e Adaptabilidade
+
+## Roteamento e Geocodificação
+
+- Função `ponto_densidade` identifica locais representativos em setores censitários
+- Prioriza áreas de alta densidade populacional
+- Facilita acesso e garante destinos/origens válidos para algoritmo de roteamento
+- Aprendizado: Nunca utilize as centróides!
+
+
+## Otimização Avançada da Alocação
+
+- Algoritmo distribui UCs entre agências
+- Considera distância, tempo de viagem, custos fixos, diárias
+- Funções `alocar_ucs` e `alocar_municipios` permitem personalização
+- Adapta-se às necessidades específicas de cada projeto
+
+## Cálculo de Custos Detalhados
+
+- Considera fronteiras administrativas (jurisdição das agências, microrregiões, regiões metropolitanas) para cálculo de diárias
+- Inclui custos de combustível e tempo de viagem
+- Fornece estimativa completa dos gastos de coleta
+
+## Flexibilidade e Adaptabilidade
+
+- Permite personalização de parâmetros:
+  - Custo de combustível, consumo por quilômetro rodado, custo por hora de viagem
+  - Valor da diária e da remuneração dos entrevistadores (Agentes de Pesquisa e Mapeamento)
+  - Custo fixo por agência (e.g. Técnicos)
+  - Carga de trabalho máxima por agência e por entrevistador.
+  - Máximo de diárias por entrevistador
+- Adaptável a diferentes tipos de pesquisas e necessidades
+
+## Impacto e Aplicações
+
+1. Redução de custos de viagem e tempo de deslocamento
+2. Otimização da utilização dos recursos das agências
+3. Facilita planejamento e gestão da coleta de dados
+
+## Estudo de Caso 1: MUNIC no Espírito Santo
+
+- 78 municípios, 10 agências do IBGE
+- Premissas:
+  - Diárias conforme microrregião/região metropolitana
+  - Tempo de viagem > 1,5 horas = diária
+  - Coleta presencial de 2 dias
+  - Pernoite = 1,5 diárias, 1 viagem
+  - Sem pernoite = 2 viagens, meia-diária em alguns casos
+  - Veículos IBGE: 10 km/l, combustível R$ 6/l
+
+## Resultados da Otimização MUNIC - ES
+
+
+- Economia de 8% no valor das diárias
+- Mesmo valor em combustível
+- 4 alterações de agência de coleta
+
+## Estudo de Caso 2: POF 2024-25 na Bahia
+
+Considerações:
+- Mínimo de 2 entrevistadores por agência
+- 200 dias de trabalho por entrevistador/ano
+- 10 dias de coleta por Unidade Primária de Amostragem
+- 10 idas e voltas para setores sem pernoite, 2 para casos com pernoite
+
+## Impacto da Otimização POF - BA
+
+- Maior economia ao incluir custos de treinamento e remuneração dos entrevistadores
+- Redução significativa no número de agências
+
+## Caso 3: Otimizando a jurisdição de agências
+
+Pesquisas incluídas:
+- Pesquisas da Amostra Mestra (Domiciliares): PNADC, CNEFE, POF
+- Pesquisas Municipais: duas visitas anuais por município
+
+## Resultados
+
+
+
+## Funções de alocação
+
+* **alocar_ucs**
+
+Entradas:
+- Dados das UCs e Agências
+- Parâmetros de custo
+- Restrições de alocação
+- Dados de distância
+
+Processamento:
+1. Pré-processamento
+2. Modelagem da otimização
+3. Solução da otimização
+4. Pós-processamento
+
+Saídas:
+- Alocações ótimas e originais (UCs e agências)
+- Custos detalhados
+- Combinações completas (opcional)
+
+
+* **alocar_municipios**
+
+Diferença em relação a *alocar_ucs* é que unidades de coleta de um mesmo município são alocadas a uma só agência.
+

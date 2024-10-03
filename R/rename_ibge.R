@@ -1,3 +1,34 @@
+#' Padroniza Nomes de Colunas para o Formato IBGE
+#'
+#' Esta função padroniza os nomes das colunas de um `data.frame` para o formato utilizado pelo IBGE,
+#' utilizando um dicionário de nomes comuns e seus equivalentes padronizados.
+#'
+#' @param x Um `data.frame` com colunas a serem renomeadas.
+#'
+#' @return O `data.frame` com os nomes das colunas padronizados.
+#'
+#' @details
+#' A função realiza as seguintes etapas:
+#' 1. Padroniza os nomes das colunas para minúsculas e remove caracteres especiais
+#'    usando `janitor::clean_names()`.
+#' 2. Renomeia as colunas usando um dicionário pré-definido de nomes comuns e seus
+#'    equivalentes padronizados.
+#' 3. Substitui "longitude" por "lon" e "latitude" por "lat" nos nomes das colunas.
+#' 4. Converte as colunas que contêm códigos (e.g., `cod_setor`, `cod_uf`) para o tipo `character`.
+#'
+#' @examples
+#' df <- data.frame(
+#'   COD_SETOR = c("1234567", "8901234"),
+#'   NOME_muni = c("São Paulo", "Rio de Janeiro"),
+#'   abbrev_state = c("SP", "RJ")
+#' )
+#'
+#' df_padronizado <- rename_ibge(df)
+#' print(df_padronizado)
+#' #   setor        municipio_nome uf_sigla
+#' # 1 1234567        São Paulo       SP
+#' # 2 8901234 Rio de Janeiro       RJ
+#'
 #' @export
 rename_ibge <- function(x) {
   lookup <- c(setor='cod_setor',

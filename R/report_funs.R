@@ -1,4 +1,3 @@
-#' @export
 capitalizar <- function(..., locale="pt") ToTitleCasePT(..., abbreviations=c("ibge", "pof"))
 
 #' @export
@@ -75,7 +74,7 @@ report_plans <- function(r, level="uc") {
   trocas_2 <- trocas_0|>
     dplyr::group_by(agencia_codigo=agencia_codigo_otimo)|>
     dplyr::summarise(recebe=sum(troca), n=n())
-  trocas <- trocas_1|>full_join(trocas_2, by="agencia_codigo", suffix=c("_jurisdicao", "_otimo"))|>
+  trocas <- trocas_1|>dplyr::full_join(trocas_2, by="agencia_codigo", suffix=c("_jurisdicao", "_otimo"))|>
     dplyr::mutate(across(everything(),  ~tidyr::replace_na(.x,0)))
   r1 <- r$resultado_agencias_otimo|>
     dplyr::transmute(n_agencias=1, custo_total=custo_fixo+custo_deslocamento+custo_total_entrevistadores,
@@ -87,15 +86,15 @@ report_plans <- function(r, level="uc") {
     dplyr::ungroup()|>
     dplyr::full_join(trocas, by=c("agencia_codigo"="agencia_codigo"))|>
     dplyr::select(any_of(dplyr::matches(vs)))|>
-    dplyr::left_join(agencias_bdo%>%sf::st_drop_geometry()|>dplyr::select(agencia_codigo, agencia_nome))%>%
+    dplyr::left_join(agencias_bdo|>sf::st_drop_geometry()|>dplyr::select(agencia_codigo, agencia_nome))|>
     dplyr::mutate(agencia_nome=capitalizar(agencia_nome),
-                  agencia_nome_rec=case_when(
+                  agencia_nome_rec=dplyr::case_when(
       (perde==0)&(recebe==0) ~ "Agências sem alteração*",
-      coalesce(n_otimo,0) ==0 ~ "Agências excluídas**",
+      dplyr::coalesce(n_otimo,0) ==0 ~ "Agências excluídas**",
       TRUE ~ agencia_nome
     ))|>
     dplyr::group_by(agencia_nome_rec)|>
-    dplyr::summarise(across(where(is.numeric), ~sum(.x, na.rm=TRUE)), agencias_nomes=paste(agencia_nome, collapse=", "))|>
+    dplyr::summarise(dplyr::across(dplyr::where(is.numeric), ~sum(.x, na.rm=TRUE)), agencias_nomes=paste(agencia_nome, collapse=", "))|>
     dplyr::arrange(grepl("\\*", agencia_nome_rec), agencia_nome_rec, desc(n_jurisdicao))|>
     dplyr::ungroup()
   out <- gt::gt(rr|>sf::st_drop_geometry(), rowname_col = "agencia_nome_rec" )|>
@@ -103,11 +102,11 @@ report_plans <- function(r, level="uc") {
     print_gt(decimal_num = 0, decimal_currency = 0)|>
     gt::cols_hide(agencias_nomes)
   if (any(grepl("sem alteração", rr$agencia_nome_rec))) {
-    out <- out%>%
-      gt::tab_footnote(paste0("** Agências sem alteração: ", rr%>%filter(grepl("sem alteração", agencia_nome_rec))%>%pull(agencias_nomes)))
+    out <- out|>
+      gt::tab_footnote(paste0("** Agências sem alteração: ", rr|>filter(grepl("sem alteração", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
   }
   if (any(grepl("excluídas", rr$agencia_nome_rec))) {
-    out <- out|>gt::tab_footnote(paste0("* Agências excluídas: ", rr%>%filter(grepl("excluídas", agencia_nome_rec))%>%pull(agencias_nomes)))
+    out <- out|>gt::tab_footnote(paste0("* Agências excluídas: ", rr|>filter(grepl("excluídas", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
   }
   out
 }

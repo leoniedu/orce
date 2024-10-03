@@ -57,7 +57,6 @@
 #'   \item `otimizacao` (opcional): O resultado completo da otimização (retornado apenas se `resultado_completo` for TRUE).
 #' }
 #'
-#' @import dplyr ompr ompr.roi ROI.plugin.glpk ROI.plugin.symphony checkmate sf tibble tidyr
 #' @export
 alocar_ucs <- function(ucs,
                        agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), dias_coleta_agencia_max=Inf, custo_fixo=0),
