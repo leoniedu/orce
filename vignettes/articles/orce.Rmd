@@ -79,7 +79,7 @@ Coletar dados em milhares de domicílios espalhados por um vasto território é 
 
 1.  **Roteamento e Geocodificação:**
 
-    *   Para o caso em que as unidades de coleta são setores censitários, a função `ponto_setor_densidade` auxilia na identificação de locais representativos dentro dos setores censitários, priorizando áreas de alta densidade populacional para facilitar o acesso e garantir que o algorítimo de roteamento tenha destinos/origens válidos.
+    *   Para o caso em que as unidades de coleta são setores censitários, a função `ponto_densidade` auxilia na identificação de locais representativos dentro dos setores censitários, priorizando áreas de alta densidade populacional para facilitar o acesso e garantir que o algorítimo de roteamento tenha destinos/origens válidos.
 
 2.  **Otimização Avançada da Alocação:**
 

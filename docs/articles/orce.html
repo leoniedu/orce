@@ -34,7 +34,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/Technical-details-of-the-optimization-procedure.html">Technical details of the optimization procedure</a></li>
+<li><a class="dropdown-item" href="../articles/orce_presentation.html">Otimizando a Coleta de Dados do IBGE com o Pacote R 'orce'</a></li>
+    <li><a class="dropdown-item" href="../articles/Technical-details-of-the-optimization-procedure.html">Technical details of the optimization procedure</a></li>
   </ul>
 </li>
       </ul>
@@ -3083,6 +3084,7 @@ municípios, que permite facilmente responder essa pergunta.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>jurisdicao<span class="op">=</span><span class="va">agencia_codigo_jurisdicao</span><span class="op">==</span><span class="va">agencia_codigo</span><span class="op">)</span><span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/transmute.html" class="external-link">transmute</a></span><span class="op">(</span>agencia_nome<span class="op">=</span><span class="fu">glue</span><span class="fu">::</span><span class="fu"><a href="https://glue.tidyverse.org/reference/glue.html" class="external-link">glue</a></span><span class="op">(</span><span class="st">"{agencia_nome} {if_else(jurisdicao, '(Jurisdição)', '')}"</span><span class="op">)</span>, <span class="va">duracao_horas</span>, <span class="va">distancia_km</span>, <span class="va">custo_diarias</span>, <span class="va">custo_combustivel</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">custo_diarias</span><span class="op">+</span><span class="va">custo_combustivel</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu">gt</span><span class="fu">::</span><span class="fu"><a href="https://gt.rstudio.com/reference/gt.html" class="external-link">gt</a></span><span class="op">(</span><span class="op">)</span><span class="op">|&gt;</span></span>
 <span>  <span class="fu">print_gt</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div id="alspkzcbwj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
@@ -3570,48 +3572,6 @@ municípios, que permite facilmente responder essa pergunta.</p>
 <td headers="distancia_km" class="gt_row gt_right">236,99</td>
 <td headers="custo_diarias" class="gt_row gt_right">R$502</td>
 <td headers="custo_combustivel" class="gt_row gt_right">R$284</td>
-</tr>
-<tr>
-<td headers="agencia_nome" class="gt_row gt_center">Cariacica </td>
-<td headers="duracao_horas" class="gt_row gt_right">3,9</td>
-<td headers="distancia_km" class="gt_row gt_right">252,96</td>
-<td headers="custo_diarias" class="gt_row gt_right">R$502</td>
-<td headers="custo_combustivel" class="gt_row gt_right">R$304</td>
-</tr>
-<tr>
-<td headers="agencia_nome" class="gt_row gt_center">Vitória </td>
-<td headers="duracao_horas" class="gt_row gt_right">3,95</td>
-<td headers="distancia_km" class="gt_row gt_right">253,31</td>
-<td headers="custo_diarias" class="gt_row gt_right">R$502</td>
-<td headers="custo_combustivel" class="gt_row gt_right">R$304</td>
-</tr>
-<tr>
-<td headers="agencia_nome" class="gt_row gt_center">Vila Velha </td>
-<td headers="duracao_horas" class="gt_row gt_right">4,06</td>
-<td headers="distancia_km" class="gt_row gt_right">257,9</td>
-<td headers="custo_diarias" class="gt_row gt_right">R$502</td>
-<td headers="custo_combustivel" class="gt_row gt_right">R$309</td>
-</tr>
-<tr>
-<td headers="agencia_nome" class="gt_row gt_center">Guarapari </td>
-<td headers="duracao_horas" class="gt_row gt_right">4,55</td>
-<td headers="distancia_km" class="gt_row gt_right">296,42</td>
-<td headers="custo_diarias" class="gt_row gt_right">R$502</td>
-<td headers="custo_combustivel" class="gt_row gt_right">R$356</td>
-</tr>
-<tr>
-<td headers="agencia_nome" class="gt_row gt_center">Cachoeiro de Itapemirim </td>
-<td headers="duracao_horas" class="gt_row gt_right">5,72</td>
-<td headers="distancia_km" class="gt_row gt_right">346,91</td>
-<td headers="custo_diarias" class="gt_row gt_right">R$502</td>
-<td headers="custo_combustivel" class="gt_row gt_right">R$416</td>
-</tr>
-<tr>
-<td headers="agencia_nome" class="gt_row gt_center">Alegre </td>
-<td headers="duracao_horas" class="gt_row gt_right">5,9</td>
-<td headers="distancia_km" class="gt_row gt_right">370,25</td>
-<td headers="custo_diarias" class="gt_row gt_right">R$502</td>
-<td headers="custo_combustivel" class="gt_row gt_right">R$444</td>
 </tr>
 </tbody>
 </table>
@@ -4172,10 +4132,10 @@ diferente da de jurisdição? A resposta é sim!</p>
 agência de coleta tem um custo não desprezível. Os funcionários da
 agência de jurisdição provavelmente conhecem melhor o município de
 coleta, e até na gerência da coleta (que agência mesmo coleta o
-município X?) coloca um custo não trivial. Outras possibilidade é a
-distância em quilômetros ser menor, mas o tempo de viagem (por conta de
-qualidade da estrada, por exemplo) ser maior. O tempo gasto viajando
-certamente tem um custo para além das diárias e combustível.</p>
+município X?) têm custos. Outras possibilidade é a distância em
+quilômetros ser menor, mas o tempo de viagem (por conta de qualidade da
+estrada, por exemplo) ser maior. O tempo gasto viajando certamente tem
+um custo para além das diárias e combustível.</p>
 <p>Propomos avaliar o custo de deslocamento como a soma do custo de
 diárias, combustível, e custo adicional por hora de viagem
 correspondente a R$10. Além disso, só são propostas trocas que
@@ -6698,296 +6658,272 @@ resultado é o seguinte.</p>
 <table class="table gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead><tr class="gt_col_headings">
 <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id=""></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Otimo">N Ucs Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Jurisdicao">N Ucs Jurisdicao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Otimo">Custo Total Otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Jurisdicao">Custo Total Jurisdicao</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Otimo">Total Diarias Otimo</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Total Diarias Jurisdicao">Total Diarias Jurisdicao</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Combustivel Otimo">Custo Combustivel Otimo</th>
       <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Combustivel Jurisdicao">Custo Combustivel Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Otimo">Custo Total Otimo</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Total Jurisdicao">Custo Total Jurisdicao</th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="Custo Troca Jurisdicao">Custo Troca Jurisdicao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Otimo">N Ucs Otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="N Ucs Jurisdicao">N Ucs Jurisdicao</th>
     </tr></thead>
 <tbody class="gt_table_body">
 <tr>
 <th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">Barreiras</th>
-<td headers="stub_1_1 n_ucs_otimo" class="gt_row gt_right">6</td>
-<td headers="stub_1_1 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
+<td headers="stub_1_1 custo_total_otimo" class="gt_row gt_right">R$4.791</td>
+<td headers="stub_1_1 custo_total_jurisdicao" class="gt_row gt_right">R$10.110</td>
 <td headers="stub_1_1 total_diarias_otimo" class="gt_row gt_right">0</td>
 <td headers="stub_1_1 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
 <td headers="stub_1_1 custo_combustivel_otimo" class="gt_row gt_right">R$3.825</td>
 <td headers="stub_1_1 custo_combustivel_jurisdicao" class="gt_row gt_right">R$2.940</td>
-<td headers="stub_1_1 custo_total_otimo" class="gt_row gt_right">R$4.791</td>
-<td headers="stub_1_1 custo_total_jurisdicao" class="gt_row gt_right">R$10.110</td>
-<td headers="stub_1_1 custo_troca_jurisdicao" class="gt_row gt_right">R$200</td>
+<td headers="stub_1_1 n_ucs_otimo" class="gt_row gt_right">6</td>
+<td headers="stub_1_1 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
 </tr>
 <tr>
 <th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">Brumado</th>
-<td headers="stub_1_2 n_ucs_otimo" class="gt_row gt_right">3</td>
-<td headers="stub_1_2 n_ucs_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_2 custo_total_otimo" class="gt_row gt_right">R$8.058</td>
+<td headers="stub_1_2 custo_total_jurisdicao" class="gt_row gt_right">R$3.449</td>
 <td headers="stub_1_2 total_diarias_otimo" class="gt_row gt_right">19</td>
 <td headers="stub_1_2 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
 <td headers="stub_1_2 custo_combustivel_otimo" class="gt_row gt_right">R$1.289</td>
 <td headers="stub_1_2 custo_combustivel_jurisdicao" class="gt_row gt_right">R$206</td>
-<td headers="stub_1_2 custo_total_otimo" class="gt_row gt_right">R$8.058</td>
-<td headers="stub_1_2 custo_total_jurisdicao" class="gt_row gt_right">R$3.449</td>
-<td headers="stub_1_2 custo_troca_jurisdicao" class="gt_row gt_right">R$200</td>
+<td headers="stub_1_2 n_ucs_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_2 n_ucs_jurisdicao" class="gt_row gt_right">1</td>
 </tr>
 <tr>
 <th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">Cruz das Almas</th>
-<td headers="stub_1_3 n_ucs_otimo" class="gt_row gt_right">4</td>
-<td headers="stub_1_3 n_ucs_jurisdicao" class="gt_row gt_right">5</td>
+<td headers="stub_1_3 custo_total_otimo" class="gt_row gt_right">R$878</td>
+<td headers="stub_1_3 custo_total_jurisdicao" class="gt_row gt_right">R$1.488</td>
 <td headers="stub_1_3 total_diarias_otimo" class="gt_row gt_right">0</td>
 <td headers="stub_1_3 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
 <td headers="stub_1_3 custo_combustivel_otimo" class="gt_row gt_right">R$612</td>
 <td headers="stub_1_3 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.080</td>
-<td headers="stub_1_3 custo_total_otimo" class="gt_row gt_right">R$878</td>
-<td headers="stub_1_3 custo_total_jurisdicao" class="gt_row gt_right">R$1.488</td>
-<td headers="stub_1_3 custo_troca_jurisdicao" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_3 n_ucs_otimo" class="gt_row gt_right">4</td>
+<td headers="stub_1_3 n_ucs_jurisdicao" class="gt_row gt_right">5</td>
 </tr>
 <tr>
 <th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">Eunápolis</th>
-<td headers="stub_1_4 n_ucs_otimo" class="gt_row gt_right">4</td>
-<td headers="stub_1_4 n_ucs_jurisdicao" class="gt_row gt_right">3</td>
+<td headers="stub_1_4 custo_total_otimo" class="gt_row gt_right">R$1.046</td>
+<td headers="stub_1_4 custo_total_jurisdicao" class="gt_row gt_right">R$548</td>
 <td headers="stub_1_4 total_diarias_otimo" class="gt_row gt_right">0</td>
 <td headers="stub_1_4 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
 <td headers="stub_1_4 custo_combustivel_otimo" class="gt_row gt_right">R$748</td>
 <td headers="stub_1_4 custo_combustivel_jurisdicao" class="gt_row gt_right">R$418</td>
-<td headers="stub_1_4 custo_total_otimo" class="gt_row gt_right">R$1.046</td>
-<td headers="stub_1_4 custo_total_jurisdicao" class="gt_row gt_right">R$548</td>
-<td headers="stub_1_4 custo_troca_jurisdicao" class="gt_row gt_right">R$100</td>
+<td headers="stub_1_4 n_ucs_otimo" class="gt_row gt_right">4</td>
+<td headers="stub_1_4 n_ucs_jurisdicao" class="gt_row gt_right">3</td>
 </tr>
 <tr>
 <th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">Feira de Santana</th>
-<td headers="stub_1_5 n_ucs_otimo" class="gt_row gt_right">21</td>
-<td headers="stub_1_5 n_ucs_jurisdicao" class="gt_row gt_right">20</td>
+<td headers="stub_1_5 custo_total_otimo" class="gt_row gt_right">R$3.914</td>
+<td headers="stub_1_5 custo_total_jurisdicao" class="gt_row gt_right">R$3.503</td>
 <td headers="stub_1_5 total_diarias_otimo" class="gt_row gt_right">0</td>
 <td headers="stub_1_5 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
 <td headers="stub_1_5 custo_combustivel_otimo" class="gt_row gt_right">R$3.002</td>
 <td headers="stub_1_5 custo_combustivel_jurisdicao" class="gt_row gt_right">R$2.673</td>
-<td headers="stub_1_5 custo_total_otimo" class="gt_row gt_right">R$3.914</td>
-<td headers="stub_1_5 custo_total_jurisdicao" class="gt_row gt_right">R$3.503</td>
-<td headers="stub_1_5 custo_troca_jurisdicao" class="gt_row gt_right">R$100</td>
+<td headers="stub_1_5 n_ucs_otimo" class="gt_row gt_right">21</td>
+<td headers="stub_1_5 n_ucs_jurisdicao" class="gt_row gt_right">20</td>
 </tr>
 <tr>
 <th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">Ibotirama</th>
-<td headers="stub_1_6 n_ucs_otimo" class="gt_row gt_right">6</td>
-<td headers="stub_1_6 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
+<td headers="stub_1_6 custo_total_otimo" class="gt_row gt_right">R$11.260</td>
+<td headers="stub_1_6 custo_total_jurisdicao" class="gt_row gt_right">R$11.628</td>
 <td headers="stub_1_6 total_diarias_otimo" class="gt_row gt_right">28</td>
 <td headers="stub_1_6 total_diarias_jurisdicao" class="gt_row gt_right">28</td>
 <td headers="stub_1_6 custo_combustivel_otimo" class="gt_row gt_right">R$1.319</td>
 <td headers="stub_1_6 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.615</td>
-<td headers="stub_1_6 custo_total_otimo" class="gt_row gt_right">R$11.260</td>
-<td headers="stub_1_6 custo_total_jurisdicao" class="gt_row gt_right">R$11.628</td>
-<td headers="stub_1_6 custo_troca_jurisdicao" class="gt_row gt_right">R$200</td>
+<td headers="stub_1_6 n_ucs_otimo" class="gt_row gt_right">6</td>
+<td headers="stub_1_6 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
 </tr>
 <tr>
 <th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">Ilhéus</th>
-<td headers="stub_1_7 n_ucs_otimo" class="gt_row gt_right">5</td>
-<td headers="stub_1_7 n_ucs_jurisdicao" class="gt_row gt_right">9</td>
+<td headers="stub_1_7 custo_total_otimo" class="gt_row gt_right">R$4.868</td>
+<td headers="stub_1_7 custo_total_jurisdicao" class="gt_row gt_right">R$8.981</td>
 <td headers="stub_1_7 total_diarias_otimo" class="gt_row gt_right">10</td>
 <td headers="stub_1_7 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
 <td headers="stub_1_7 custo_combustivel_otimo" class="gt_row gt_right">R$1.310</td>
 <td headers="stub_1_7 custo_combustivel_jurisdicao" class="gt_row gt_right">R$4.526</td>
-<td headers="stub_1_7 custo_total_otimo" class="gt_row gt_right">R$4.868</td>
-<td headers="stub_1_7 custo_total_jurisdicao" class="gt_row gt_right">R$8.981</td>
-<td headers="stub_1_7 custo_troca_jurisdicao" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_7 n_ucs_otimo" class="gt_row gt_right">5</td>
+<td headers="stub_1_7 n_ucs_jurisdicao" class="gt_row gt_right">9</td>
 </tr>
 <tr>
 <th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">Ipiaú</th>
-<td headers="stub_1_8 n_ucs_otimo" class="gt_row gt_right">11</td>
-<td headers="stub_1_8 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
+<td headers="stub_1_8 custo_total_otimo" class="gt_row gt_right">R$13.335</td>
+<td headers="stub_1_8 custo_total_jurisdicao" class="gt_row gt_right">R$7.530</td>
 <td headers="stub_1_8 total_diarias_otimo" class="gt_row gt_right">15</td>
 <td headers="stub_1_8 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
 <td headers="stub_1_8 custo_combustivel_otimo" class="gt_row gt_right">R$6.466</td>
 <td headers="stub_1_8 custo_combustivel_jurisdicao" class="gt_row gt_right">R$3.329</td>
-<td headers="stub_1_8 custo_total_otimo" class="gt_row gt_right">R$13.335</td>
-<td headers="stub_1_8 custo_total_jurisdicao" class="gt_row gt_right">R$7.530</td>
-<td headers="stub_1_8 custo_troca_jurisdicao" class="gt_row gt_right">R$400</td>
+<td headers="stub_1_8 n_ucs_otimo" class="gt_row gt_right">11</td>
+<td headers="stub_1_8 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
 </tr>
 <tr>
 <th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">Itabuna</th>
-<td headers="stub_1_9 n_ucs_otimo" class="gt_row gt_right">9</td>
-<td headers="stub_1_9 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
+<td headers="stub_1_9 custo_total_otimo" class="gt_row gt_right">R$9.707</td>
+<td headers="stub_1_9 custo_total_jurisdicao" class="gt_row gt_right">R$8.259</td>
 <td headers="stub_1_9 total_diarias_otimo" class="gt_row gt_right">19</td>
 <td headers="stub_1_9 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
 <td headers="stub_1_9 custo_combustivel_otimo" class="gt_row gt_right">R$2.596</td>
 <td headers="stub_1_9 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.471</td>
-<td headers="stub_1_9 custo_total_otimo" class="gt_row gt_right">R$9.707</td>
-<td headers="stub_1_9 custo_total_jurisdicao" class="gt_row gt_right">R$8.259</td>
-<td headers="stub_1_9 custo_troca_jurisdicao" class="gt_row gt_right">R$300</td>
+<td headers="stub_1_9 n_ucs_otimo" class="gt_row gt_right">9</td>
+<td headers="stub_1_9 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
 </tr>
 <tr>
 <th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">Itamaraju</th>
-<td headers="stub_1_10 n_ucs_otimo" class="gt_row gt_right">7</td>
-<td headers="stub_1_10 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
+<td headers="stub_1_10 custo_total_otimo" class="gt_row gt_right">R$4.461</td>
+<td headers="stub_1_10 custo_total_jurisdicao" class="gt_row gt_right">R$5.900</td>
 <td headers="stub_1_10 total_diarias_otimo" class="gt_row gt_right">10</td>
 <td headers="stub_1_10 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
 <td headers="stub_1_10 custo_combustivel_otimo" class="gt_row gt_right">R$963</td>
 <td headers="stub_1_10 custo_combustivel_jurisdicao" class="gt_row gt_right">R$2.138</td>
-<td headers="stub_1_10 custo_total_otimo" class="gt_row gt_right">R$4.461</td>
-<td headers="stub_1_10 custo_total_jurisdicao" class="gt_row gt_right">R$5.900</td>
-<td headers="stub_1_10 custo_troca_jurisdicao" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_10 n_ucs_otimo" class="gt_row gt_right">7</td>
+<td headers="stub_1_10 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
 </tr>
 <tr>
 <th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">Itapetinga</th>
-<td headers="stub_1_11 n_ucs_otimo" class="gt_row gt_right">8</td>
-<td headers="stub_1_11 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
+<td headers="stub_1_11 custo_total_otimo" class="gt_row gt_right">R$6.643</td>
+<td headers="stub_1_11 custo_total_jurisdicao" class="gt_row gt_right">R$5.012</td>
 <td headers="stub_1_11 total_diarias_otimo" class="gt_row gt_right">0</td>
 <td headers="stub_1_11 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
 <td headers="stub_1_11 custo_combustivel_otimo" class="gt_row gt_right">R$5.215</td>
 <td headers="stub_1_11 custo_combustivel_jurisdicao" class="gt_row gt_right">R$3.930</td>
-<td headers="stub_1_11 custo_total_otimo" class="gt_row gt_right">R$6.643</td>
-<td headers="stub_1_11 custo_total_jurisdicao" class="gt_row gt_right">R$5.012</td>
-<td headers="stub_1_11 custo_troca_jurisdicao" class="gt_row gt_right">R$200</td>
+<td headers="stub_1_11 n_ucs_otimo" class="gt_row gt_right">8</td>
+<td headers="stub_1_11 n_ucs_jurisdicao" class="gt_row gt_right">6</td>
 </tr>
 <tr>
 <th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub">Jaguaquara</th>
-<td headers="stub_1_12 n_ucs_otimo" class="gt_row gt_right">8</td>
-<td headers="stub_1_12 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
+<td headers="stub_1_12 custo_total_otimo" class="gt_row gt_right">R$4.792</td>
+<td headers="stub_1_12 custo_total_jurisdicao" class="gt_row gt_right">R$2.433</td>
 <td headers="stub_1_12 total_diarias_otimo" class="gt_row gt_right">5</td>
 <td headers="stub_1_12 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
 <td headers="stub_1_12 custo_combustivel_otimo" class="gt_row gt_right">R$2.305</td>
 <td headers="stub_1_12 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.843</td>
-<td headers="stub_1_12 custo_total_otimo" class="gt_row gt_right">R$4.792</td>
-<td headers="stub_1_12 custo_total_jurisdicao" class="gt_row gt_right">R$2.433</td>
-<td headers="stub_1_12 custo_troca_jurisdicao" class="gt_row gt_right">R$100</td>
+<td headers="stub_1_12 n_ucs_otimo" class="gt_row gt_right">8</td>
+<td headers="stub_1_12 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
 </tr>
 <tr>
 <th id="stub_1_13" scope="row" class="gt_row gt_left gt_stub">Porto Seguro</th>
-<td headers="stub_1_13 n_ucs_otimo" class="gt_row gt_right">3</td>
-<td headers="stub_1_13 n_ucs_jurisdicao" class="gt_row gt_right">4</td>
+<td headers="stub_1_13 custo_total_otimo" class="gt_row gt_right">R$3.757</td>
+<td headers="stub_1_13 custo_total_jurisdicao" class="gt_row gt_right">R$4.693</td>
 <td headers="stub_1_13 total_diarias_otimo" class="gt_row gt_right">10</td>
 <td headers="stub_1_13 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
 <td headers="stub_1_13 custo_combustivel_otimo" class="gt_row gt_right">R$411</td>
 <td headers="stub_1_13 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.085</td>
-<td headers="stub_1_13 custo_total_otimo" class="gt_row gt_right">R$3.757</td>
-<td headers="stub_1_13 custo_total_jurisdicao" class="gt_row gt_right">R$4.693</td>
-<td headers="stub_1_13 custo_troca_jurisdicao" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_13 n_ucs_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_13 n_ucs_jurisdicao" class="gt_row gt_right">4</td>
 </tr>
 <tr>
 <th id="stub_1_14" scope="row" class="gt_row gt_left gt_stub">Santa Rita de Cássia</th>
-<td headers="stub_1_14 n_ucs_otimo" class="gt_row gt_right">2</td>
-<td headers="stub_1_14 n_ucs_jurisdicao" class="gt_row gt_right">4</td>
+<td headers="stub_1_14 custo_total_otimo" class="gt_row gt_right">R$7.158</td>
+<td headers="stub_1_14 custo_total_jurisdicao" class="gt_row gt_right">R$14.158</td>
 <td headers="stub_1_14 total_diarias_otimo" class="gt_row gt_right">19</td>
 <td headers="stub_1_14 total_diarias_jurisdicao" class="gt_row gt_right">38</td>
 <td headers="stub_1_14 custo_combustivel_otimo" class="gt_row gt_right">R$617</td>
 <td headers="stub_1_14 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.120</td>
-<td headers="stub_1_14 custo_total_otimo" class="gt_row gt_right">R$7.158</td>
-<td headers="stub_1_14 custo_total_jurisdicao" class="gt_row gt_right">R$14.158</td>
-<td headers="stub_1_14 custo_troca_jurisdicao" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_14 n_ucs_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_14 n_ucs_jurisdicao" class="gt_row gt_right">4</td>
 </tr>
 <tr>
 <th id="stub_1_15" scope="row" class="gt_row gt_left gt_stub">Santo Amaro</th>
-<td headers="stub_1_15 n_ucs_otimo" class="gt_row gt_right">9</td>
-<td headers="stub_1_15 n_ucs_jurisdicao" class="gt_row gt_right">10</td>
+<td headers="stub_1_15 custo_total_otimo" class="gt_row gt_right">R$3.898</td>
+<td headers="stub_1_15 custo_total_jurisdicao" class="gt_row gt_right">R$4.445</td>
 <td headers="stub_1_15 total_diarias_otimo" class="gt_row gt_right">0</td>
 <td headers="stub_1_15 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
 <td headers="stub_1_15 custo_combustivel_otimo" class="gt_row gt_right">R$3.012</td>
 <td headers="stub_1_15 custo_combustivel_jurisdicao" class="gt_row gt_right">R$3.453</td>
-<td headers="stub_1_15 custo_total_otimo" class="gt_row gt_right">R$3.898</td>
-<td headers="stub_1_15 custo_total_jurisdicao" class="gt_row gt_right">R$4.445</td>
-<td headers="stub_1_15 custo_troca_jurisdicao" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_15 n_ucs_otimo" class="gt_row gt_right">9</td>
+<td headers="stub_1_15 n_ucs_jurisdicao" class="gt_row gt_right">10</td>
 </tr>
 <tr>
 <th id="stub_1_16" scope="row" class="gt_row gt_left gt_stub">Santo Antônio de Jesus</th>
-<td headers="stub_1_16 n_ucs_otimo" class="gt_row gt_right">9</td>
-<td headers="stub_1_16 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
+<td headers="stub_1_16 custo_total_otimo" class="gt_row gt_right">R$4.483</td>
+<td headers="stub_1_16 custo_total_jurisdicao" class="gt_row gt_right">R$4.322</td>
 <td headers="stub_1_16 total_diarias_otimo" class="gt_row gt_right">0</td>
 <td headers="stub_1_16 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
 <td headers="stub_1_16 custo_combustivel_otimo" class="gt_row gt_right">R$3.445</td>
 <td headers="stub_1_16 custo_combustivel_jurisdicao" class="gt_row gt_right">R$3.322</td>
-<td headers="stub_1_16 custo_total_otimo" class="gt_row gt_right">R$4.483</td>
-<td headers="stub_1_16 custo_total_jurisdicao" class="gt_row gt_right">R$4.322</td>
-<td headers="stub_1_16 custo_troca_jurisdicao" class="gt_row gt_right">R$100</td>
+<td headers="stub_1_16 n_ucs_otimo" class="gt_row gt_right">9</td>
+<td headers="stub_1_16 n_ucs_jurisdicao" class="gt_row gt_right">8</td>
 </tr>
 <tr>
 <th id="stub_1_17" scope="row" class="gt_row gt_left gt_stub">Seabra</th>
-<td headers="stub_1_17 n_ucs_otimo" class="gt_row gt_right">3</td>
-<td headers="stub_1_17 n_ucs_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_17 custo_total_otimo" class="gt_row gt_right">R$7.733</td>
+<td headers="stub_1_17 custo_total_jurisdicao" class="gt_row gt_right">R$4.162</td>
 <td headers="stub_1_17 total_diarias_otimo" class="gt_row gt_right">19</td>
 <td headers="stub_1_17 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
 <td headers="stub_1_17 custo_combustivel_otimo" class="gt_row gt_right">R$1.038</td>
 <td headers="stub_1_17 custo_combustivel_jurisdicao" class="gt_row gt_right">R$743</td>
-<td headers="stub_1_17 custo_total_otimo" class="gt_row gt_right">R$7.733</td>
-<td headers="stub_1_17 custo_total_jurisdicao" class="gt_row gt_right">R$4.162</td>
-<td headers="stub_1_17 custo_troca_jurisdicao" class="gt_row gt_right">R$100</td>
+<td headers="stub_1_17 n_ucs_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_17 n_ucs_jurisdicao" class="gt_row gt_right">2</td>
 </tr>
 <tr>
 <th id="stub_1_18" scope="row" class="gt_row gt_left gt_stub">Teixeira de Freitas</th>
-<td headers="stub_1_18 n_ucs_otimo" class="gt_row gt_right">8</td>
-<td headers="stub_1_18 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
+<td headers="stub_1_18 custo_total_otimo" class="gt_row gt_right">R$4.871</td>
+<td headers="stub_1_18 custo_total_jurisdicao" class="gt_row gt_right">R$4.352</td>
 <td headers="stub_1_18 total_diarias_otimo" class="gt_row gt_right">0</td>
 <td headers="stub_1_18 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
 <td headers="stub_1_18 custo_combustivel_otimo" class="gt_row gt_right">R$3.769</td>
 <td headers="stub_1_18 custo_combustivel_jurisdicao" class="gt_row gt_right">R$3.360</td>
-<td headers="stub_1_18 custo_total_otimo" class="gt_row gt_right">R$4.871</td>
-<td headers="stub_1_18 custo_total_jurisdicao" class="gt_row gt_right">R$4.352</td>
-<td headers="stub_1_18 custo_troca_jurisdicao" class="gt_row gt_right">R$100</td>
+<td headers="stub_1_18 n_ucs_otimo" class="gt_row gt_right">8</td>
+<td headers="stub_1_18 n_ucs_jurisdicao" class="gt_row gt_right">7</td>
 </tr>
 <tr>
 <th id="stub_1_19" scope="row" class="gt_row gt_left gt_stub">Valença</th>
-<td headers="stub_1_19 n_ucs_otimo" class="gt_row gt_right">9</td>
-<td headers="stub_1_19 n_ucs_jurisdicao" class="gt_row gt_right">12</td>
+<td headers="stub_1_19 custo_total_otimo" class="gt_row gt_right">R$6.353</td>
+<td headers="stub_1_19 custo_total_jurisdicao" class="gt_row gt_right">R$16.738</td>
 <td headers="stub_1_19 total_diarias_otimo" class="gt_row gt_right">0</td>
 <td headers="stub_1_19 total_diarias_jurisdicao" class="gt_row gt_right">28</td>
 <td headers="stub_1_19 custo_combustivel_otimo" class="gt_row gt_right">R$4.971</td>
 <td headers="stub_1_19 custo_combustivel_jurisdicao" class="gt_row gt_right">R$5.602</td>
-<td headers="stub_1_19 custo_total_otimo" class="gt_row gt_right">R$6.353</td>
-<td headers="stub_1_19 custo_total_jurisdicao" class="gt_row gt_right">R$16.738</td>
-<td headers="stub_1_19 custo_troca_jurisdicao" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_19 n_ucs_otimo" class="gt_row gt_right">9</td>
+<td headers="stub_1_19 n_ucs_jurisdicao" class="gt_row gt_right">12</td>
 </tr>
 <tr>
 <th id="stub_1_20" scope="row" class="gt_row gt_left gt_stub">Vitória da Conquista</th>
-<td headers="stub_1_20 n_ucs_otimo" class="gt_row gt_right">14</td>
-<td headers="stub_1_20 n_ucs_jurisdicao" class="gt_row gt_right">18</td>
+<td headers="stub_1_20 custo_total_otimo" class="gt_row gt_right">R$14.260</td>
+<td headers="stub_1_20 custo_total_jurisdicao" class="gt_row gt_right">R$25.835</td>
 <td headers="stub_1_20 total_diarias_otimo" class="gt_row gt_right">28</td>
 <td headers="stub_1_20 total_diarias_jurisdicao" class="gt_row gt_right">57</td>
 <td headers="stub_1_20 custo_combustivel_otimo" class="gt_row gt_right">R$3.639</td>
 <td headers="stub_1_20 custo_combustivel_jurisdicao" class="gt_row gt_right">R$5.250</td>
-<td headers="stub_1_20 custo_total_otimo" class="gt_row gt_right">R$14.260</td>
-<td headers="stub_1_20 custo_total_jurisdicao" class="gt_row gt_right">R$25.835</td>
-<td headers="stub_1_20 custo_troca_jurisdicao" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_20 n_ucs_otimo" class="gt_row gt_right">14</td>
+<td headers="stub_1_20 n_ucs_jurisdicao" class="gt_row gt_right">18</td>
 </tr>
 <tr>
 <th id="stub_1_21" scope="row" class="gt_row gt_left gt_stub">Xique Xique</th>
-<td headers="stub_1_21 n_ucs_otimo" class="gt_row gt_right">4</td>
-<td headers="stub_1_21 n_ucs_jurisdicao" class="gt_row gt_right">3</td>
+<td headers="stub_1_21 custo_total_otimo" class="gt_row gt_right">R$5.793</td>
+<td headers="stub_1_21 custo_total_jurisdicao" class="gt_row gt_right">R$2.183</td>
 <td headers="stub_1_21 total_diarias_otimo" class="gt_row gt_right">10</td>
 <td headers="stub_1_21 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
 <td headers="stub_1_21 custo_combustivel_otimo" class="gt_row gt_right">R$2.024</td>
 <td headers="stub_1_21 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.699</td>
-<td headers="stub_1_21 custo_total_otimo" class="gt_row gt_right">R$5.793</td>
-<td headers="stub_1_21 custo_total_jurisdicao" class="gt_row gt_right">R$2.183</td>
-<td headers="stub_1_21 custo_troca_jurisdicao" class="gt_row gt_right">R$100</td>
+<td headers="stub_1_21 n_ucs_otimo" class="gt_row gt_right">4</td>
+<td headers="stub_1_21 n_ucs_jurisdicao" class="gt_row gt_right">3</td>
 </tr>
 <tr>
 <th id="stub_1_22" scope="row" class="gt_row gt_left gt_stub">Agências sem alteração*</th>
-<td headers="stub_1_22 n_ucs_otimo" class="gt_row gt_right">124</td>
-<td headers="stub_1_22 n_ucs_jurisdicao" class="gt_row gt_right">124</td>
+<td headers="stub_1_22 custo_total_otimo" class="gt_row gt_right">R$85.079</td>
+<td headers="stub_1_22 custo_total_jurisdicao" class="gt_row gt_right">R$85.079</td>
 <td headers="stub_1_22 total_diarias_otimo" class="gt_row gt_right">76</td>
 <td headers="stub_1_22 total_diarias_jurisdicao" class="gt_row gt_right">76</td>
 <td headers="stub_1_22 custo_combustivel_otimo" class="gt_row gt_right">R$46.124</td>
 <td headers="stub_1_22 custo_combustivel_jurisdicao" class="gt_row gt_right">R$46.124</td>
-<td headers="stub_1_22 custo_total_otimo" class="gt_row gt_right">R$85.079</td>
-<td headers="stub_1_22 custo_total_jurisdicao" class="gt_row gt_right">R$85.079</td>
-<td headers="stub_1_22 custo_troca_jurisdicao" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_22 n_ucs_otimo" class="gt_row gt_right">124</td>
+<td headers="stub_1_22 n_ucs_jurisdicao" class="gt_row gt_right">124</td>
 </tr>
 <tr>
 <th id="grand_summary_stub_1" scope="row" class="gt_row gt_left gt_stub gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">Total Superintendência</th>
-<td headers="grand_summary_stub_1 n_ucs_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
-<td headers="grand_summary_stub_1 n_ucs_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
+<td headers="grand_summary_stub_1 custo_total_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$217.140</td>
+<td headers="grand_summary_stub_1 custo_total_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$234.808</td>
 <td headers="grand_summary_stub_1 total_diarias_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">267</td>
 <td headers="grand_summary_stub_1 total_diarias_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">323</td>
 <td headers="grand_summary_stub_1 custo_combustivel_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$98.699</td>
 <td headers="grand_summary_stub_1 custo_combustivel_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$97.927</td>
-<td headers="grand_summary_stub_1 custo_total_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$217.140</td>
-<td headers="grand_summary_stub_1 custo_total_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$234.808</td>
-<td headers="grand_summary_stub_1 custo_troca_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$2.200</td>
+<td headers="grand_summary_stub_1 n_ucs_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
+<td headers="grand_summary_stub_1 n_ucs_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">277</td>
 </tr>
 </tbody>
 <tfoot class="gt_footnotes"><tr>
-<td class="gt_footnote" colspan="10"> ** Agências sem alteração: Alagoinhas, Bom Jesus da Lapa, Cachoeira, Camaçari, Cipó, Conceição do Coité, Esplanada, Euclides da Cunha, Guanambi, Ipirá, Irecê, Itaberaba, Jacobina, Jequié, Jeremoabo, Juazeiro, Livramento de nossa Senhora, Morro do Chapéu, Paulo Afonso, Poções, Remanso, Riachão do Jacuípe, Ribeira do Pombal, Santa Maria da Vitória, São Francisco do Conde, Senhor do Bonfim, Serrinha</td>
+<td class="gt_footnote" colspan="9"> ** Agências sem alteração: Alagoinhas, Bom Jesus da Lapa, Cachoeira, Camaçari, Cipó, Conceição do Coité, Esplanada, Euclides da Cunha, Guanambi, Ipirá, Irecê, Itaberaba, Jacobina, Jequié, Jeremoabo, Juazeiro, Livramento de nossa Senhora, Morro do Chapéu, Paulo Afonso, Poções, Remanso, Riachão do Jacuípe, Ribeira do Pombal, Santa Maria da Vitória, São Francisco do Conde, Senhor do Bonfim, Serrinha</td>
     </tr></tfoot>
 </table>
 </div>
