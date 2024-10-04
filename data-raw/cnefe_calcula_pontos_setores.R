@@ -1,3 +1,6 @@
+## maior densidade de domicilios particulares, quando existem.
+## se não, maior densidade dos endereços
+
 library(furrr)
 library(tictoc)
 plan("future::multisession", workers=5)
@@ -17,13 +20,18 @@ get_ponto_setor <- function(setor_now) {
   ufnow <- as.numeric(substr(setor_now,1,2))
   setor_now <- as.character(setor_now)
   cnefe <- open_dataset(file.path(out_dir,"arrow"))%>%
-    filter(uf_codigo==ufnow)%>%
-    dplyr::filter(especie_codigo==1) ## 1=Domicílio particular
-  cnefe_setor_0 <- cnefe%>%
+    dplyr::filter(uf_codigo==ufnow)%>%
     dplyr::filter(setor=={{setor_now}})%>%
-    dplyr::count(setor,latitude,longitude)%>%
+    ## 1=Domicílio particular
+    dplyr::count(setor,dp=especie_codigo==1,latitude,longitude)%>%
     collect()
-  if (nrow(cnefe_setor_0)==0) return()
+  cnefe_setor_0 <- cnefe%>%
+    dplyr::filter(dp)
+  if (nrow(cnefe_setor_0)==0) {
+    ## nao tem domicilio particular no setor
+    cnefe_setor_0 <- cnefe%>%
+      dplyr::count(setor,latitude,longitude)
+  }
   cnefe_setor <- cnefe_setor_0%>%
     sf::st_as_sf(crs=sf::st_crs("EPSG:4674"), coords=c("longitude", "latitude"))
   ponto_setor <- ponto_densidade(cnefe_setor, setor)
@@ -38,7 +46,7 @@ setores <- open_dataset(file.path(out_dir,"arrow"))%>%
   collect()%>%
   arrange(setor)%>%
   anti_join(pontos_setores%>%sf::st_drop_geometry(), by="setor")%>%
-  head(10e3)%>%
+  #head(10e3)%>%
   pull(setor)
 print("done")
 print(nrow(pontos_setores))
@@ -59,5 +67,27 @@ if (nrow(pontos_setores)>0) {
 } else {
   pontos_setores <- pontos_setores_new
 }
+
+
+setores2022_map <- readr::read_rds("data-raw/setores2022_map.rds")
+setores2022_cent <- setores2022_map%>%mutate(setor=as.character(code_tract))%>%
+  sf::st_centroid()%>%
+  select(setor)%>%
+  add_coordinates(lon="setor_centroide_lon",
+                  lat="setor_centroide_lat")
+pontos_setores <- pontos_setores%>%
+  left_join(setores2022_cent%>%sf::st_drop_geometry(), by="setor")
+
+pontos_setores <- bind_rows(pontos_setores,
+                            setores2022_cent%>%
+                              rename(geometry=geom)%>%
+  anti_join(pontos_setores%>%sf::st_drop_geometry(), by=c("setor")))
+
+pontos_setores <- pontos_setores%>%
+  mutate(setor_lon=coalesce(setor_cnefe_lon, setor_centroide_lon),
+         setor_lat=coalesce(setor_cnefe_lat, setor_centroide_lat)
+         )%>%
+  select(setor, setor_lon, setor_lat, everything())
+
 
 usethis::use_data(pontos_setores, overwrite = TRUE)

@@ -27,4 +27,10 @@ pontos_municipios <- purrr::map(uf_toget, get1)%>%bind_rows()%>%
   sf::st_as_sf(crs=sf::st_crs("EPSG:4674"), coords=c("lon", "lat"), remove=FALSE)%>%
   dplyr::rename(municipio_cnefe_lon=lon, municipio_cnefe_lat=lat)
 
+
+# municipios2022_map <- readr::read_rds("data-raw/municipios2022_map.rds")
+# municipios2022_map%>%mutate(municipio_codigo=as.character(code_muni))%>%anti_join(pontos_municipios%>%sf::st_drop_geometry(), by=c("municipio_codigo"))
+## 4300001 Lagoa Mirim e 4300002 Lagoa dos Patos
+
+
 usethis::use_data(pontos_municipios, overwrite = TRUE)
