@@ -9,7 +9,7 @@ load(here::here("data/pontos_setores.rda"))
 load(here::here("data/municipios_22.rda"))
 distancias_setores_path <- "~/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds"
 distancias_agencias_setores_osrm_done <- readr::read_rds(distancias_setores_path)
-uf_codigo_now <- 43
+uf_codigo_now <- 29
 
 amostra_mestra <- readRDS(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))
 amostra_pof <- readxl::read_excel("~/gitlab/pof2024ba/data-raw/Alocação_trimestre_POF2425_1907.xls")%>%
@@ -29,6 +29,8 @@ agencias_uf <- agencias_bdo%>%
 
 distancias_amostra_toget_1 <- pontos_setores%>%
   inner_join(amostra_uf, by=c("setor"))
+
+## usa municipios
 distancias_amostra_toget_2 <- municipios_22%>%
   inner_join(amostra_uf%>%
                anti_join(distancias_amostra_toget_1,by=c("setor"))%>%
@@ -38,6 +40,7 @@ distancias_amostra_toget_0 <- rbind(
   distancias_amostra_toget_1%>%
     transmute(setor,ponto_origem="pontos_setores", setor_lat=setor_cnefe_lat, setor_lon=setor_cnefe_lon),
   distancias_amostra_toget_2%>%
+    ##FIX! Distancias até municipios quando nao sabemos onde é o setor
     transmute(setor,ponto_origem="municipios_22", setor_lat=municipio_sede_lat,setor_lon=municipio_sede_lon)
 )
 distancias_amostra_toget <- distancias_amostra_toget_0%>%anti_join(distancias_agencias_setores_osrm_done, by = join_by(setor))%>%

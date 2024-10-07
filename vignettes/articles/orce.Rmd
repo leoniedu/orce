@@ -32,8 +32,10 @@ params:
   dias_coleta_entrevistador_max_munic: 40
   dias_coleta_entrevistador_max_pof: 200
   dias_coleta_entrevistador_max_carga: 200
+  dias_coleta_entrevistador_max_pnadc: 200
   dias_coleta_agencia_max_carga: 600
   dias_coleta_agencia_max_munic: Inf
+  dias_coleta_agencia_max_pnadc: Inf
   dias_treinamento_pof: 5.5
   solver: 'cbc'
   max_time: 9000
@@ -712,7 +714,134 @@ Em todos os cenários, a otimização resultou em redução significativa do cus
 * **Custos com remuneração dos entrevistadores:** Quando incluímos a despesa com e remuneração dos entrevistadores, além do custo de treinamento dos mesmos, a economia gerada passa de R$ 1 milhão. É definitivamente aqui que está o mais efetivo instrumento para reduzir os custos de coleta.
 
 
-## Caso 3. Um novo modelo de coleta nas Agências
+## Caso 3. PNADC e CNEFE
+
+A seção anterior demonstrou que, pelo menos no caso da coleta da POF da Bahia, é possível atingir uma significativa redução de custos de coleta, quando contabilizamos a remuneração dos entrevistadores. 
+
+```{r}
+## amostra mestra/pnadc
+amostra_mestra <- readr::read_rds(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))%>%
+  filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"))
+
+amostra_pnadc <- amostra_mestra%>%
+  distinct(uc=upa, pesquisa=paste("pnadc", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params$dias_coleta_pnadc, viagens=params$viagens_pnadc)
+
+library(lubridate)## so months works
+amostra_cnefe <- amostra_mestra%>%
+  filter(entrevista_numero==1)%>%
+  mutate(ano_mes=ano_mes-months(3))%>%
+  distinct(uc=upa, pesquisa=paste("cnefe", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params$dias_coleta_cnefe, viagens=params$viagens_cnefe)
+
+
+
+carga_pnadc <- bind_rows(amostra_cnefe, amostra_pnadc)%>%
+  group_by(uc, agencia_codigo, municipio_codigo=substr(uc,1,7))%>%
+  summarise(dias_coleta=sum(dias_coleta), viagens=sum(viagens))
+
+
+uf_codigo_now <- 29
+ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
+
+carga_pnadc_uf <- carga_pnadc%>%
+  filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
+  ## Importante: Sem as agências de Salvador
+  filter(!grepl("2927408", agencia_codigo))%>%
+  #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
+  ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
+
+## distancias uc
+distancias_ucs_all <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
+  rename(uc=setor)%>%
+  transmute(uc, agencia_codigo, distancia_km, duracao_horas, municipio_codigo=substr(uc,1,7))%>%
+  left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
+  semi_join(carga_pnadc_uf, by="uc")%>%
+  mutate(diaria_pernoite=duracao_horas>params$horas_viagem_pernoite)
+
+
+agencias_uf <-  carga_pnadc_uf%>%
+  group_by(agencia_codigo)%>%
+  summarise(n_ucs_jurisdicao=n(), dias_coleta_jurisdicao=sum(dias_coleta))%>%
+  mutate(dias_coleta_agencia_max=pmax(dias_coleta_jurisdicao, params$dias_coleta_agencia_max_pnadc), 
+         custo_fixo=0)
+
+
+## sem custo fixo nem custo de treinamento
+params_pnadc_0  <- list(ucs=carga_pnadc_uf,
+                        agencias=agencias_uf,
+                        custo_litro_combustivel = params$custo_litro_combustivel,
+                        custo_hora_viagem = params$custo_hora_viagem,
+                        kml = params$kml,
+                        valor_diaria = params$valor_diaria,
+                        ## em um ano de coleta, um entrevistador consegue
+                        ## 48 upas pnadc / 24 upas POF / 18 Municipios
+                        dias_coleta_entrevistador_max=params$dias_coleta_entrevistador_max_pnadc,
+                        diarias_entrevistador_max=Inf,
+                        dias_treinamento = 0,
+                        agencias_treinadas = NULL,
+                        agencias_treinamento  = NULL,
+                        distancias_ucs=distancias_ucs_all,
+                        ## for symphony solver
+                        #gap_limit=5, 
+                        adicional_troca_jurisdicao  = params$adicional_troca_jurisdicao,
+                        solver=params$solver,
+                        max_time=params$max_time,
+                        rel_tol=params$rel_tol,
+                        resultado_completo=FALSE 
+                        )
+```
+
+
+
+```{r}
+library(tictoc)
+tic()
+estrategias_pnadc <- bind_rows(
+  tibble(params_pnadc=list(params_pnadc_0), 
+         descricao='sem custo fixo / sem custo de treinamento'),
+  tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                      list( remuneracao_entrevistador=params$remuneracao_entrevistador)
+  )), 
+  descricao=glue::glue('sem mínimo de entrevistador, remuneracao entrevistador {params$remuneracao_entrevistador}, sem custo fixo')),
+  tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                      list( remuneracao_entrevistador=2500)
+  )), 
+  descricao='sem mínimo de entrevistador, remuneracao entrevistador 2500, sem custo fixo'))%>%
+  #ungroup%>%slice(1)%>%
+  mutate(resultado=purrr::map(params_pnadc, ~do.call(alocar_ucs, .x)))
+toc()
+
+estrategias_pnadc_sum <-
+  estrategias_pnadc%>%
+  rowwise(descricao)%>%
+  reframe(
+    bind_rows(
+      resultado$resultado_agencias_otimo%>%mutate(modelo="Ótimo"),
+      resultado$resultado_agencias_jurisdicao%>%mutate(modelo="Jurisdição"))%>%
+      group_by(modelo)%>%
+      mutate(n_agencias=1)%>%
+      summarise(across(matches("custo|n_agencias"), ~sum(.x, na.rm=TRUE))))%>%
+  mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
+  select(descricao, modelo, n_agencias, custo_total, everything())
+
+report_plans(estrategias_pnadc$resultado[[1]])
+# 
+estrategias_pnadc_sum%>%
+  group_by(descricao)%>%
+  arrange(descricao, modelo)%>%
+  select(-modelo)%>%
+  summarise(across(everything(), diff))%>%
+  arrange(desc(n_agencias), custo_total)%>%
+  select(descricao, n_agencias, custo_total, custo_total_entrevistadores, custo_diarias, custo_combustivel)%>%
+  #arrange(-custo_total)%>%
+  gt::gt()%>%
+  gt::cols_label(descricao='Modelo')%>%
+  gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%
+  print_gt()
+
+```
+
+
+## Caso 4. Um novo modelo de coleta nas Agências
 
 A seção anterior demonstrou que, pelo menos no caso da coleta da POF da Bahia, é possível atingir uma significativa redução de custos de coleta, quando contabilizamos a remuneração dos entrevistadores. Investigamos nessa seção se, ao contabilizar outras pesquisas do IBGE executadas pelas agências, em conjunto, a redução de custos ainda é observada.
 

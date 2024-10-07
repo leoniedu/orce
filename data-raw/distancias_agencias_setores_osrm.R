@@ -28,6 +28,7 @@ distancias_amostra_toget_2 <- municipios_22%>%
 distancias_amostra_toget <- rbind(
   distancias_amostra_toget_1%>%
     transmute(setor,ponto_origem="pontos_setores", setor_lat=setor_cnefe_lat, setor_lon=setor_cnefe_lon),
+  ##FIX! Distancias até municipios quando nao sabemos onde é o setor
   distancias_amostra_toget_2%>%
     transmute(setor,ponto_origem="municipios_22", setor_lat=municipio_sede_lat,setor_lon=municipio_sede_lon)
 )

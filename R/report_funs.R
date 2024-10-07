@@ -62,7 +62,7 @@ report_plans <- function(r, level="uc") {
   levels <- if_else(level=="uc", "ucs", "municipios")
   nlevels <- paste0("n_", levels)
   vs <- c('agencia_codigo', 'agencia_nome',"perde", "recebe",  'custo_total', 'total_diarias', 'custo_combustivel','entrevistadores','custo_fixo', "n_agencias_otimo", "n_agencias_jurisdicao",
-          'n_ucs', "n_otimo", "n_jurisdicao"#,   'custo_diarias',  'distancia_total_km', 'custo_deslocamento',  'custo_troca_jurisdicao'
+          "n_otimo", "n_jurisdicao", 'dias_coleta'#,   'custo_diarias',  'distancia_total_km', 'custo_deslocamento',  'custo_troca_jurisdicao'
           )
   trocas_0 <- r[[paste0('resultado_',levels,'_otimo')]]|>
   dplyr::left_join(r[[paste0('resultado_',levels,'_jurisdicao')]]|>

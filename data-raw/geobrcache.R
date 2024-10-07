@@ -14,6 +14,10 @@ setores2022_map <- geobr::read_census_tract(year=2022, code_tract = "all")
 readr::write_rds(setores2022_map, "data-raw/setores2022_map.rds")
 
 
+setores2010_map <- geobr::read_census_tract(year=2010, code_tract = "all")
+readr::write_rds(setores2010_map, "data-raw/setores2010_map.rds")
+
+
 municipios2022_map <- geobr::read_municipality(year=2022)
 readr::write_rds(municipios2022_map, "data-raw/municipios2022_map.rds")
 
