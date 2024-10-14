@@ -5,10 +5,15 @@ source(here::here("R/calcula_distancias.R"))
 #source(here::here("R/add_coordinates.R"))
 load(here::here("data/agencias_bdo.rda"))
 load(here::here("data/pontos_setores.rda"))
-pontos_upas <- readr::read_rds(here::here("data-raw/pontos_upas.rds"))
 load(here::here("data/municipios_22.rda"))
 
 uf_codigo_now <- 29
+if (uf_codigo_now==29) {
+  pontos_upas <- readr::read_rds(here::here("data-raw/pontos_upas_29.rds"))
+} else {
+  pontos_upas <- readr::read_rds(here::here("data-raw/pontos_upas.rds"))
+}
+
 amostra_mestra <- readRDS(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))
 amostra_pof <- readxl::read_excel("~/gitlab/pof2024ba/data-raw/Alocação_trimestre_POF2425_1907.xls")%>%
   rename_ibge()
@@ -28,6 +33,14 @@ agencias_uf <- agencias_bdo%>%
 
 distancias_amostra_toget_1 <- pontos_upas%>%
   semi_join(amostra_uf, by=c("upa"))
+
+municipios_toget <- amostra_uf%>%
+  ungroup%>%
+  distinct(upa)%>%
+  anti_join(distancias_amostra_toget_1,by=c("upa"))%>%
+  mutate(municipio_codigo=substr(upa,1,7))
+
+
 distancias_amostra_toget_2 <- municipios_22%>%
   inner_join(amostra_uf%>%
                ungroup%>%
@@ -53,4 +66,5 @@ distancias_agencias_upas_osrm <- bind_rows(distancias_amostra_1)%>%
 
 distancias_agencias_upas_osrm%>%anti_join(amostra_uf, by="upa")
 amostra_uf%>%anti_join(distancias_agencias_upas_osrm, by="upa")
-readr::write_rds(distancias_agencias_upas_osrm, "data-raw/distancias_agencias_upas_osrm.rds")
+fname <- paste0("data-raw/distancias_agencias_upas_osrm_", uf_codigo_now, ".rds")
+readr::write_rds(distancias_agencias_upas_osrm, fname)

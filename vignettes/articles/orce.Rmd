@@ -17,7 +17,7 @@ params:
   kml: 10
   valor_diaria: 335
   adicional_troca_jurisdicao: 100
-  remuneracao_entrevistador: 1500
+  remuneracao_entrevistador: 2675
   uf_sigla_munic: "ES"
   viagens_munic: 1
   viagens_pnadc: 1
@@ -34,12 +34,12 @@ params:
   dias_coleta_entrevistador_max_carga: 200
   dias_coleta_entrevistador_max_pnadc: 200
   dias_coleta_agencia_max_carga: 600
-  dias_coleta_agencia_max_munic: Inf
-  dias_coleta_agencia_max_pnadc: Inf
+  dias_coleta_agencia_max_munic: null 
+  dias_coleta_agencia_max_pnadc: null
   dias_treinamento_pof: 5.5
   solver: 'cbc'
-  max_time: 9000
-  rel_tol: .02
+  max_time: 1800
+  rel_tol: .01
 ---
 
 
@@ -60,6 +60,10 @@ library(gt)
 library(orce)
 library(dplyr)
 library(sf)
+if(is.null(params$dias_coleta_agencia_max_munic)) {
+  params$dias_coleta_agencia_max_munic <- Inf
+}
+  
 params_alocar_ucs <- setdiff(args(alocar_ucs)%>%as.list%>%names(), c("...", ""))
 
 options(OutDec = ",", scipen=100)
@@ -720,8 +724,17 @@ A seção anterior demonstrou que, pelo menos no caso da coleta da POF da Bahia,
 
 ```{r}
 ## amostra mestra/pnadc
+#pontos_upas_29 <- readRDS(here::here("data-raw/pontos_upas_29.rds"))
+uf_codigo_now <- 29
+ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
+if(is.null(params$dias_coleta_agencia_max_pnadc)) {
+  params$dias_coleta_agencia_max_pnadc <- Inf
+}
+
+
 amostra_mestra <- readr::read_rds(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))%>%
-  filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"))
+  filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"), uf_codigo==uf_codigo_now)
+
 
 amostra_pnadc <- amostra_mestra%>%
   distinct(uc=upa, pesquisa=paste("pnadc", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params$dias_coleta_pnadc, viagens=params$viagens_pnadc)
@@ -739,8 +752,6 @@ carga_pnadc <- bind_rows(amostra_cnefe, amostra_pnadc)%>%
   summarise(dias_coleta=sum(dias_coleta), viagens=sum(viagens))
 
 
-uf_codigo_now <- 29
-ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
 
 carga_pnadc_uf <- carga_pnadc%>%
   filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
@@ -750,19 +761,28 @@ carga_pnadc_uf <- carga_pnadc%>%
   ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
 
 ## distancias uc
-distancias_ucs_all <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
-  rename(uc=setor)%>%
-  transmute(uc, agencia_codigo, distancia_km, duracao_horas, municipio_codigo=substr(uc,1,7))%>%
+fname <- here::here(paste0("data-raw/distancias_agencias_upas_osrm_", uf_codigo_now, ".rds"))
+distancias_ucs_all <- readRDS(fname)%>%
+  rename(uc=upa)%>%
+  transmute(uc, agencia_codigo, distancia_km, duracao_horas, municipio_codigo=substr(uc,1,7), ponto_origem)%>%
   left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
   semi_join(carga_pnadc_uf, by="uc")%>%
-  mutate(diaria_pernoite=duracao_horas>params$horas_viagem_pernoite)
-
+  mutate(diaria_pernoite=duracao_horas>params$horas_viagem_pernoite)%>%
+  group_by(uc, agencia_codigo)%>%
+  ## só a configuração de upa mais distante
+  arrange(desc(duracao_horas))%>%
+  slice(1)%>%
+  ungroup()
+distancias_ucs_all%>%ungroup%>%count(ponto_origem)
 
 agencias_uf <-  carga_pnadc_uf%>%
   group_by(agencia_codigo)%>%
   summarise(n_ucs_jurisdicao=n(), dias_coleta_jurisdicao=sum(dias_coleta))%>%
   mutate(dias_coleta_agencia_max=pmax(dias_coleta_jurisdicao, params$dias_coleta_agencia_max_pnadc), 
-         custo_fixo=0)
+         custo_fixo=0)%>%
+  ## tira Cipó
+  mutate(dias_coleta_agencia_max=if_else(agencia_codigo=="290790500", 0, dias_coleta_agencia_max))
+
 
 
 ## sem custo fixo nem custo de treinamento
@@ -803,10 +823,15 @@ estrategias_pnadc <- bind_rows(
   )), 
   descricao=glue::glue('sem mínimo de entrevistador, remuneracao entrevistador {params$remuneracao_entrevistador}, sem custo fixo')),
   tibble(params_pnadc=list(modifyList(params_pnadc_0, 
-                                      list( remuneracao_entrevistador=2500)
+                                      list(n_entrevistadores_min=2, remuneracao_entrevistador=params$remuneracao_entrevistador)
   )), 
-  descricao='sem mínimo de entrevistador, remuneracao entrevistador 2500, sem custo fixo'))%>%
-  #ungroup%>%slice(1)%>%
+  descricao=glue::glue('mínimo de entrevistador=2, remuneracao entrevistador {params$remuneracao_entrevistador}, sem custo fixo')),
+  tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                      list(n_entrevistadores_min=3, remuneracao_entrevistador=params$remuneracao_entrevistador)
+  )), 
+  descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params$remuneracao_entrevistador}, sem custo fixo'))
+  )%>%
+  ungroup%>%#slice(1:2)%>%
   mutate(resultado=purrr::map(params_pnadc, ~do.call(alocar_ucs, .x)))
 toc()
 
@@ -823,15 +848,18 @@ estrategias_pnadc_sum <-
   mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
   select(descricao, modelo, n_agencias, custo_total, everything())
 
-report_plans(estrategias_pnadc$resultado[[1]])
+report_plans(estrategias_pnadc$resultado[[4]])
 # 
 estrategias_pnadc_sum%>%
   group_by(descricao)%>%
-  arrange(descricao, modelo)%>%
   select(-modelo)%>%
-  summarise(across(everything(), diff))%>%
+  reframe(across(everything(), diff))%>%
+  group_by(descricao)%>%
+  arrange(descricao)%>%
+  slice(1)%>%
   arrange(desc(n_agencias), custo_total)%>%
   select(descricao, n_agencias, custo_total, custo_total_entrevistadores, custo_diarias, custo_combustivel)%>%
+  ungroup%>%
   #arrange(-custo_total)%>%
   gt::gt()%>%
   gt::cols_label(descricao='Modelo')%>%
