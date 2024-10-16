@@ -18,6 +18,8 @@
 #'
 #' @export
 calcula_distancias <- function(destinos, origens, nmax=2000) {
+  dec_original <- getOption("OutDec")
+  options(OutDec = ".")
   checkmate::assert_class(destinos, "sf")
   checkmate::assert_class(origens, "sf")
   stopifnot(all(!is.na(sf::st_coordinates(destinos))))
@@ -56,7 +58,7 @@ calcula_distancias <- function(destinos, origens, nmax=2000) {
   res <- dest_list |>
     purrr::map(~ get_res(src = origens_1, dst = .x), .progress = TRUE) |>
     bind_rows()
-
+  options(OutDec = dec_original)
   # Mesclando os resultados com os dados originais para remover colunas desnecessárias e retornar o dataset final
   res |>
     left_join(origens_1 |> sf::st_drop_geometry(), by = "id_origem") |>

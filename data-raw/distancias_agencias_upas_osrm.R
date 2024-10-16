@@ -7,12 +7,12 @@ load(here::here("data/agencias_bdo.rda"))
 load(here::here("data/pontos_setores.rda"))
 load(here::here("data/municipios_22.rda"))
 
-uf_codigo_now <- 29
-if (uf_codigo_now==29) {
-  pontos_upas <- readr::read_rds(here::here("data-raw/pontos_upas_29.rds"))
-} else {
-  pontos_upas <- readr::read_rds(here::here("data-raw/pontos_upas.rds"))
-}
+uf_codigo_now <- 31
+#if (uf_codigo_now==29) {
+pontos_upas <- readr::read_rds(here::here(paste0("data-raw/pontos_upas_", uf_codigo_now, ".rds")))
+#} else {
+#  pontos_upas <- readr::read_rds(here::here("data-raw/pontos_upas.rds"))
+#}
 
 amostra_mestra <- readRDS(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))
 amostra_pof <- readxl::read_excel("~/gitlab/pof2024ba/data-raw/Alocação_trimestre_POF2425_1907.xls")%>%
@@ -50,7 +50,7 @@ distancias_amostra_toget_2 <- municipios_22%>%
 
 distancias_amostra_toget <- rbind(
   distancias_amostra_toget_1%>%
-    transmute(upa,ponto_origem="pontos_upas", upa_lat=upa_cnefe_lat, upa_lon=upa_cnefe_lon),
+    transmute(upa,ponto_origem, upa_lat=upa_cnefe_lat, upa_lon=upa_cnefe_lon),
   distancias_amostra_toget_2%>%
     ##FIX! Distancias até municipios quando nao sabemos onde é o setor
     transmute(upa,ponto_origem="municipios_22", upa_lat=municipio_sede_lat,upa_lon=municipio_sede_lon)

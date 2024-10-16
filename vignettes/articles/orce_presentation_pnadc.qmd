@@ -1,0 +1,527 @@
+---
+title: "Otimizando a Coleta da PNADC* com o Pacote R `orce`"
+subtitle: "* e CNEFE"
+format: 
+  revealjs:
+    theme: dark
+params:
+  horas_viagem_pernoite: 1.5
+  custo_hora_viagem: 10
+  custo_litro_combustivel: 6
+  kml: 10
+  valor_diaria: 335
+  adicional_troca_jurisdicao: 100
+  remuneracao_entrevistador: 2675
+  viagens_pnadc: 1
+  viagens_cnefe: 1
+  dias_coleta_cnefe: 5
+  dias_coleta_pnadc: 5
+  dias_coleta_entrevistador_max: 200
+  solver: 'cbc'
+  max_time: 1800
+  rel_tol: .01
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+#https://arelbundock.com/posts/quarto_figures/index.html
+knitr::opts_chunk$set(
+  out.width = "70%", # enough room to breath
+  fig.width = 6,     # reasonable size
+  fig.asp = 0.618,   # golden ratio
+  fig.align = "center" # mostly what I want
+)
+library(ggplot2)
+library(gt)
+library(orce)
+library(dplyr)
+library(sf)
+
+params_alocar_ucs <- setdiff(args(alocar_ucs)%>%as.list%>%names(), c("...", ""))
+params2 <- params
+options(OutDec = ",", scipen=100)
+
+```
+
+## Introdução
+
+- O IBGE enfrenta desafios logísticos e altos custos na coleta de dados
+- Território vasto e unidades geograficamente dispersas
+- Necessidade de otimização na alocação de Unidades Primárias de Amostragem (UPAs)
+
+---
+
+## O Pacote R `orce`
+
+- Desenvolvido para otimizar a alocação das diversas "Unidades de Coleta" (UPAs, Escolas, Municípios) nas pesquisas do IBGE
+- Utiliza programação linear inteira mista
+- Objetivo: Minimizar os custos totais de coleta, tendo como dada a rede atual de agências do IBGE.
+
+---
+
+## Fatores Considerados na Otimização
+
+- Distâncias e tempo de deslocamento
+```
+Calculados com o OpenStreetMap.
+```
+- Custos com entrevistadores
+
+```
+Remuneração e custo de deslocamento (combustível, horas de trabalho e diárias).
+```
+
+- Restrições específicas das agências
+
+```
+Carga de trabalho máxima, custos fixos, etc.
+```
+
+---
+
+## Benefícios da Otimização
+
+- **Melhoria no Planejamento**:
+- Calcula o custo da pesquisa (diárias, combustível, e remuneração).
+- Facilita o planejamento e gestão da coleta de dados
+- **Otimização de Recursos**:
+- Otimiza a alocação de entrevistadores e UPAs entre as agências.
+- Garante carga de trabalho equilibrada entre agências
+
+---
+
+## Recursos Principais do `orce`
+
+- Roteamento e Geocodificação
+- Otimização Avançada de Alocação
+- Cálculo Detalhado de Custos
+- Flexibilidade e Adaptabilidade.
+- Auxílio no cálculo dos custos de treinamento.
+
+---
+
+## PNADC e CNEFE
+
+## Pontos representativos das UPAs
+
+- **Não utilizamos a centroide dos setores ou UPAs**
+- Utilizamos, em vez disso, o CNEFE (público).
+- Para cada UPA, utilizando a função `ponto_densidade`, calculamos a densidade de domicílios para cada domicílio da UPA. O domicílios com a maior densidade calculada é considerado o ponto representativo do domicílio.
+- Esse procedimento diminui a possibilidade de calcular distâncias de agências a pontos vazios ou inacessíveis nos setores/UPAs.
+
+
+--- 
+
+## Cálculo de distâncias
+
+- Função `calcula_distancias` auxilia nesse trabalho. Utiliza dados do OpenStreetMaps com a Open Source Routing Machine (OSRM).
+- As distâncias são calculadas entre todas as agências para os pontos representativos de cada UPAs da amostra mestra.
+
+--- 
+
+## Cálculo de diárias
+
+Dados do IBGE:
+
+- [Composição das Regiões Metropolitanas](https://geoftp.ibge.gov.br/organizacao_do_territorio/estrutura_territorial/municipios_por_regioes_metropolitanas/Situacao_2020a2029/Composicao_RM_2023.xlsx)
+- Microrregiões (Censo 2022)
+- Jurisdição das agências (BDO)
+
+Parâmetro:
+
+- `duracao_horas` para calcular Pernoite
+
+Função:
+
+- `calcula_diarias`
+
+
+
+
+--- 
+
+
+## Função para alocação de UCs: `alocar_ucs` 
+
+- Alocação otimizada de Unidade de Coleta (UCs, no caso UPAs)  às agências. 
+
+- **Dados por UPA**: código da UPA, agência de jurisdição, dias de coleta, número de viagens.
+
+- **Dados por agência**: código da agência, custo fixo, número máximo de dias de coleta alocáveis para a agência.
+
+- **Dados por díade UPA-Agência**: distância em km, horas de viagem, faz jus a diárias (independentemente da distância), faz jus a diárias (pernoite).
+
+--- 
+
+**Ideal para pesquisas com equipes exclusivas ou com limitação no número de equipamentos (e.g. PeNSE).**
+
+--- 
+
+## Função para alocação de municípios: `alocar_municipios`
+
+- Realiza a alocação otimizada de municípios às agências. 
+
+- São utilizados os mesmos argumentos e dados da função `alocar_ucs`.
+
+- Ou seja, as UCs de um mesmo município são alocadas integralmente para uma mesma agência. **O custo de deslocamento agência-município é a soma dos custo de deslocamento entre cada UCs de um município e a agência candidata.**
+
+---
+
+Permite maior  *sinergia* entre as várias pesquisas em campo. 
+
+---
+
+## Parâmetros para o cálculo:
+
+- CNEFE realizado no trimestre anterior ao da 1ª entrevista do Painel
+- **`r params2$dias_coleta_entrevistador_max`** dias de trabalho por entrevistador/ano
+- **`r params2$dias_coleta_cnefe`** dias de coleta para CNEFE e **`r params2$dias_coleta_pnadc`** dias de coleta para a PNADC
+- Uma viagem em caso de diárias inteiras, **`r params2$dias_coleta_cnefe`** (CNEFE) e **`r params2$dias_coleta_pnadc`** (PNADC) viagens nos casos sem diárias (ou com meias-diárias)
+- São sugeridas alterações de jurisdição somente quando a economia proporcionada é maior que **R\$ `r params2$adicional_troca_jurisdicao`**.
+
+
+---
+
+Parâmetros (2):
+
+- **Todas as viagens são feitas por automóvel**, o custo por litro de combustível é de  **R\$ `r params2$custo_litro_combustivel`**, o automóvel percorre **`r params2$kml` quilômetros** com um litro. Cada hora de viagem tem custo adicional equivalente a **R\$ `r params2$custo_hora_viagem`**.
+- Viagens (ida) com mais de **`r params2$horas_viagem_pernoite`** horas de duração fazem jus a diárias.
+- A diária tem o valor de **R\$ `r params2$valor_diaria`**, e é paga nos casos de pernoite **ou** quando a UPA é de fora da **jurisdição/microrregião/região metropolitana** da agência.
+- Remuneração por entrevistador por mês: **R\$ `r params2$remuneracao_entrevistador` **.
+
+---
+
+
+Parâmetros (3):
+
+- diarias_entrevistador_max = Inf
+- n_entrevistadores_min = 1
+- dias_treinamento = 0
+- agencias_treinadas = NULL
+- agencias_treinamento = NULL
+- distancias_agencias = NULL
+
+
+
+--- 
+
+## Executando a otimização:
+
+```{r}
+## amostra mestra/pnadc
+#pontos_upas_29 <- readRDS(here::here("data-raw/pontos_upas_29.rds"))
+#ufs_now <- ufs%>%filter(uf_sigla==params2$uf_sigla)
+
+render_tables <- function(ufnow) {
+  ufs_now <- ufs%>%filter(uf_sigla==ufnow)
+  uf_codigo_now <- ufs_now$uf_codigo
+  ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
+  amostra_mestra <- readr::read_rds(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))%>%
+    filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"), uf_codigo==uf_codigo_now)
+  amostra_pnadc <- amostra_mestra%>%
+    distinct(uc=upa, pesquisa=paste("pnadc", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params2$dias_coleta_pnadc, viagens=params2$viagens_pnadc)
+  library(lubridate)## so months works
+  amostra_cnefe <- amostra_mestra%>%
+    filter(entrevista_numero==1)%>%
+    mutate(ano_mes=ano_mes-months(3))%>%
+    distinct(uc=upa, pesquisa=paste("cnefe", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params2$dias_coleta_cnefe, viagens=params2$viagens_cnefe)
+  carga_pnadc <- bind_rows(amostra_cnefe, amostra_pnadc)%>%
+    group_by(uc, agencia_codigo, municipio_codigo=substr(uc,1,7))%>%
+    summarise(dias_coleta=sum(dias_coleta), viagens=sum(viagens))
+  municipio_principal <- carga_pnadc%>%group_by(municipio_codigo)%>%summarise(dias_coleta=sum(dias_coleta))%>%arrange(desc(dias_coleta))%>%
+    head(1)
+  carga_pnadc_uf <- carga_pnadc%>%
+    filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
+    ## Importante: Sem as agências do principal municipio
+    filter(!grepl(municipio_principal$municipio_codigo, agencia_codigo))%>%
+    #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
+    ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
+  
+  ## distancias uc
+  fname <- here::here(paste0("data-raw/distancias_agencias_upas_osrm_", uf_codigo_now, ".rds"))
+  distancias_ucs_all <- readRDS(fname)%>%
+    rename(uc=upa)%>%
+    transmute(uc, agencia_codigo, distancia_km, duracao_horas, municipio_codigo=substr(uc,1,7), ponto_origem)%>%
+    left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
+    semi_join(carga_pnadc_uf, by="uc")%>%
+    mutate(diaria_pernoite=duracao_horas>params2$horas_viagem_pernoite)%>%
+    group_by(uc, agencia_codigo)%>%
+    ## só a configuração de upa mais distante
+    arrange(desc(duracao_horas))%>%
+    slice(1)%>%
+    ungroup()
+  #distancias_ucs_all%>%ungroup%>%count(ponto_origem)
+  
+  agencias_uf <-  carga_pnadc_uf%>%
+    group_by(agencia_codigo)%>%
+    summarise(n_ucs_jurisdicao=n(), dias_coleta_jurisdicao=sum(dias_coleta))%>%
+    mutate(dias_coleta_agencia_max=Inf, 
+           custo_fixo=0)%>%
+    ## tira Cipó
+    mutate(dias_coleta_agencia_max=if_else(agencia_codigo=="290790500", 0, dias_coleta_agencia_max))
+  
+  
+  
+  ## sem custo fixo nem custo de treinamento
+  params_pnadc_0  <- list(ucs=carga_pnadc_uf,
+                          agencias=agencias_uf,
+                          custo_litro_combustivel = params2$custo_litro_combustivel,
+                          custo_hora_viagem = params2$custo_hora_viagem,
+                          kml = params2$kml,
+                          valor_diaria = params2$valor_diaria,
+                          ## em um ano de coleta, um entrevistador consegue
+                          ## 48 upas pnadc / 24 upas POF / 18 Municipios
+                          dias_coleta_entrevistador_max=params2$dias_coleta_entrevistador_max,
+                          diarias_entrevistador_max=Inf,
+                          dias_treinamento = 0,
+                          agencias_treinadas = NULL,
+                          agencias_treinamento  = NULL,
+                          distancias_ucs=distancias_ucs_all,
+                          ## for symphony solver
+                          #gap_limit=5, 
+                          adicional_troca_jurisdicao  = params2$adicional_troca_jurisdicao,
+                          solver=params2$solver,
+                          max_time=params2$max_time,
+                          rel_tol=params2$rel_tol,
+                          resultado_completo=FALSE 
+  )
+  library(tictoc)
+  tic()
+  estrategias_pnadc <- bind_rows(
+    tibble(params_pnadc=list(params_pnadc_0), 
+           descricao='sem remuneração entrevistadores'),
+    tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                        list( remuneracao_entrevistador=params2$remuneracao_entrevistador*12)
+    )), 
+    descricao=glue::glue('remuneracao entrevistador por mês {params2$remuneracao_entrevistador}')),
+    tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                        list(n_entrevistadores_min=2, remuneracao_entrevistador=params2$remuneracao_entrevistador*12)
+    )), 
+    descricao=glue::glue('mínimo de entrevistador=2, remuneracao entrevistador por mês {params2$remuneracao_entrevistador}')),
+    tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                        list(n_entrevistadores_min=3, remuneracao_entrevistador=params2$remuneracao_entrevistador*12)
+    )), 
+    descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params2$remuneracao_entrevistador} por mês'))
+  )%>%
+    ungroup%>%#slice(1:2)%>%
+    mutate(resultado_uc=purrr::map(params_pnadc, ~do.call(alocar_ucs, .x)),
+           resultado_municipio=purrr::map(params_pnadc, ~do.call(alocar_municipios, .x))
+           )
+  #toc()
+  
+  estrategias_pnadc_sum_uc <-
+    estrategias_pnadc%>%
+    rowwise(descricao)%>%
+    reframe(
+      bind_rows(
+        resultado_uc$resultado_agencias_otimo%>%mutate(modelo="Ótimo"),
+        resultado_uc$resultado_agencias_jurisdicao%>%mutate(modelo="Jurisdição")
+        )%>%
+        group_by(modelo)%>%
+        mutate(n_agencias=1)%>%
+        summarise(across(matches("custo|n_agencias"), ~sum(.x, na.rm=TRUE))))%>%
+    mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
+    select(descricao, modelo, n_agencias, custo_total, everything())
+  estrategias_pnadc_sum_municipio <-
+    estrategias_pnadc%>%
+    rowwise(descricao)%>%
+    reframe(
+      bind_rows(
+        resultado_municipio$resultado_agencias_otimo%>%mutate(modelo="Ótimo"),
+        resultado_municipio$resultado_agencias_jurisdicao%>%mutate(modelo="Jurisdição")
+        )%>%
+        group_by(modelo)%>%
+        mutate(n_agencias=1)%>%
+        summarise(across(matches("custo|n_agencias"), ~sum(.x, na.rm=TRUE))))%>%
+    mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
+    select(descricao, modelo, n_agencias, custo_total, everything())
+  tdist <- lapply(1:nrow(estrategias_pnadc), function(i) report_plans(estrategias_pnadc$resultado_uc[[i]])|>
+                    gt::tab_options(table.font.size = "small", footnotes.font.size ="small")|>
+                    gt::opt_interactive(use_compact_mode = TRUE, use_filters=TRUE))
+  tdist_municipios <- lapply(1:nrow(estrategias_pnadc), function(i) report_plans(estrategias_pnadc$resultado_municipio[[i]], level = "municipio_codigo")|>
+                    gt::tab_options(table.font.size = "small", footnotes.font.size ="small")|>
+                    gt::opt_interactive(use_compact_mode = TRUE, use_filters=TRUE))
+  alocacao_municipios <- lapply(1:nrow(estrategias_pnadc), function(i) plano_municipios(r = estrategias_pnadc$resultado_municipio[[i]])%>%
+                                  filter(troca)%>%
+  select(municipio_nome, agencia_nome, agencia_nome_jurisdicao, total_diarias, total_diarias_jurisdicao, custo_combustivel, custo_combustivel_jurisdicao)%>%gt::gt()%>%
+  gt::tab_caption("Sem remuneração por APM")%>%
+  gt::opt_interactive(use_compact_mode = TRUE, use_filters=TRUE))
+  
+  tplans_uc <- estrategias_pnadc_sum_uc%>%
+    group_by(descricao)%>%
+    select(-modelo)%>%
+    reframe(across(everything(), diff))%>%
+    group_by(descricao)%>%
+    arrange(descricao)%>%
+    slice(1)%>%
+    select(descricao, n_agencias, custo_total, custo_total_entrevistadores, custo_diarias, custo_combustivel)%>%
+    ungroup%>%
+    #arrange(-custo_total)%>%
+    gt::gt()%>%
+    gt::cols_label(descricao='Modelo')%>%
+    gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%
+    print_gt()
+  tplans_municipio <- estrategias_pnadc_sum_municipio%>%
+    group_by(descricao)%>%
+    select(-modelo)%>%
+    reframe(across(everything(), diff))%>%
+    group_by(descricao)%>%
+    arrange(descricao)%>%
+    slice(1)%>%
+    select(descricao, n_agencias, custo_total, custo_total_entrevistadores, custo_diarias, custo_combustivel)%>%
+    ungroup%>%
+    #arrange(-custo_total)%>%
+    gt::gt()%>%
+    gt::cols_label(descricao='Modelo')%>%
+    gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%
+    print_gt()
+  
+  list(sumario_planos_uc=tplans_uc, sumario_planos_municipio=tplans_municipio, distribuicao=tdist, distribuicao_municipios=tdist_municipios, alocacao_municipios=alocacao_municipios)
+}
+```
+
+
+```{r}
+plano_dist <- 3
+```
+
+--- 
+
+
+## Planos RJ
+
+```{r}
+r <- render_tables("RJ")
+```
+
+```{r}
+r$alocacao_municipios[[1]]
+```
+
+--- 
+
+```{r}
+r$sumario_planos_municipio%>%
+  gt::tab_caption("Por Município")
+r$sumario_planos_uc%>%
+  gt::tab_caption("Por UC")
+```
+
+---
+
+## RJ - Com remuneração dos entrevistadores
+```{r}
+r$distribuicao_municipios[[2]]
+```
+
+
+
+
+--- 
+
+## Planos ES
+
+```{r}
+r <- render_tables("ES")
+```
+
+```{r}
+r$alocacao_municipios[[1]]
+```
+
+--- 
+
+```{r}
+r$sumario_planos_municipio%>%
+  gt::tab_caption("Por Município")
+r$sumario_planos_uc%>%
+  gt::tab_caption("Por UC")
+```
+
+--- 
+
+
+## Planos BA
+
+```{r}
+r <- render_tables("BA")
+```
+
+```{r}
+r$alocacao_municipios[[1]]
+```
+
+--- 
+
+```{r}
+r$sumario_planos_municipio%>%
+  gt::tab_caption("Por Município")
+r$sumario_planos_uc%>%
+  gt::tab_caption("Por UC")
+```
+
+--- 
+
+
+## Planos MG
+
+```{r}
+r <- render_tables("MG")
+```
+
+```{r}
+r$alocacao_municipios[[1]]
+```
+
+--- 
+
+```{r}
+r$sumario_planos_municipio%>%
+  gt::tab_caption("Por Município")
+r$sumario_planos_uc%>%
+  gt::tab_caption("Por UC")
+```
+
+--- 
+
+
+## Planos RS
+
+```{r}
+r <- render_tables("RS")
+```
+
+```{r}
+r$alocacao_municipios[[1]]
+```
+
+--- 
+
+```{r}
+r$sumario_planos_municipio%>%
+  gt::tab_caption("Por Município")
+r$sumario_planos_uc%>%
+  gt::tab_caption("Por UC")
+```
+
+
+---
+
+## Conclusão
+
+- Benefícios:
+- Economia significativa de custos
+- Planejamento aprimorado
+- Flexibilidade para diversos cenários de pesquisa e coleta de dados
+- Importância de equilibrar redução de custos com qualidade dos dados
+
+---
+
+## (Possíveis) Próximos Passos
+
+- Alocação de UCs/municípios levando em conta o cronograma das pesquisas.
+- Utilizar algoritmo de "traveller salesman problem" para alocação ótima de grupos de UCs
+- Sugerir alteração da jurisdição das agências.

@@ -97,7 +97,8 @@ report_plans <- function(r, level="uc") {
     dplyr::group_by(agencia_nome_rec)|>
     dplyr::summarise(dplyr::across(dplyr::where(is.numeric), ~sum(.x, na.rm=TRUE)), agencias_nomes=paste(agencia_nome, collapse=", "))|>
     dplyr::arrange(grepl("\\*", agencia_nome_rec), agencia_nome_rec, desc(n_jurisdicao))|>
-    dplyr::ungroup()
+    dplyr::ungroup()|>
+    janitor::remove_constant()
   out <- gt::gt(rr|>sf::st_drop_geometry(), rowname_col = "agencia_nome_rec" )|>
     gt::grand_summary_rows(fns=list(fn='sum', label="Total Superintendência"), columns = where(is.numeric),fmt = ~fmt_nums(.x, decimal_num = 0, decimal_currency = 0))|>
     print_gt(decimal_num = 0, decimal_currency = 0)|>
