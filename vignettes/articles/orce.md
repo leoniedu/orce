@@ -34,11 +34,11 @@ custos envolvidos.
 1.  **Roteamento e Geocodificação:**
 
     -   Para o caso em que as unidades de coleta são setores
-        censitários, a função `ponto_setor_densidade` auxilia na
-        identificação de locais representativos dentro dos setores
-        censitários, priorizando áreas de alta densidade populacional
-        para facilitar o acesso e garantir que o algorítimo de
-        roteamento tenha destinos/origens válidos.
+        censitários, a função `ponto_densidade` auxilia na identificação
+        de locais representativos dentro dos setores censitários,
+        priorizando áreas de alta densidade populacional para facilitar
+        o acesso e garantir que o algorítimo de roteamento tenha
+        destinos/origens válidos.
 
 2.  **Otimização Avançada da Alocação:**
 
@@ -180,23 +180,23 @@ gt1(ucs_now%>%
       select(uc=municipio_codigo, agencia_codigo, dias_coleta, viagens))
 ```
 
-<div id="spxynwtjkj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#spxynwtjkj table {
+<div id="nnvzcayguz" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#nnvzcayguz table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#spxynwtjkj thead, #spxynwtjkj tbody, #spxynwtjkj tfoot, #spxynwtjkj tr, #spxynwtjkj td, #spxynwtjkj th {
+#nnvzcayguz thead, #nnvzcayguz tbody, #nnvzcayguz tfoot, #nnvzcayguz tr, #nnvzcayguz td, #nnvzcayguz th {
   border-style: none;
 }
 
-#spxynwtjkj p {
+#nnvzcayguz p {
   margin: 0;
   padding: 0;
 }
 
-#spxynwtjkj .gt_table {
+#nnvzcayguz .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -222,12 +222,12 @@ gt1(ucs_now%>%
   border-left-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_caption {
+#nnvzcayguz .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#spxynwtjkj .gt_title {
+#nnvzcayguz .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -239,7 +239,7 @@ gt1(ucs_now%>%
   border-bottom-width: 0;
 }
 
-#spxynwtjkj .gt_subtitle {
+#nnvzcayguz .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -251,7 +251,7 @@ gt1(ucs_now%>%
   border-top-width: 0;
 }
 
-#spxynwtjkj .gt_heading {
+#nnvzcayguz .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -263,13 +263,13 @@ gt1(ucs_now%>%
   border-right-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_bottom_border {
+#nnvzcayguz .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_col_headings {
+#nnvzcayguz .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -284,7 +284,7 @@ gt1(ucs_now%>%
   border-right-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_col_heading {
+#nnvzcayguz .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -304,7 +304,7 @@ gt1(ucs_now%>%
   overflow-x: hidden;
 }
 
-#spxynwtjkj .gt_column_spanner_outer {
+#nnvzcayguz .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -316,15 +316,15 @@ gt1(ucs_now%>%
   padding-right: 4px;
 }
 
-#spxynwtjkj .gt_column_spanner_outer:first-child {
+#nnvzcayguz .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#spxynwtjkj .gt_column_spanner_outer:last-child {
+#nnvzcayguz .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#spxynwtjkj .gt_column_spanner {
+#nnvzcayguz .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -336,11 +336,11 @@ gt1(ucs_now%>%
   width: 100%;
 }
 
-#spxynwtjkj .gt_spanner_row {
+#nnvzcayguz .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#spxynwtjkj .gt_group_heading {
+#nnvzcayguz .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -366,7 +366,7 @@ gt1(ucs_now%>%
   text-align: left;
 }
 
-#spxynwtjkj .gt_empty_group_heading {
+#nnvzcayguz .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -381,15 +381,15 @@ gt1(ucs_now%>%
   vertical-align: middle;
 }
 
-#spxynwtjkj .gt_from_md > :first-child {
+#nnvzcayguz .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#spxynwtjkj .gt_from_md > :last-child {
+#nnvzcayguz .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#spxynwtjkj .gt_row {
+#nnvzcayguz .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -408,7 +408,7 @@ gt1(ucs_now%>%
   overflow-x: hidden;
 }
 
-#spxynwtjkj .gt_stub {
+#nnvzcayguz .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -421,7 +421,7 @@ gt1(ucs_now%>%
   padding-right: 5px;
 }
 
-#spxynwtjkj .gt_stub_row_group {
+#nnvzcayguz .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -435,15 +435,15 @@ gt1(ucs_now%>%
   vertical-align: top;
 }
 
-#spxynwtjkj .gt_row_group_first td {
+#nnvzcayguz .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#spxynwtjkj .gt_row_group_first th {
+#nnvzcayguz .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#spxynwtjkj .gt_summary_row {
+#nnvzcayguz .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -453,16 +453,16 @@ gt1(ucs_now%>%
   padding-right: 5px;
 }
 
-#spxynwtjkj .gt_first_summary_row {
+#nnvzcayguz .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_first_summary_row.thick {
+#nnvzcayguz .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#spxynwtjkj .gt_last_summary_row {
+#nnvzcayguz .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -472,7 +472,7 @@ gt1(ucs_now%>%
   border-bottom-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_grand_summary_row {
+#nnvzcayguz .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -482,7 +482,7 @@ gt1(ucs_now%>%
   padding-right: 5px;
 }
 
-#spxynwtjkj .gt_first_grand_summary_row {
+#nnvzcayguz .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -492,7 +492,7 @@ gt1(ucs_now%>%
   border-top-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_last_grand_summary_row_top {
+#nnvzcayguz .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -502,11 +502,11 @@ gt1(ucs_now%>%
   border-bottom-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_striped {
+#nnvzcayguz .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#spxynwtjkj .gt_table_body {
+#nnvzcayguz .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -515,7 +515,7 @@ gt1(ucs_now%>%
   border-bottom-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_footnotes {
+#nnvzcayguz .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -529,7 +529,7 @@ gt1(ucs_now%>%
   border-right-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_footnote {
+#nnvzcayguz .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -538,7 +538,7 @@ gt1(ucs_now%>%
   padding-right: 5px;
 }
 
-#spxynwtjkj .gt_sourcenotes {
+#nnvzcayguz .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -552,7 +552,7 @@ gt1(ucs_now%>%
   border-right-color: #D3D3D3;
 }
 
-#spxynwtjkj .gt_sourcenote {
+#nnvzcayguz .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -560,72 +560,72 @@ gt1(ucs_now%>%
   padding-right: 5px;
 }
 
-#spxynwtjkj .gt_left {
+#nnvzcayguz .gt_left {
   text-align: left;
 }
 
-#spxynwtjkj .gt_center {
+#nnvzcayguz .gt_center {
   text-align: center;
 }
 
-#spxynwtjkj .gt_right {
+#nnvzcayguz .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#spxynwtjkj .gt_font_normal {
+#nnvzcayguz .gt_font_normal {
   font-weight: normal;
 }
 
-#spxynwtjkj .gt_font_bold {
+#nnvzcayguz .gt_font_bold {
   font-weight: bold;
 }
 
-#spxynwtjkj .gt_font_italic {
+#nnvzcayguz .gt_font_italic {
   font-style: italic;
 }
 
-#spxynwtjkj .gt_super {
+#nnvzcayguz .gt_super {
   font-size: 65%;
 }
 
-#spxynwtjkj .gt_footnote_marks {
+#nnvzcayguz .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#spxynwtjkj .gt_asterisk {
+#nnvzcayguz .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#spxynwtjkj .gt_indent_1 {
+#nnvzcayguz .gt_indent_1 {
   text-indent: 5px;
 }
 
-#spxynwtjkj .gt_indent_2 {
+#nnvzcayguz .gt_indent_2 {
   text-indent: 10px;
 }
 
-#spxynwtjkj .gt_indent_3 {
+#nnvzcayguz .gt_indent_3 {
   text-indent: 15px;
 }
 
-#spxynwtjkj .gt_indent_4 {
+#nnvzcayguz .gt_indent_4 {
   text-indent: 20px;
 }
 
-#spxynwtjkj .gt_indent_5 {
+#nnvzcayguz .gt_indent_5 {
   text-indent: 25px;
 }
 
-#spxynwtjkj .katex-display {
+#nnvzcayguz .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#spxynwtjkj div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#nnvzcayguz div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -634,15 +634,15 @@ gt1(ucs_now%>%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th id="Uc" class="gt_col_heading gt_columns_bottom_border gt_right"
+<th id="uc" class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Uc</th>
-<th id="Agencia Codigo"
+<th id="agencia_codigo"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Agencia Codigo</th>
-<th id="Dias Coleta"
+<th id="dias_coleta"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Dias Coleta</th>
-<th id="Viagens"
+<th id="viagens"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Viagens</th>
 </tr>
@@ -734,23 +734,23 @@ agencias_municipios_diaria%>%
   head(10)%>%gt1()
 ```
 
-<div id="nfesbfgszh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#nfesbfgszh table {
+<div id="rdeiytosys" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#rdeiytosys table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#nfesbfgszh thead, #nfesbfgszh tbody, #nfesbfgszh tfoot, #nfesbfgszh tr, #nfesbfgszh td, #nfesbfgszh th {
+#rdeiytosys thead, #rdeiytosys tbody, #rdeiytosys tfoot, #rdeiytosys tr, #rdeiytosys td, #rdeiytosys th {
   border-style: none;
 }
 
-#nfesbfgszh p {
+#rdeiytosys p {
   margin: 0;
   padding: 0;
 }
 
-#nfesbfgszh .gt_table {
+#rdeiytosys .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -776,12 +776,12 @@ agencias_municipios_diaria%>%
   border-left-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_caption {
+#rdeiytosys .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#nfesbfgszh .gt_title {
+#rdeiytosys .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -793,7 +793,7 @@ agencias_municipios_diaria%>%
   border-bottom-width: 0;
 }
 
-#nfesbfgszh .gt_subtitle {
+#rdeiytosys .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -805,7 +805,7 @@ agencias_municipios_diaria%>%
   border-top-width: 0;
 }
 
-#nfesbfgszh .gt_heading {
+#rdeiytosys .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -817,13 +817,13 @@ agencias_municipios_diaria%>%
   border-right-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_bottom_border {
+#rdeiytosys .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_col_headings {
+#rdeiytosys .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -838,7 +838,7 @@ agencias_municipios_diaria%>%
   border-right-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_col_heading {
+#rdeiytosys .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -858,7 +858,7 @@ agencias_municipios_diaria%>%
   overflow-x: hidden;
 }
 
-#nfesbfgszh .gt_column_spanner_outer {
+#rdeiytosys .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -870,15 +870,15 @@ agencias_municipios_diaria%>%
   padding-right: 4px;
 }
 
-#nfesbfgszh .gt_column_spanner_outer:first-child {
+#rdeiytosys .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#nfesbfgszh .gt_column_spanner_outer:last-child {
+#rdeiytosys .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#nfesbfgszh .gt_column_spanner {
+#rdeiytosys .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -890,11 +890,11 @@ agencias_municipios_diaria%>%
   width: 100%;
 }
 
-#nfesbfgszh .gt_spanner_row {
+#rdeiytosys .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#nfesbfgszh .gt_group_heading {
+#rdeiytosys .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -920,7 +920,7 @@ agencias_municipios_diaria%>%
   text-align: left;
 }
 
-#nfesbfgszh .gt_empty_group_heading {
+#rdeiytosys .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -935,15 +935,15 @@ agencias_municipios_diaria%>%
   vertical-align: middle;
 }
 
-#nfesbfgszh .gt_from_md > :first-child {
+#rdeiytosys .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#nfesbfgszh .gt_from_md > :last-child {
+#rdeiytosys .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#nfesbfgszh .gt_row {
+#rdeiytosys .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -962,7 +962,7 @@ agencias_municipios_diaria%>%
   overflow-x: hidden;
 }
 
-#nfesbfgszh .gt_stub {
+#rdeiytosys .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -975,7 +975,7 @@ agencias_municipios_diaria%>%
   padding-right: 5px;
 }
 
-#nfesbfgszh .gt_stub_row_group {
+#rdeiytosys .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -989,15 +989,15 @@ agencias_municipios_diaria%>%
   vertical-align: top;
 }
 
-#nfesbfgszh .gt_row_group_first td {
+#rdeiytosys .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#nfesbfgszh .gt_row_group_first th {
+#rdeiytosys .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#nfesbfgszh .gt_summary_row {
+#rdeiytosys .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1007,16 +1007,16 @@ agencias_municipios_diaria%>%
   padding-right: 5px;
 }
 
-#nfesbfgszh .gt_first_summary_row {
+#rdeiytosys .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_first_summary_row.thick {
+#rdeiytosys .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#nfesbfgszh .gt_last_summary_row {
+#rdeiytosys .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1026,7 +1026,7 @@ agencias_municipios_diaria%>%
   border-bottom-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_grand_summary_row {
+#rdeiytosys .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1036,7 +1036,7 @@ agencias_municipios_diaria%>%
   padding-right: 5px;
 }
 
-#nfesbfgszh .gt_first_grand_summary_row {
+#rdeiytosys .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1046,7 +1046,7 @@ agencias_municipios_diaria%>%
   border-top-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_last_grand_summary_row_top {
+#rdeiytosys .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1056,11 +1056,11 @@ agencias_municipios_diaria%>%
   border-bottom-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_striped {
+#rdeiytosys .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#nfesbfgszh .gt_table_body {
+#rdeiytosys .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1069,7 +1069,7 @@ agencias_municipios_diaria%>%
   border-bottom-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_footnotes {
+#rdeiytosys .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1083,7 +1083,7 @@ agencias_municipios_diaria%>%
   border-right-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_footnote {
+#rdeiytosys .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1092,7 +1092,7 @@ agencias_municipios_diaria%>%
   padding-right: 5px;
 }
 
-#nfesbfgszh .gt_sourcenotes {
+#rdeiytosys .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1106,7 +1106,7 @@ agencias_municipios_diaria%>%
   border-right-color: #D3D3D3;
 }
 
-#nfesbfgszh .gt_sourcenote {
+#rdeiytosys .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1114,72 +1114,72 @@ agencias_municipios_diaria%>%
   padding-right: 5px;
 }
 
-#nfesbfgszh .gt_left {
+#rdeiytosys .gt_left {
   text-align: left;
 }
 
-#nfesbfgszh .gt_center {
+#rdeiytosys .gt_center {
   text-align: center;
 }
 
-#nfesbfgszh .gt_right {
+#rdeiytosys .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#nfesbfgszh .gt_font_normal {
+#rdeiytosys .gt_font_normal {
   font-weight: normal;
 }
 
-#nfesbfgszh .gt_font_bold {
+#rdeiytosys .gt_font_bold {
   font-weight: bold;
 }
 
-#nfesbfgszh .gt_font_italic {
+#rdeiytosys .gt_font_italic {
   font-style: italic;
 }
 
-#nfesbfgszh .gt_super {
+#rdeiytosys .gt_super {
   font-size: 65%;
 }
 
-#nfesbfgszh .gt_footnote_marks {
+#rdeiytosys .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#nfesbfgszh .gt_asterisk {
+#rdeiytosys .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#nfesbfgszh .gt_indent_1 {
+#rdeiytosys .gt_indent_1 {
   text-indent: 5px;
 }
 
-#nfesbfgszh .gt_indent_2 {
+#rdeiytosys .gt_indent_2 {
   text-indent: 10px;
 }
 
-#nfesbfgszh .gt_indent_3 {
+#rdeiytosys .gt_indent_3 {
   text-indent: 15px;
 }
 
-#nfesbfgszh .gt_indent_4 {
+#rdeiytosys .gt_indent_4 {
   text-indent: 20px;
 }
 
-#nfesbfgszh .gt_indent_5 {
+#rdeiytosys .gt_indent_5 {
   text-indent: 25px;
 }
 
-#nfesbfgszh .katex-display {
+#rdeiytosys .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#nfesbfgszh div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#rdeiytosys div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1188,13 +1188,13 @@ agencias_municipios_diaria%>%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th id="Agencia Codigo"
+<th id="agencia_codigo"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Agencia Codigo</th>
-<th id="Municipio Codigo"
+<th id="municipio_codigo"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Municipio Codigo</th>
-<th id="Diaria Municipio"
+<th id="diaria_municipio"
 class="gt_col_heading gt_columns_bottom_border gt_center"
 data-quarto-table-cell-role="th" scope="col">Diaria Municipio</th>
 </tr>
@@ -1276,23 +1276,23 @@ gt1(distancias_ucs%>%
   head())
 ```
 
-<div id="wmhteikscn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#wmhteikscn table {
+<div id="pjaenwyuxv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#pjaenwyuxv table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#wmhteikscn thead, #wmhteikscn tbody, #wmhteikscn tfoot, #wmhteikscn tr, #wmhteikscn td, #wmhteikscn th {
+#pjaenwyuxv thead, #pjaenwyuxv tbody, #pjaenwyuxv tfoot, #pjaenwyuxv tr, #pjaenwyuxv td, #pjaenwyuxv th {
   border-style: none;
 }
 
-#wmhteikscn p {
+#pjaenwyuxv p {
   margin: 0;
   padding: 0;
 }
 
-#wmhteikscn .gt_table {
+#pjaenwyuxv .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1318,12 +1318,12 @@ gt1(distancias_ucs%>%
   border-left-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_caption {
+#pjaenwyuxv .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#wmhteikscn .gt_title {
+#pjaenwyuxv .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1335,7 +1335,7 @@ gt1(distancias_ucs%>%
   border-bottom-width: 0;
 }
 
-#wmhteikscn .gt_subtitle {
+#pjaenwyuxv .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1347,7 +1347,7 @@ gt1(distancias_ucs%>%
   border-top-width: 0;
 }
 
-#wmhteikscn .gt_heading {
+#pjaenwyuxv .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1359,13 +1359,13 @@ gt1(distancias_ucs%>%
   border-right-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_bottom_border {
+#pjaenwyuxv .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_col_headings {
+#pjaenwyuxv .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1380,7 +1380,7 @@ gt1(distancias_ucs%>%
   border-right-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_col_heading {
+#pjaenwyuxv .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1400,7 +1400,7 @@ gt1(distancias_ucs%>%
   overflow-x: hidden;
 }
 
-#wmhteikscn .gt_column_spanner_outer {
+#pjaenwyuxv .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1412,15 +1412,15 @@ gt1(distancias_ucs%>%
   padding-right: 4px;
 }
 
-#wmhteikscn .gt_column_spanner_outer:first-child {
+#pjaenwyuxv .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#wmhteikscn .gt_column_spanner_outer:last-child {
+#pjaenwyuxv .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#wmhteikscn .gt_column_spanner {
+#pjaenwyuxv .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1432,11 +1432,11 @@ gt1(distancias_ucs%>%
   width: 100%;
 }
 
-#wmhteikscn .gt_spanner_row {
+#pjaenwyuxv .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#wmhteikscn .gt_group_heading {
+#pjaenwyuxv .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1462,7 +1462,7 @@ gt1(distancias_ucs%>%
   text-align: left;
 }
 
-#wmhteikscn .gt_empty_group_heading {
+#pjaenwyuxv .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1477,15 +1477,15 @@ gt1(distancias_ucs%>%
   vertical-align: middle;
 }
 
-#wmhteikscn .gt_from_md > :first-child {
+#pjaenwyuxv .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#wmhteikscn .gt_from_md > :last-child {
+#pjaenwyuxv .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#wmhteikscn .gt_row {
+#pjaenwyuxv .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1504,7 +1504,7 @@ gt1(distancias_ucs%>%
   overflow-x: hidden;
 }
 
-#wmhteikscn .gt_stub {
+#pjaenwyuxv .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1517,7 +1517,7 @@ gt1(distancias_ucs%>%
   padding-right: 5px;
 }
 
-#wmhteikscn .gt_stub_row_group {
+#pjaenwyuxv .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1531,15 +1531,15 @@ gt1(distancias_ucs%>%
   vertical-align: top;
 }
 
-#wmhteikscn .gt_row_group_first td {
+#pjaenwyuxv .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#wmhteikscn .gt_row_group_first th {
+#pjaenwyuxv .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#wmhteikscn .gt_summary_row {
+#pjaenwyuxv .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1549,16 +1549,16 @@ gt1(distancias_ucs%>%
   padding-right: 5px;
 }
 
-#wmhteikscn .gt_first_summary_row {
+#pjaenwyuxv .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_first_summary_row.thick {
+#pjaenwyuxv .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#wmhteikscn .gt_last_summary_row {
+#pjaenwyuxv .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1568,7 +1568,7 @@ gt1(distancias_ucs%>%
   border-bottom-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_grand_summary_row {
+#pjaenwyuxv .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1578,7 +1578,7 @@ gt1(distancias_ucs%>%
   padding-right: 5px;
 }
 
-#wmhteikscn .gt_first_grand_summary_row {
+#pjaenwyuxv .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1588,7 +1588,7 @@ gt1(distancias_ucs%>%
   border-top-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_last_grand_summary_row_top {
+#pjaenwyuxv .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1598,11 +1598,11 @@ gt1(distancias_ucs%>%
   border-bottom-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_striped {
+#pjaenwyuxv .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#wmhteikscn .gt_table_body {
+#pjaenwyuxv .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1611,7 +1611,7 @@ gt1(distancias_ucs%>%
   border-bottom-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_footnotes {
+#pjaenwyuxv .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1625,7 +1625,7 @@ gt1(distancias_ucs%>%
   border-right-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_footnote {
+#pjaenwyuxv .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -1634,7 +1634,7 @@ gt1(distancias_ucs%>%
   padding-right: 5px;
 }
 
-#wmhteikscn .gt_sourcenotes {
+#pjaenwyuxv .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1648,7 +1648,7 @@ gt1(distancias_ucs%>%
   border-right-color: #D3D3D3;
 }
 
-#wmhteikscn .gt_sourcenote {
+#pjaenwyuxv .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -1656,72 +1656,72 @@ gt1(distancias_ucs%>%
   padding-right: 5px;
 }
 
-#wmhteikscn .gt_left {
+#pjaenwyuxv .gt_left {
   text-align: left;
 }
 
-#wmhteikscn .gt_center {
+#pjaenwyuxv .gt_center {
   text-align: center;
 }
 
-#wmhteikscn .gt_right {
+#pjaenwyuxv .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#wmhteikscn .gt_font_normal {
+#pjaenwyuxv .gt_font_normal {
   font-weight: normal;
 }
 
-#wmhteikscn .gt_font_bold {
+#pjaenwyuxv .gt_font_bold {
   font-weight: bold;
 }
 
-#wmhteikscn .gt_font_italic {
+#pjaenwyuxv .gt_font_italic {
   font-style: italic;
 }
 
-#wmhteikscn .gt_super {
+#pjaenwyuxv .gt_super {
   font-size: 65%;
 }
 
-#wmhteikscn .gt_footnote_marks {
+#pjaenwyuxv .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#wmhteikscn .gt_asterisk {
+#pjaenwyuxv .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#wmhteikscn .gt_indent_1 {
+#pjaenwyuxv .gt_indent_1 {
   text-indent: 5px;
 }
 
-#wmhteikscn .gt_indent_2 {
+#pjaenwyuxv .gt_indent_2 {
   text-indent: 10px;
 }
 
-#wmhteikscn .gt_indent_3 {
+#pjaenwyuxv .gt_indent_3 {
   text-indent: 15px;
 }
 
-#wmhteikscn .gt_indent_4 {
+#pjaenwyuxv .gt_indent_4 {
   text-indent: 20px;
 }
 
-#wmhteikscn .gt_indent_5 {
+#pjaenwyuxv .gt_indent_5 {
   text-indent: 25px;
 }
 
-#wmhteikscn .katex-display {
+#pjaenwyuxv .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#wmhteikscn div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#pjaenwyuxv div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1730,21 +1730,21 @@ gt1(distancias_ucs%>%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th id="Agencia Codigo"
+<th id="agencia_codigo"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Agencia Codigo</th>
-<th id="Uc" class="gt_col_heading gt_columns_bottom_border gt_right"
+<th id="uc" class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Uc</th>
-<th id="Distancia Km"
+<th id="distancia_km"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Distancia Km</th>
-<th id="Duracao Horas"
+<th id="duracao_horas"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Duracao Horas</th>
-<th id="Diaria Municipio"
+<th id="diaria_municipio"
 class="gt_col_heading gt_columns_bottom_border gt_center"
 data-quarto-table-cell-role="th" scope="col">Diaria Municipio</th>
-<th id="Diaria Pernoite"
+<th id="diaria_pernoite"
 class="gt_col_heading gt_columns_bottom_border gt_center"
 data-quarto-table-cell-role="th" scope="col">Diaria Pernoite</th>
 </tr>
@@ -1813,7 +1813,7 @@ Estamos, agora, prontos para calcular os custos de coleta.
 params_munic <- params[names(params)%in%params_alocar_ucs]
 params_munic$remuneracao_entrevistador <- 0
 
-params_munic$agencias <- agencias_now%>%mutate(dias_coleta_agencia_max=params$dias_coleta_agencia_max_munic)
+params_munic$agencias <- agencias_now%>%mutate(dias_coleta_agencia_max=Inf)
 params_munic$distancias_ucs <- distancias_ucs
 params_munic$ucs <- ucs_now
 params_munic$resultado_completo <- TRUE
@@ -1842,10 +1842,10 @@ print(lapply(params_munic,head,2))
 #> [1] "cbc"
 #> 
 #> $max_time
-#> [1] 9000
+#> [1] 1800
 #> 
 #> $rel_tol
-#> [1] 0,02
+#> [1] 0,01
 #> 
 #> $agencias
 #> Simple feature collection with 2 features and 9 fields
@@ -1859,7 +1859,7 @@ print(lapply(params_munic,head,2))
 #> 1 32        320020100      Alegre                  593         -20.8       -41.5
 #> 2 32        320120900      Cachoeiro de Itapemirim 594         -20.8       -41.1
 #> # ℹ 4 more variables: geometry <POINT [°]>, custo_fixo <dbl>,
-#> #   max_uc_agencia <dbl>, dias_coleta_agencia_max <chr>
+#> #   max_uc_agencia <dbl>, dias_coleta_agencia_max <dbl>
 #> 
 #> $distancias_ucs
 #>   agencia_codigo municipio_codigo distancia_km duracao_horas diaria_municipio
@@ -1910,23 +1910,23 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   print_gt()
 ```
 
-<div id="djwhrqpbqk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#djwhrqpbqk table {
+<div id="pdubraonbt" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#pdubraonbt table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#djwhrqpbqk thead, #djwhrqpbqk tbody, #djwhrqpbqk tfoot, #djwhrqpbqk tr, #djwhrqpbqk td, #djwhrqpbqk th {
+#pdubraonbt thead, #pdubraonbt tbody, #pdubraonbt tfoot, #pdubraonbt tr, #pdubraonbt td, #pdubraonbt th {
   border-style: none;
 }
 
-#djwhrqpbqk p {
+#pdubraonbt p {
   margin: 0;
   padding: 0;
 }
 
-#djwhrqpbqk .gt_table {
+#pdubraonbt .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -1952,12 +1952,12 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-left-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_caption {
+#pdubraonbt .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#djwhrqpbqk .gt_title {
+#pdubraonbt .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1969,7 +1969,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-bottom-width: 0;
 }
 
-#djwhrqpbqk .gt_subtitle {
+#pdubraonbt .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1981,7 +1981,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-top-width: 0;
 }
 
-#djwhrqpbqk .gt_heading {
+#pdubraonbt .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1993,13 +1993,13 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-right-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_bottom_border {
+#pdubraonbt .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_col_headings {
+#pdubraonbt .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -2014,7 +2014,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-right-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_col_heading {
+#pdubraonbt .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2034,7 +2034,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   overflow-x: hidden;
 }
 
-#djwhrqpbqk .gt_column_spanner_outer {
+#pdubraonbt .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2046,15 +2046,15 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   padding-right: 4px;
 }
 
-#djwhrqpbqk .gt_column_spanner_outer:first-child {
+#pdubraonbt .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#djwhrqpbqk .gt_column_spanner_outer:last-child {
+#pdubraonbt .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#djwhrqpbqk .gt_column_spanner {
+#pdubraonbt .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -2066,11 +2066,11 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   width: 100%;
 }
 
-#djwhrqpbqk .gt_spanner_row {
+#pdubraonbt .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#djwhrqpbqk .gt_group_heading {
+#pdubraonbt .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2096,7 +2096,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   text-align: left;
 }
 
-#djwhrqpbqk .gt_empty_group_heading {
+#pdubraonbt .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -2111,15 +2111,15 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   vertical-align: middle;
 }
 
-#djwhrqpbqk .gt_from_md > :first-child {
+#pdubraonbt .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#djwhrqpbqk .gt_from_md > :last-child {
+#pdubraonbt .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#djwhrqpbqk .gt_row {
+#pdubraonbt .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2138,7 +2138,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   overflow-x: hidden;
 }
 
-#djwhrqpbqk .gt_stub {
+#pdubraonbt .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2151,7 +2151,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   padding-right: 5px;
 }
 
-#djwhrqpbqk .gt_stub_row_group {
+#pdubraonbt .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2165,15 +2165,15 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   vertical-align: top;
 }
 
-#djwhrqpbqk .gt_row_group_first td {
+#pdubraonbt .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#djwhrqpbqk .gt_row_group_first th {
+#pdubraonbt .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#djwhrqpbqk .gt_summary_row {
+#pdubraonbt .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2183,16 +2183,16 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   padding-right: 5px;
 }
 
-#djwhrqpbqk .gt_first_summary_row {
+#pdubraonbt .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_first_summary_row.thick {
+#pdubraonbt .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#djwhrqpbqk .gt_last_summary_row {
+#pdubraonbt .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2202,7 +2202,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-bottom-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_grand_summary_row {
+#pdubraonbt .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2212,7 +2212,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   padding-right: 5px;
 }
 
-#djwhrqpbqk .gt_first_grand_summary_row {
+#pdubraonbt .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2222,7 +2222,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-top-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_last_grand_summary_row_top {
+#pdubraonbt .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2232,11 +2232,11 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-bottom-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_striped {
+#pdubraonbt .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#djwhrqpbqk .gt_table_body {
+#pdubraonbt .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -2245,7 +2245,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-bottom-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_footnotes {
+#pdubraonbt .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2259,7 +2259,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-right-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_footnote {
+#pdubraonbt .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -2268,7 +2268,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   padding-right: 5px;
 }
 
-#djwhrqpbqk .gt_sourcenotes {
+#pdubraonbt .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2282,7 +2282,7 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   border-right-color: #D3D3D3;
 }
 
-#djwhrqpbqk .gt_sourcenote {
+#pdubraonbt .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -2290,72 +2290,72 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
   padding-right: 5px;
 }
 
-#djwhrqpbqk .gt_left {
+#pdubraonbt .gt_left {
   text-align: left;
 }
 
-#djwhrqpbqk .gt_center {
+#pdubraonbt .gt_center {
   text-align: center;
 }
 
-#djwhrqpbqk .gt_right {
+#pdubraonbt .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#djwhrqpbqk .gt_font_normal {
+#pdubraonbt .gt_font_normal {
   font-weight: normal;
 }
 
-#djwhrqpbqk .gt_font_bold {
+#pdubraonbt .gt_font_bold {
   font-weight: bold;
 }
 
-#djwhrqpbqk .gt_font_italic {
+#pdubraonbt .gt_font_italic {
   font-style: italic;
 }
 
-#djwhrqpbqk .gt_super {
+#pdubraonbt .gt_super {
   font-size: 65%;
 }
 
-#djwhrqpbqk .gt_footnote_marks {
+#pdubraonbt .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#djwhrqpbqk .gt_asterisk {
+#pdubraonbt .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#djwhrqpbqk .gt_indent_1 {
+#pdubraonbt .gt_indent_1 {
   text-indent: 5px;
 }
 
-#djwhrqpbqk .gt_indent_2 {
+#pdubraonbt .gt_indent_2 {
   text-indent: 10px;
 }
 
-#djwhrqpbqk .gt_indent_3 {
+#pdubraonbt .gt_indent_3 {
   text-indent: 15px;
 }
 
-#djwhrqpbqk .gt_indent_4 {
+#pdubraonbt .gt_indent_4 {
   text-indent: 20px;
 }
 
-#djwhrqpbqk .gt_indent_5 {
+#pdubraonbt .gt_indent_5 {
   text-indent: 25px;
 }
 
-#djwhrqpbqk .katex-display {
+#pdubraonbt .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#djwhrqpbqk div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#pdubraonbt div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -2364,21 +2364,21 @@ gt(j%>%ungroup, groupname_col = 'assistencia_nome', rowname_col='agencia_nome')%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th class="gt_col_heading gt_columns_bottom_border gt_left"
+<th id="a::stub" class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col"></th>
-<th id="Municipios"
+<th id="municipios"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Municipios</th>
-<th id="Total Diarias"
+<th id="total_diarias"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Total Diarias</th>
-<th id="Custo Diarias"
+<th id="custo_diarias"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Diarias</th>
-<th id="Distancia Total Km"
+<th id="distancia_total_km"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Distancia Total Km</th>
-<th id="Custo Combustivel"
+<th id="custo_combustivel"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Combustivel</th>
 </tr>
@@ -2570,23 +2570,23 @@ mnow%>%
   gt1()
 ```
 
-<div id="dkiyrrwgeh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#dkiyrrwgeh table {
+<div id="kkwcvehqfn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#kkwcvehqfn table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#dkiyrrwgeh thead, #dkiyrrwgeh tbody, #dkiyrrwgeh tfoot, #dkiyrrwgeh tr, #dkiyrrwgeh td, #dkiyrrwgeh th {
+#kkwcvehqfn thead, #kkwcvehqfn tbody, #kkwcvehqfn tfoot, #kkwcvehqfn tr, #kkwcvehqfn td, #kkwcvehqfn th {
   border-style: none;
 }
 
-#dkiyrrwgeh p {
+#kkwcvehqfn p {
   margin: 0;
   padding: 0;
 }
 
-#dkiyrrwgeh .gt_table {
+#kkwcvehqfn .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -2612,12 +2612,12 @@ mnow%>%
   border-left-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_caption {
+#kkwcvehqfn .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#dkiyrrwgeh .gt_title {
+#kkwcvehqfn .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -2629,7 +2629,7 @@ mnow%>%
   border-bottom-width: 0;
 }
 
-#dkiyrrwgeh .gt_subtitle {
+#kkwcvehqfn .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -2641,7 +2641,7 @@ mnow%>%
   border-top-width: 0;
 }
 
-#dkiyrrwgeh .gt_heading {
+#kkwcvehqfn .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -2653,13 +2653,13 @@ mnow%>%
   border-right-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_bottom_border {
+#kkwcvehqfn .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_col_headings {
+#kkwcvehqfn .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -2674,7 +2674,7 @@ mnow%>%
   border-right-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_col_heading {
+#kkwcvehqfn .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2694,7 +2694,7 @@ mnow%>%
   overflow-x: hidden;
 }
 
-#dkiyrrwgeh .gt_column_spanner_outer {
+#kkwcvehqfn .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2706,15 +2706,15 @@ mnow%>%
   padding-right: 4px;
 }
 
-#dkiyrrwgeh .gt_column_spanner_outer:first-child {
+#kkwcvehqfn .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#dkiyrrwgeh .gt_column_spanner_outer:last-child {
+#kkwcvehqfn .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#dkiyrrwgeh .gt_column_spanner {
+#kkwcvehqfn .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -2726,11 +2726,11 @@ mnow%>%
   width: 100%;
 }
 
-#dkiyrrwgeh .gt_spanner_row {
+#kkwcvehqfn .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#dkiyrrwgeh .gt_group_heading {
+#kkwcvehqfn .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2756,7 +2756,7 @@ mnow%>%
   text-align: left;
 }
 
-#dkiyrrwgeh .gt_empty_group_heading {
+#kkwcvehqfn .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -2771,15 +2771,15 @@ mnow%>%
   vertical-align: middle;
 }
 
-#dkiyrrwgeh .gt_from_md > :first-child {
+#kkwcvehqfn .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#dkiyrrwgeh .gt_from_md > :last-child {
+#kkwcvehqfn .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#dkiyrrwgeh .gt_row {
+#kkwcvehqfn .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2798,7 +2798,7 @@ mnow%>%
   overflow-x: hidden;
 }
 
-#dkiyrrwgeh .gt_stub {
+#kkwcvehqfn .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2811,7 +2811,7 @@ mnow%>%
   padding-right: 5px;
 }
 
-#dkiyrrwgeh .gt_stub_row_group {
+#kkwcvehqfn .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -2825,15 +2825,15 @@ mnow%>%
   vertical-align: top;
 }
 
-#dkiyrrwgeh .gt_row_group_first td {
+#kkwcvehqfn .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#dkiyrrwgeh .gt_row_group_first th {
+#kkwcvehqfn .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#dkiyrrwgeh .gt_summary_row {
+#kkwcvehqfn .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2843,16 +2843,16 @@ mnow%>%
   padding-right: 5px;
 }
 
-#dkiyrrwgeh .gt_first_summary_row {
+#kkwcvehqfn .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_first_summary_row.thick {
+#kkwcvehqfn .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#dkiyrrwgeh .gt_last_summary_row {
+#kkwcvehqfn .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2862,7 +2862,7 @@ mnow%>%
   border-bottom-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_grand_summary_row {
+#kkwcvehqfn .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -2872,7 +2872,7 @@ mnow%>%
   padding-right: 5px;
 }
 
-#dkiyrrwgeh .gt_first_grand_summary_row {
+#kkwcvehqfn .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2882,7 +2882,7 @@ mnow%>%
   border-top-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_last_grand_summary_row_top {
+#kkwcvehqfn .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -2892,11 +2892,11 @@ mnow%>%
   border-bottom-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_striped {
+#kkwcvehqfn .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#dkiyrrwgeh .gt_table_body {
+#kkwcvehqfn .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -2905,7 +2905,7 @@ mnow%>%
   border-bottom-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_footnotes {
+#kkwcvehqfn .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2919,7 +2919,7 @@ mnow%>%
   border-right-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_footnote {
+#kkwcvehqfn .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -2928,7 +2928,7 @@ mnow%>%
   padding-right: 5px;
 }
 
-#dkiyrrwgeh .gt_sourcenotes {
+#kkwcvehqfn .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -2942,7 +2942,7 @@ mnow%>%
   border-right-color: #D3D3D3;
 }
 
-#dkiyrrwgeh .gt_sourcenote {
+#kkwcvehqfn .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -2950,72 +2950,72 @@ mnow%>%
   padding-right: 5px;
 }
 
-#dkiyrrwgeh .gt_left {
+#kkwcvehqfn .gt_left {
   text-align: left;
 }
 
-#dkiyrrwgeh .gt_center {
+#kkwcvehqfn .gt_center {
   text-align: center;
 }
 
-#dkiyrrwgeh .gt_right {
+#kkwcvehqfn .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#dkiyrrwgeh .gt_font_normal {
+#kkwcvehqfn .gt_font_normal {
   font-weight: normal;
 }
 
-#dkiyrrwgeh .gt_font_bold {
+#kkwcvehqfn .gt_font_bold {
   font-weight: bold;
 }
 
-#dkiyrrwgeh .gt_font_italic {
+#kkwcvehqfn .gt_font_italic {
   font-style: italic;
 }
 
-#dkiyrrwgeh .gt_super {
+#kkwcvehqfn .gt_super {
   font-size: 65%;
 }
 
-#dkiyrrwgeh .gt_footnote_marks {
+#kkwcvehqfn .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#dkiyrrwgeh .gt_asterisk {
+#kkwcvehqfn .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#dkiyrrwgeh .gt_indent_1 {
+#kkwcvehqfn .gt_indent_1 {
   text-indent: 5px;
 }
 
-#dkiyrrwgeh .gt_indent_2 {
+#kkwcvehqfn .gt_indent_2 {
   text-indent: 10px;
 }
 
-#dkiyrrwgeh .gt_indent_3 {
+#kkwcvehqfn .gt_indent_3 {
   text-indent: 15px;
 }
 
-#dkiyrrwgeh .gt_indent_4 {
+#kkwcvehqfn .gt_indent_4 {
   text-indent: 20px;
 }
 
-#dkiyrrwgeh .gt_indent_5 {
+#kkwcvehqfn .gt_indent_5 {
   text-indent: 25px;
 }
 
-#dkiyrrwgeh .katex-display {
+#kkwcvehqfn .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#dkiyrrwgeh div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#kkwcvehqfn div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -3024,16 +3024,16 @@ mnow%>%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th id="Municipio "
+<th id="municipio_nome"
 class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Municipio</th>
-<th id="Agencia "
+<th id="agencia_nome"
 class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Agencia</th>
-<th id="Custo Diarias"
+<th id="custo_diarias"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Diarias</th>
-<th id="Custo Combustivel"
+<th id="custo_combustivel"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Combustivel</th>
 </tr>
@@ -3135,23 +3135,23 @@ res$ucs_agencias_todas%>%
   print_gt()
 ```
 
-<div id="amxhftxmev" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#amxhftxmev table {
+<div id="cldpqlkhod" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#cldpqlkhod table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#amxhftxmev thead, #amxhftxmev tbody, #amxhftxmev tfoot, #amxhftxmev tr, #amxhftxmev td, #amxhftxmev th {
+#cldpqlkhod thead, #cldpqlkhod tbody, #cldpqlkhod tfoot, #cldpqlkhod tr, #cldpqlkhod td, #cldpqlkhod th {
   border-style: none;
 }
 
-#amxhftxmev p {
+#cldpqlkhod p {
   margin: 0;
   padding: 0;
 }
 
-#amxhftxmev .gt_table {
+#cldpqlkhod .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -3177,12 +3177,12 @@ res$ucs_agencias_todas%>%
   border-left-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_caption {
+#cldpqlkhod .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#amxhftxmev .gt_title {
+#cldpqlkhod .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -3194,7 +3194,7 @@ res$ucs_agencias_todas%>%
   border-bottom-width: 0;
 }
 
-#amxhftxmev .gt_subtitle {
+#cldpqlkhod .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -3206,7 +3206,7 @@ res$ucs_agencias_todas%>%
   border-top-width: 0;
 }
 
-#amxhftxmev .gt_heading {
+#cldpqlkhod .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -3218,13 +3218,13 @@ res$ucs_agencias_todas%>%
   border-right-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_bottom_border {
+#cldpqlkhod .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_col_headings {
+#cldpqlkhod .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -3239,7 +3239,7 @@ res$ucs_agencias_todas%>%
   border-right-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_col_heading {
+#cldpqlkhod .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3259,7 +3259,7 @@ res$ucs_agencias_todas%>%
   overflow-x: hidden;
 }
 
-#amxhftxmev .gt_column_spanner_outer {
+#cldpqlkhod .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3271,15 +3271,15 @@ res$ucs_agencias_todas%>%
   padding-right: 4px;
 }
 
-#amxhftxmev .gt_column_spanner_outer:first-child {
+#cldpqlkhod .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#amxhftxmev .gt_column_spanner_outer:last-child {
+#cldpqlkhod .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#amxhftxmev .gt_column_spanner {
+#cldpqlkhod .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -3291,11 +3291,11 @@ res$ucs_agencias_todas%>%
   width: 100%;
 }
 
-#amxhftxmev .gt_spanner_row {
+#cldpqlkhod .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#amxhftxmev .gt_group_heading {
+#cldpqlkhod .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3321,7 +3321,7 @@ res$ucs_agencias_todas%>%
   text-align: left;
 }
 
-#amxhftxmev .gt_empty_group_heading {
+#cldpqlkhod .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -3336,15 +3336,15 @@ res$ucs_agencias_todas%>%
   vertical-align: middle;
 }
 
-#amxhftxmev .gt_from_md > :first-child {
+#cldpqlkhod .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#amxhftxmev .gt_from_md > :last-child {
+#cldpqlkhod .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#amxhftxmev .gt_row {
+#cldpqlkhod .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3363,7 +3363,7 @@ res$ucs_agencias_todas%>%
   overflow-x: hidden;
 }
 
-#amxhftxmev .gt_stub {
+#cldpqlkhod .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3376,7 +3376,7 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#amxhftxmev .gt_stub_row_group {
+#cldpqlkhod .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3390,15 +3390,15 @@ res$ucs_agencias_todas%>%
   vertical-align: top;
 }
 
-#amxhftxmev .gt_row_group_first td {
+#cldpqlkhod .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#amxhftxmev .gt_row_group_first th {
+#cldpqlkhod .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#amxhftxmev .gt_summary_row {
+#cldpqlkhod .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -3408,16 +3408,16 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#amxhftxmev .gt_first_summary_row {
+#cldpqlkhod .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_first_summary_row.thick {
+#cldpqlkhod .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#amxhftxmev .gt_last_summary_row {
+#cldpqlkhod .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3427,7 +3427,7 @@ res$ucs_agencias_todas%>%
   border-bottom-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_grand_summary_row {
+#cldpqlkhod .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -3437,7 +3437,7 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#amxhftxmev .gt_first_grand_summary_row {
+#cldpqlkhod .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3447,7 +3447,7 @@ res$ucs_agencias_todas%>%
   border-top-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_last_grand_summary_row_top {
+#cldpqlkhod .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3457,11 +3457,11 @@ res$ucs_agencias_todas%>%
   border-bottom-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_striped {
+#cldpqlkhod .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#amxhftxmev .gt_table_body {
+#cldpqlkhod .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -3470,7 +3470,7 @@ res$ucs_agencias_todas%>%
   border-bottom-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_footnotes {
+#cldpqlkhod .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -3484,7 +3484,7 @@ res$ucs_agencias_todas%>%
   border-right-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_footnote {
+#cldpqlkhod .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -3493,7 +3493,7 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#amxhftxmev .gt_sourcenotes {
+#cldpqlkhod .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -3507,7 +3507,7 @@ res$ucs_agencias_todas%>%
   border-right-color: #D3D3D3;
 }
 
-#amxhftxmev .gt_sourcenote {
+#cldpqlkhod .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -3515,72 +3515,72 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#amxhftxmev .gt_left {
+#cldpqlkhod .gt_left {
   text-align: left;
 }
 
-#amxhftxmev .gt_center {
+#cldpqlkhod .gt_center {
   text-align: center;
 }
 
-#amxhftxmev .gt_right {
+#cldpqlkhod .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#amxhftxmev .gt_font_normal {
+#cldpqlkhod .gt_font_normal {
   font-weight: normal;
 }
 
-#amxhftxmev .gt_font_bold {
+#cldpqlkhod .gt_font_bold {
   font-weight: bold;
 }
 
-#amxhftxmev .gt_font_italic {
+#cldpqlkhod .gt_font_italic {
   font-style: italic;
 }
 
-#amxhftxmev .gt_super {
+#cldpqlkhod .gt_super {
   font-size: 65%;
 }
 
-#amxhftxmev .gt_footnote_marks {
+#cldpqlkhod .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#amxhftxmev .gt_asterisk {
+#cldpqlkhod .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#amxhftxmev .gt_indent_1 {
+#cldpqlkhod .gt_indent_1 {
   text-indent: 5px;
 }
 
-#amxhftxmev .gt_indent_2 {
+#cldpqlkhod .gt_indent_2 {
   text-indent: 10px;
 }
 
-#amxhftxmev .gt_indent_3 {
+#cldpqlkhod .gt_indent_3 {
   text-indent: 15px;
 }
 
-#amxhftxmev .gt_indent_4 {
+#cldpqlkhod .gt_indent_4 {
   text-indent: 20px;
 }
 
-#amxhftxmev .gt_indent_5 {
+#cldpqlkhod .gt_indent_5 {
   text-indent: 25px;
 }
 
-#amxhftxmev .katex-display {
+#cldpqlkhod .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#amxhftxmev div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#cldpqlkhod div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -3589,19 +3589,19 @@ res$ucs_agencias_todas%>%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th id="Agencia "
+<th id="agencia_nome"
 class="gt_col_heading gt_columns_bottom_border gt_center"
 data-quarto-table-cell-role="th" scope="col">Agencia</th>
-<th id="Duracao Horas"
+<th id="duracao_horas"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Duracao Horas</th>
-<th id="Distancia Km"
+<th id="distancia_km"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Distancia Km</th>
-<th id="Custo Diarias"
+<th id="custo_diarias"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Diarias</th>
-<th id="Custo Combustivel"
+<th id="custo_combustivel"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Combustivel</th>
 </tr>
@@ -3667,23 +3667,23 @@ res$ucs_agencias_todas%>%
   print_gt()
 ```
 
-<div id="uuzbxjauud" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#uuzbxjauud table {
+<div id="kjuynxddpv" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#kjuynxddpv table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#uuzbxjauud thead, #uuzbxjauud tbody, #uuzbxjauud tfoot, #uuzbxjauud tr, #uuzbxjauud td, #uuzbxjauud th {
+#kjuynxddpv thead, #kjuynxddpv tbody, #kjuynxddpv tfoot, #kjuynxddpv tr, #kjuynxddpv td, #kjuynxddpv th {
   border-style: none;
 }
 
-#uuzbxjauud p {
+#kjuynxddpv p {
   margin: 0;
   padding: 0;
 }
 
-#uuzbxjauud .gt_table {
+#kjuynxddpv .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -3709,12 +3709,12 @@ res$ucs_agencias_todas%>%
   border-left-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_caption {
+#kjuynxddpv .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#uuzbxjauud .gt_title {
+#kjuynxddpv .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -3726,7 +3726,7 @@ res$ucs_agencias_todas%>%
   border-bottom-width: 0;
 }
 
-#uuzbxjauud .gt_subtitle {
+#kjuynxddpv .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -3738,7 +3738,7 @@ res$ucs_agencias_todas%>%
   border-top-width: 0;
 }
 
-#uuzbxjauud .gt_heading {
+#kjuynxddpv .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -3750,13 +3750,13 @@ res$ucs_agencias_todas%>%
   border-right-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_bottom_border {
+#kjuynxddpv .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_col_headings {
+#kjuynxddpv .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -3771,7 +3771,7 @@ res$ucs_agencias_todas%>%
   border-right-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_col_heading {
+#kjuynxddpv .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3791,7 +3791,7 @@ res$ucs_agencias_todas%>%
   overflow-x: hidden;
 }
 
-#uuzbxjauud .gt_column_spanner_outer {
+#kjuynxddpv .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3803,15 +3803,15 @@ res$ucs_agencias_todas%>%
   padding-right: 4px;
 }
 
-#uuzbxjauud .gt_column_spanner_outer:first-child {
+#kjuynxddpv .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#uuzbxjauud .gt_column_spanner_outer:last-child {
+#kjuynxddpv .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#uuzbxjauud .gt_column_spanner {
+#kjuynxddpv .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -3823,11 +3823,11 @@ res$ucs_agencias_todas%>%
   width: 100%;
 }
 
-#uuzbxjauud .gt_spanner_row {
+#kjuynxddpv .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#uuzbxjauud .gt_group_heading {
+#kjuynxddpv .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3853,7 +3853,7 @@ res$ucs_agencias_todas%>%
   text-align: left;
 }
 
-#uuzbxjauud .gt_empty_group_heading {
+#kjuynxddpv .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -3868,15 +3868,15 @@ res$ucs_agencias_todas%>%
   vertical-align: middle;
 }
 
-#uuzbxjauud .gt_from_md > :first-child {
+#kjuynxddpv .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#uuzbxjauud .gt_from_md > :last-child {
+#kjuynxddpv .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#uuzbxjauud .gt_row {
+#kjuynxddpv .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3895,7 +3895,7 @@ res$ucs_agencias_todas%>%
   overflow-x: hidden;
 }
 
-#uuzbxjauud .gt_stub {
+#kjuynxddpv .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3908,7 +3908,7 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#uuzbxjauud .gt_stub_row_group {
+#kjuynxddpv .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -3922,15 +3922,15 @@ res$ucs_agencias_todas%>%
   vertical-align: top;
 }
 
-#uuzbxjauud .gt_row_group_first td {
+#kjuynxddpv .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#uuzbxjauud .gt_row_group_first th {
+#kjuynxddpv .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#uuzbxjauud .gt_summary_row {
+#kjuynxddpv .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -3940,16 +3940,16 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#uuzbxjauud .gt_first_summary_row {
+#kjuynxddpv .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_first_summary_row.thick {
+#kjuynxddpv .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#uuzbxjauud .gt_last_summary_row {
+#kjuynxddpv .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3959,7 +3959,7 @@ res$ucs_agencias_todas%>%
   border-bottom-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_grand_summary_row {
+#kjuynxddpv .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -3969,7 +3969,7 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#uuzbxjauud .gt_first_grand_summary_row {
+#kjuynxddpv .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3979,7 +3979,7 @@ res$ucs_agencias_todas%>%
   border-top-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_last_grand_summary_row_top {
+#kjuynxddpv .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -3989,11 +3989,11 @@ res$ucs_agencias_todas%>%
   border-bottom-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_striped {
+#kjuynxddpv .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#uuzbxjauud .gt_table_body {
+#kjuynxddpv .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -4002,7 +4002,7 @@ res$ucs_agencias_todas%>%
   border-bottom-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_footnotes {
+#kjuynxddpv .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -4016,7 +4016,7 @@ res$ucs_agencias_todas%>%
   border-right-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_footnote {
+#kjuynxddpv .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -4025,7 +4025,7 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#uuzbxjauud .gt_sourcenotes {
+#kjuynxddpv .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -4039,7 +4039,7 @@ res$ucs_agencias_todas%>%
   border-right-color: #D3D3D3;
 }
 
-#uuzbxjauud .gt_sourcenote {
+#kjuynxddpv .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -4047,72 +4047,72 @@ res$ucs_agencias_todas%>%
   padding-right: 5px;
 }
 
-#uuzbxjauud .gt_left {
+#kjuynxddpv .gt_left {
   text-align: left;
 }
 
-#uuzbxjauud .gt_center {
+#kjuynxddpv .gt_center {
   text-align: center;
 }
 
-#uuzbxjauud .gt_right {
+#kjuynxddpv .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#uuzbxjauud .gt_font_normal {
+#kjuynxddpv .gt_font_normal {
   font-weight: normal;
 }
 
-#uuzbxjauud .gt_font_bold {
+#kjuynxddpv .gt_font_bold {
   font-weight: bold;
 }
 
-#uuzbxjauud .gt_font_italic {
+#kjuynxddpv .gt_font_italic {
   font-style: italic;
 }
 
-#uuzbxjauud .gt_super {
+#kjuynxddpv .gt_super {
   font-size: 65%;
 }
 
-#uuzbxjauud .gt_footnote_marks {
+#kjuynxddpv .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#uuzbxjauud .gt_asterisk {
+#kjuynxddpv .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#uuzbxjauud .gt_indent_1 {
+#kjuynxddpv .gt_indent_1 {
   text-indent: 5px;
 }
 
-#uuzbxjauud .gt_indent_2 {
+#kjuynxddpv .gt_indent_2 {
   text-indent: 10px;
 }
 
-#uuzbxjauud .gt_indent_3 {
+#kjuynxddpv .gt_indent_3 {
   text-indent: 15px;
 }
 
-#uuzbxjauud .gt_indent_4 {
+#kjuynxddpv .gt_indent_4 {
   text-indent: 20px;
 }
 
-#uuzbxjauud .gt_indent_5 {
+#kjuynxddpv .gt_indent_5 {
   text-indent: 25px;
 }
 
-#uuzbxjauud .katex-display {
+#kjuynxddpv .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#uuzbxjauud div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#kjuynxddpv div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -4121,22 +4121,22 @@ res$ucs_agencias_todas%>%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th id="Municipio "
+<th id="municipio_nome"
 class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Municipio</th>
-<th id="Agencia "
+<th id="agencia_nome"
 class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Agencia</th>
-<th id="Distancia Km"
+<th id="distancia_km"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Distancia Km</th>
-<th id="Duracao Horas"
+<th id="duracao_horas"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Duracao Horas</th>
-<th id="Custo Diarias"
+<th id="custo_diarias"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Diarias</th>
-<th id="Custo Combustivel"
+<th id="custo_combustivel"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Combustivel</th>
 </tr>
@@ -4255,23 +4255,23 @@ if (nrow(mudancas)>0) {
 }
 ```
 
-<div id="qrelpcwqhs" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#qrelpcwqhs table {
+<div id="ypvdiqkneq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ypvdiqkneq table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#qrelpcwqhs thead, #qrelpcwqhs tbody, #qrelpcwqhs tfoot, #qrelpcwqhs tr, #qrelpcwqhs td, #qrelpcwqhs th {
+#ypvdiqkneq thead, #ypvdiqkneq tbody, #ypvdiqkneq tfoot, #ypvdiqkneq tr, #ypvdiqkneq td, #ypvdiqkneq th {
   border-style: none;
 }
 
-#qrelpcwqhs p {
+#ypvdiqkneq p {
   margin: 0;
   padding: 0;
 }
 
-#qrelpcwqhs .gt_table {
+#ypvdiqkneq .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -4297,12 +4297,12 @@ if (nrow(mudancas)>0) {
   border-left-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_caption {
+#ypvdiqkneq .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#qrelpcwqhs .gt_title {
+#ypvdiqkneq .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -4314,7 +4314,7 @@ if (nrow(mudancas)>0) {
   border-bottom-width: 0;
 }
 
-#qrelpcwqhs .gt_subtitle {
+#ypvdiqkneq .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -4326,7 +4326,7 @@ if (nrow(mudancas)>0) {
   border-top-width: 0;
 }
 
-#qrelpcwqhs .gt_heading {
+#ypvdiqkneq .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -4338,13 +4338,13 @@ if (nrow(mudancas)>0) {
   border-right-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_bottom_border {
+#ypvdiqkneq .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_col_headings {
+#ypvdiqkneq .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -4359,7 +4359,7 @@ if (nrow(mudancas)>0) {
   border-right-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_col_heading {
+#ypvdiqkneq .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -4379,7 +4379,7 @@ if (nrow(mudancas)>0) {
   overflow-x: hidden;
 }
 
-#qrelpcwqhs .gt_column_spanner_outer {
+#ypvdiqkneq .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -4391,15 +4391,15 @@ if (nrow(mudancas)>0) {
   padding-right: 4px;
 }
 
-#qrelpcwqhs .gt_column_spanner_outer:first-child {
+#ypvdiqkneq .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#qrelpcwqhs .gt_column_spanner_outer:last-child {
+#ypvdiqkneq .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#qrelpcwqhs .gt_column_spanner {
+#ypvdiqkneq .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -4411,11 +4411,11 @@ if (nrow(mudancas)>0) {
   width: 100%;
 }
 
-#qrelpcwqhs .gt_spanner_row {
+#ypvdiqkneq .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#qrelpcwqhs .gt_group_heading {
+#ypvdiqkneq .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -4441,7 +4441,7 @@ if (nrow(mudancas)>0) {
   text-align: left;
 }
 
-#qrelpcwqhs .gt_empty_group_heading {
+#ypvdiqkneq .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -4456,15 +4456,15 @@ if (nrow(mudancas)>0) {
   vertical-align: middle;
 }
 
-#qrelpcwqhs .gt_from_md > :first-child {
+#ypvdiqkneq .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#qrelpcwqhs .gt_from_md > :last-child {
+#ypvdiqkneq .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#qrelpcwqhs .gt_row {
+#ypvdiqkneq .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -4483,7 +4483,7 @@ if (nrow(mudancas)>0) {
   overflow-x: hidden;
 }
 
-#qrelpcwqhs .gt_stub {
+#ypvdiqkneq .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -4496,7 +4496,7 @@ if (nrow(mudancas)>0) {
   padding-right: 5px;
 }
 
-#qrelpcwqhs .gt_stub_row_group {
+#ypvdiqkneq .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -4510,15 +4510,15 @@ if (nrow(mudancas)>0) {
   vertical-align: top;
 }
 
-#qrelpcwqhs .gt_row_group_first td {
+#ypvdiqkneq .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#qrelpcwqhs .gt_row_group_first th {
+#ypvdiqkneq .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#qrelpcwqhs .gt_summary_row {
+#ypvdiqkneq .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -4528,16 +4528,16 @@ if (nrow(mudancas)>0) {
   padding-right: 5px;
 }
 
-#qrelpcwqhs .gt_first_summary_row {
+#ypvdiqkneq .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_first_summary_row.thick {
+#ypvdiqkneq .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#qrelpcwqhs .gt_last_summary_row {
+#ypvdiqkneq .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -4547,7 +4547,7 @@ if (nrow(mudancas)>0) {
   border-bottom-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_grand_summary_row {
+#ypvdiqkneq .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -4557,7 +4557,7 @@ if (nrow(mudancas)>0) {
   padding-right: 5px;
 }
 
-#qrelpcwqhs .gt_first_grand_summary_row {
+#ypvdiqkneq .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -4567,7 +4567,7 @@ if (nrow(mudancas)>0) {
   border-top-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_last_grand_summary_row_top {
+#ypvdiqkneq .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -4577,11 +4577,11 @@ if (nrow(mudancas)>0) {
   border-bottom-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_striped {
+#ypvdiqkneq .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#qrelpcwqhs .gt_table_body {
+#ypvdiqkneq .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -4590,7 +4590,7 @@ if (nrow(mudancas)>0) {
   border-bottom-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_footnotes {
+#ypvdiqkneq .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -4604,7 +4604,7 @@ if (nrow(mudancas)>0) {
   border-right-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_footnote {
+#ypvdiqkneq .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -4613,7 +4613,7 @@ if (nrow(mudancas)>0) {
   padding-right: 5px;
 }
 
-#qrelpcwqhs .gt_sourcenotes {
+#ypvdiqkneq .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -4627,7 +4627,7 @@ if (nrow(mudancas)>0) {
   border-right-color: #D3D3D3;
 }
 
-#qrelpcwqhs .gt_sourcenote {
+#ypvdiqkneq .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -4635,72 +4635,72 @@ if (nrow(mudancas)>0) {
   padding-right: 5px;
 }
 
-#qrelpcwqhs .gt_left {
+#ypvdiqkneq .gt_left {
   text-align: left;
 }
 
-#qrelpcwqhs .gt_center {
+#ypvdiqkneq .gt_center {
   text-align: center;
 }
 
-#qrelpcwqhs .gt_right {
+#ypvdiqkneq .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#qrelpcwqhs .gt_font_normal {
+#ypvdiqkneq .gt_font_normal {
   font-weight: normal;
 }
 
-#qrelpcwqhs .gt_font_bold {
+#ypvdiqkneq .gt_font_bold {
   font-weight: bold;
 }
 
-#qrelpcwqhs .gt_font_italic {
+#ypvdiqkneq .gt_font_italic {
   font-style: italic;
 }
 
-#qrelpcwqhs .gt_super {
+#ypvdiqkneq .gt_super {
   font-size: 65%;
 }
 
-#qrelpcwqhs .gt_footnote_marks {
+#ypvdiqkneq .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#qrelpcwqhs .gt_asterisk {
+#ypvdiqkneq .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#qrelpcwqhs .gt_indent_1 {
+#ypvdiqkneq .gt_indent_1 {
   text-indent: 5px;
 }
 
-#qrelpcwqhs .gt_indent_2 {
+#ypvdiqkneq .gt_indent_2 {
   text-indent: 10px;
 }
 
-#qrelpcwqhs .gt_indent_3 {
+#ypvdiqkneq .gt_indent_3 {
   text-indent: 15px;
 }
 
-#qrelpcwqhs .gt_indent_4 {
+#ypvdiqkneq .gt_indent_4 {
   text-indent: 20px;
 }
 
-#qrelpcwqhs .gt_indent_5 {
+#ypvdiqkneq .gt_indent_5 {
   text-indent: 25px;
 }
 
-#qrelpcwqhs .katex-display {
+#ypvdiqkneq .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#qrelpcwqhs div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#ypvdiqkneq div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -4709,27 +4709,27 @@ if (nrow(mudancas)>0) {
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th id="Municipio"
+<th id="municipio_nome"
 class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Municipio</th>
-<th id="Agencia Otimo"
+<th id="agencia_nome_otimo"
 class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Agencia Otimo</th>
-<th id="Agencia Jurisdicao"
+<th id="agencia_nome_jurisdicao"
 class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Agencia Jurisdicao</th>
-<th id="Distancia Km Otimo"
+<th id="distancia_km_otimo"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Distancia Km Otimo</th>
-<th id="Distancia Km Jurisdicao"
+<th id="distancia_km_jurisdicao"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Distancia Km
 Jurisdicao</th>
-<th id="Custo Deslocamento Otimo"
+<th id="custo_deslocamento_otimo"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Deslocamento
 Otimo</th>
-<th id="Custo Deslocamento Jurisdicao"
+<th id="custo_deslocamento_jurisdicao"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Deslocamento
 Jurisdicao</th>
@@ -4851,23 +4851,23 @@ resumo_planos%>%
   print_gt()
 ```
 
-<div id="updzgwamuk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#updzgwamuk table {
+<div id="domoxqxikr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#domoxqxikr table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#updzgwamuk thead, #updzgwamuk tbody, #updzgwamuk tfoot, #updzgwamuk tr, #updzgwamuk td, #updzgwamuk th {
+#domoxqxikr thead, #domoxqxikr tbody, #domoxqxikr tfoot, #domoxqxikr tr, #domoxqxikr td, #domoxqxikr th {
   border-style: none;
 }
 
-#updzgwamuk p {
+#domoxqxikr p {
   margin: 0;
   padding: 0;
 }
 
-#updzgwamuk .gt_table {
+#domoxqxikr .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -4893,12 +4893,12 @@ resumo_planos%>%
   border-left-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_caption {
+#domoxqxikr .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#updzgwamuk .gt_title {
+#domoxqxikr .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -4910,7 +4910,7 @@ resumo_planos%>%
   border-bottom-width: 0;
 }
 
-#updzgwamuk .gt_subtitle {
+#domoxqxikr .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -4922,7 +4922,7 @@ resumo_planos%>%
   border-top-width: 0;
 }
 
-#updzgwamuk .gt_heading {
+#domoxqxikr .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -4934,13 +4934,13 @@ resumo_planos%>%
   border-right-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_bottom_border {
+#domoxqxikr .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_col_headings {
+#domoxqxikr .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -4955,7 +4955,7 @@ resumo_planos%>%
   border-right-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_col_heading {
+#domoxqxikr .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -4975,7 +4975,7 @@ resumo_planos%>%
   overflow-x: hidden;
 }
 
-#updzgwamuk .gt_column_spanner_outer {
+#domoxqxikr .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -4987,15 +4987,15 @@ resumo_planos%>%
   padding-right: 4px;
 }
 
-#updzgwamuk .gt_column_spanner_outer:first-child {
+#domoxqxikr .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#updzgwamuk .gt_column_spanner_outer:last-child {
+#domoxqxikr .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#updzgwamuk .gt_column_spanner {
+#domoxqxikr .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -5007,11 +5007,11 @@ resumo_planos%>%
   width: 100%;
 }
 
-#updzgwamuk .gt_spanner_row {
+#domoxqxikr .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#updzgwamuk .gt_group_heading {
+#domoxqxikr .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5037,7 +5037,7 @@ resumo_planos%>%
   text-align: left;
 }
 
-#updzgwamuk .gt_empty_group_heading {
+#domoxqxikr .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -5052,15 +5052,15 @@ resumo_planos%>%
   vertical-align: middle;
 }
 
-#updzgwamuk .gt_from_md > :first-child {
+#domoxqxikr .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#updzgwamuk .gt_from_md > :last-child {
+#domoxqxikr .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#updzgwamuk .gt_row {
+#domoxqxikr .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5079,7 +5079,7 @@ resumo_planos%>%
   overflow-x: hidden;
 }
 
-#updzgwamuk .gt_stub {
+#domoxqxikr .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -5092,7 +5092,7 @@ resumo_planos%>%
   padding-right: 5px;
 }
 
-#updzgwamuk .gt_stub_row_group {
+#domoxqxikr .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -5106,15 +5106,15 @@ resumo_planos%>%
   vertical-align: top;
 }
 
-#updzgwamuk .gt_row_group_first td {
+#domoxqxikr .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#updzgwamuk .gt_row_group_first th {
+#domoxqxikr .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#updzgwamuk .gt_summary_row {
+#domoxqxikr .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -5124,16 +5124,16 @@ resumo_planos%>%
   padding-right: 5px;
 }
 
-#updzgwamuk .gt_first_summary_row {
+#domoxqxikr .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_first_summary_row.thick {
+#domoxqxikr .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#updzgwamuk .gt_last_summary_row {
+#domoxqxikr .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5143,7 +5143,7 @@ resumo_planos%>%
   border-bottom-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_grand_summary_row {
+#domoxqxikr .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -5153,7 +5153,7 @@ resumo_planos%>%
   padding-right: 5px;
 }
 
-#updzgwamuk .gt_first_grand_summary_row {
+#domoxqxikr .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5163,7 +5163,7 @@ resumo_planos%>%
   border-top-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_last_grand_summary_row_top {
+#domoxqxikr .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5173,11 +5173,11 @@ resumo_planos%>%
   border-bottom-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_striped {
+#domoxqxikr .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#updzgwamuk .gt_table_body {
+#domoxqxikr .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -5186,7 +5186,7 @@ resumo_planos%>%
   border-bottom-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_footnotes {
+#domoxqxikr .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -5200,7 +5200,7 @@ resumo_planos%>%
   border-right-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_footnote {
+#domoxqxikr .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -5209,7 +5209,7 @@ resumo_planos%>%
   padding-right: 5px;
 }
 
-#updzgwamuk .gt_sourcenotes {
+#domoxqxikr .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -5223,7 +5223,7 @@ resumo_planos%>%
   border-right-color: #D3D3D3;
 }
 
-#updzgwamuk .gt_sourcenote {
+#domoxqxikr .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -5231,72 +5231,72 @@ resumo_planos%>%
   padding-right: 5px;
 }
 
-#updzgwamuk .gt_left {
+#domoxqxikr .gt_left {
   text-align: left;
 }
 
-#updzgwamuk .gt_center {
+#domoxqxikr .gt_center {
   text-align: center;
 }
 
-#updzgwamuk .gt_right {
+#domoxqxikr .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#updzgwamuk .gt_font_normal {
+#domoxqxikr .gt_font_normal {
   font-weight: normal;
 }
 
-#updzgwamuk .gt_font_bold {
+#domoxqxikr .gt_font_bold {
   font-weight: bold;
 }
 
-#updzgwamuk .gt_font_italic {
+#domoxqxikr .gt_font_italic {
   font-style: italic;
 }
 
-#updzgwamuk .gt_super {
+#domoxqxikr .gt_super {
   font-size: 65%;
 }
 
-#updzgwamuk .gt_footnote_marks {
+#domoxqxikr .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#updzgwamuk .gt_asterisk {
+#domoxqxikr .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#updzgwamuk .gt_indent_1 {
+#domoxqxikr .gt_indent_1 {
   text-indent: 5px;
 }
 
-#updzgwamuk .gt_indent_2 {
+#domoxqxikr .gt_indent_2 {
   text-indent: 10px;
 }
 
-#updzgwamuk .gt_indent_3 {
+#domoxqxikr .gt_indent_3 {
   text-indent: 15px;
 }
 
-#updzgwamuk .gt_indent_4 {
+#domoxqxikr .gt_indent_4 {
   text-indent: 20px;
 }
 
-#updzgwamuk .gt_indent_5 {
+#domoxqxikr .gt_indent_5 {
   text-indent: 25px;
 }
 
-#updzgwamuk .katex-display {
+#domoxqxikr .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#updzgwamuk div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#domoxqxikr div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -5305,17 +5305,17 @@ resumo_planos%>%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th id="Name" class="gt_col_heading gt_columns_bottom_border gt_left"
+<th id="name" class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Name</th>
-<th id="Jurisdicao"
+<th id="jurisdicao"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Jurisdicao</th>
-<th id="Otimo" class="gt_col_heading gt_columns_bottom_border gt_right"
+<th id="otimo" class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Otimo</th>
-<th id="Reducao"
+<th id="reducao"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Reducao</th>
-<th id="Reducao Pct"
+<th id="reducao_pct"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Reducao Pct</th>
 </tr>
@@ -5460,23 +5460,23 @@ res_ufs_df%>%
   print_gt(decimal_num=0, processar_nomes_colunas = FALSE)
 ```
 
-<div id="pnmkndjmbr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#pnmkndjmbr table {
+<div id="qwaaxywvhh" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#qwaaxywvhh table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#pnmkndjmbr thead, #pnmkndjmbr tbody, #pnmkndjmbr tfoot, #pnmkndjmbr tr, #pnmkndjmbr td, #pnmkndjmbr th {
+#qwaaxywvhh thead, #qwaaxywvhh tbody, #qwaaxywvhh tfoot, #qwaaxywvhh tr, #qwaaxywvhh td, #qwaaxywvhh th {
   border-style: none;
 }
 
-#pnmkndjmbr p {
+#qwaaxywvhh p {
   margin: 0;
   padding: 0;
 }
 
-#pnmkndjmbr .gt_table {
+#qwaaxywvhh .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -5502,12 +5502,12 @@ res_ufs_df%>%
   border-left-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_caption {
+#qwaaxywvhh .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#pnmkndjmbr .gt_title {
+#qwaaxywvhh .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -5519,7 +5519,7 @@ res_ufs_df%>%
   border-bottom-width: 0;
 }
 
-#pnmkndjmbr .gt_subtitle {
+#qwaaxywvhh .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -5531,7 +5531,7 @@ res_ufs_df%>%
   border-top-width: 0;
 }
 
-#pnmkndjmbr .gt_heading {
+#qwaaxywvhh .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -5543,13 +5543,13 @@ res_ufs_df%>%
   border-right-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_bottom_border {
+#qwaaxywvhh .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_col_headings {
+#qwaaxywvhh .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -5564,7 +5564,7 @@ res_ufs_df%>%
   border-right-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_col_heading {
+#qwaaxywvhh .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -5584,7 +5584,7 @@ res_ufs_df%>%
   overflow-x: hidden;
 }
 
-#pnmkndjmbr .gt_column_spanner_outer {
+#qwaaxywvhh .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -5596,15 +5596,15 @@ res_ufs_df%>%
   padding-right: 4px;
 }
 
-#pnmkndjmbr .gt_column_spanner_outer:first-child {
+#qwaaxywvhh .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#pnmkndjmbr .gt_column_spanner_outer:last-child {
+#qwaaxywvhh .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#pnmkndjmbr .gt_column_spanner {
+#qwaaxywvhh .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -5616,11 +5616,11 @@ res_ufs_df%>%
   width: 100%;
 }
 
-#pnmkndjmbr .gt_spanner_row {
+#qwaaxywvhh .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#pnmkndjmbr .gt_group_heading {
+#qwaaxywvhh .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5646,7 +5646,7 @@ res_ufs_df%>%
   text-align: left;
 }
 
-#pnmkndjmbr .gt_empty_group_heading {
+#qwaaxywvhh .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -5661,15 +5661,15 @@ res_ufs_df%>%
   vertical-align: middle;
 }
 
-#pnmkndjmbr .gt_from_md > :first-child {
+#qwaaxywvhh .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#pnmkndjmbr .gt_from_md > :last-child {
+#qwaaxywvhh .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#pnmkndjmbr .gt_row {
+#qwaaxywvhh .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5688,7 +5688,7 @@ res_ufs_df%>%
   overflow-x: hidden;
 }
 
-#pnmkndjmbr .gt_stub {
+#qwaaxywvhh .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -5701,7 +5701,7 @@ res_ufs_df%>%
   padding-right: 5px;
 }
 
-#pnmkndjmbr .gt_stub_row_group {
+#qwaaxywvhh .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -5715,15 +5715,15 @@ res_ufs_df%>%
   vertical-align: top;
 }
 
-#pnmkndjmbr .gt_row_group_first td {
+#qwaaxywvhh .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#pnmkndjmbr .gt_row_group_first th {
+#qwaaxywvhh .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#pnmkndjmbr .gt_summary_row {
+#qwaaxywvhh .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -5733,16 +5733,16 @@ res_ufs_df%>%
   padding-right: 5px;
 }
 
-#pnmkndjmbr .gt_first_summary_row {
+#qwaaxywvhh .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_first_summary_row.thick {
+#qwaaxywvhh .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#pnmkndjmbr .gt_last_summary_row {
+#qwaaxywvhh .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5752,7 +5752,7 @@ res_ufs_df%>%
   border-bottom-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_grand_summary_row {
+#qwaaxywvhh .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -5762,7 +5762,7 @@ res_ufs_df%>%
   padding-right: 5px;
 }
 
-#pnmkndjmbr .gt_first_grand_summary_row {
+#qwaaxywvhh .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5772,7 +5772,7 @@ res_ufs_df%>%
   border-top-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_last_grand_summary_row_top {
+#qwaaxywvhh .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -5782,11 +5782,11 @@ res_ufs_df%>%
   border-bottom-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_striped {
+#qwaaxywvhh .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#pnmkndjmbr .gt_table_body {
+#qwaaxywvhh .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -5795,7 +5795,7 @@ res_ufs_df%>%
   border-bottom-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_footnotes {
+#qwaaxywvhh .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -5809,7 +5809,7 @@ res_ufs_df%>%
   border-right-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_footnote {
+#qwaaxywvhh .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -5818,7 +5818,7 @@ res_ufs_df%>%
   padding-right: 5px;
 }
 
-#pnmkndjmbr .gt_sourcenotes {
+#qwaaxywvhh .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -5832,7 +5832,7 @@ res_ufs_df%>%
   border-right-color: #D3D3D3;
 }
 
-#pnmkndjmbr .gt_sourcenote {
+#qwaaxywvhh .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -5840,72 +5840,72 @@ res_ufs_df%>%
   padding-right: 5px;
 }
 
-#pnmkndjmbr .gt_left {
+#qwaaxywvhh .gt_left {
   text-align: left;
 }
 
-#pnmkndjmbr .gt_center {
+#qwaaxywvhh .gt_center {
   text-align: center;
 }
 
-#pnmkndjmbr .gt_right {
+#qwaaxywvhh .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#pnmkndjmbr .gt_font_normal {
+#qwaaxywvhh .gt_font_normal {
   font-weight: normal;
 }
 
-#pnmkndjmbr .gt_font_bold {
+#qwaaxywvhh .gt_font_bold {
   font-weight: bold;
 }
 
-#pnmkndjmbr .gt_font_italic {
+#qwaaxywvhh .gt_font_italic {
   font-style: italic;
 }
 
-#pnmkndjmbr .gt_super {
+#qwaaxywvhh .gt_super {
   font-size: 65%;
 }
 
-#pnmkndjmbr .gt_footnote_marks {
+#qwaaxywvhh .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#pnmkndjmbr .gt_asterisk {
+#qwaaxywvhh .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#pnmkndjmbr .gt_indent_1 {
+#qwaaxywvhh .gt_indent_1 {
   text-indent: 5px;
 }
 
-#pnmkndjmbr .gt_indent_2 {
+#qwaaxywvhh .gt_indent_2 {
   text-indent: 10px;
 }
 
-#pnmkndjmbr .gt_indent_3 {
+#qwaaxywvhh .gt_indent_3 {
   text-indent: 15px;
 }
 
-#pnmkndjmbr .gt_indent_4 {
+#qwaaxywvhh .gt_indent_4 {
   text-indent: 20px;
 }
 
-#pnmkndjmbr .gt_indent_5 {
+#qwaaxywvhh .gt_indent_5 {
   text-indent: 25px;
 }
 
-#pnmkndjmbr .katex-display {
+#qwaaxywvhh .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#pnmkndjmbr div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#qwaaxywvhh div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -5914,20 +5914,19 @@ res_ufs_df%>%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th class="gt_col_heading gt_columns_bottom_border gt_left"
+<th id="a::stub" class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col"></th>
-<th class="gt_col_heading gt_columns_bottom_border gt_left"
+<th id="uf_nome" class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col"></th>
-<th id="Jurisdição (R$)"
+<th id="jurisdicao"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Jurisdição (R$)</th>
-<th id="Ótimo (R$)"
-class="gt_col_heading gt_columns_bottom_border gt_right"
+<th id="otimo" class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Ótimo (R$)</th>
-<th id="Redução (R$)"
+<th id="reducao"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Redução (R$)</th>
-<th id="Redução (%)"
+<th id="reducao_pct"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Redução (%)</th>
 </tr>
@@ -6526,10 +6525,10 @@ print(lapply(params_pof_0, head))
 #> [1] "cbc"
 #> 
 #> $max_time
-#> [1] 9000
+#> [1] 1800
 #> 
 #> $rel_tol
-#> [1] 0,02
+#> [1] 0,01
 print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_pof_0)), collapse=", ")))
 #> [1] "parâmetros sem valor fixado:  agencias, diarias_entrevistador_max, distancias_agencias, resultado_completo"
 ```
@@ -6597,23 +6596,23 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   gt::cols_hide(-matches(c("agencia_nome", "n_uc", "total_diarias", "combustivel", "custo_total", "custo_troca")))
 ```
 
-<div id="tricrfijdc" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#tricrfijdc table {
+<div id="xjiaojrqle" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#xjiaojrqle table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#tricrfijdc thead, #tricrfijdc tbody, #tricrfijdc tfoot, #tricrfijdc tr, #tricrfijdc td, #tricrfijdc th {
+#xjiaojrqle thead, #xjiaojrqle tbody, #xjiaojrqle tfoot, #xjiaojrqle tr, #xjiaojrqle td, #xjiaojrqle th {
   border-style: none;
 }
 
-#tricrfijdc p {
+#xjiaojrqle p {
   margin: 0;
   padding: 0;
 }
 
-#tricrfijdc .gt_table {
+#xjiaojrqle .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -6639,12 +6638,12 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-left-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_caption {
+#xjiaojrqle .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#tricrfijdc .gt_title {
+#xjiaojrqle .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -6656,7 +6655,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-bottom-width: 0;
 }
 
-#tricrfijdc .gt_subtitle {
+#xjiaojrqle .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -6668,7 +6667,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-top-width: 0;
 }
 
-#tricrfijdc .gt_heading {
+#xjiaojrqle .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -6680,13 +6679,13 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-right-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_bottom_border {
+#xjiaojrqle .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_col_headings {
+#xjiaojrqle .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -6701,7 +6700,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-right-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_col_heading {
+#xjiaojrqle .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6721,7 +6720,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   overflow-x: hidden;
 }
 
-#tricrfijdc .gt_column_spanner_outer {
+#xjiaojrqle .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6733,15 +6732,15 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   padding-right: 4px;
 }
 
-#tricrfijdc .gt_column_spanner_outer:first-child {
+#xjiaojrqle .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#tricrfijdc .gt_column_spanner_outer:last-child {
+#xjiaojrqle .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#tricrfijdc .gt_column_spanner {
+#xjiaojrqle .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -6753,11 +6752,11 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   width: 100%;
 }
 
-#tricrfijdc .gt_spanner_row {
+#xjiaojrqle .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#tricrfijdc .gt_group_heading {
+#xjiaojrqle .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6783,7 +6782,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   text-align: left;
 }
 
-#tricrfijdc .gt_empty_group_heading {
+#xjiaojrqle .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -6798,15 +6797,15 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   vertical-align: middle;
 }
 
-#tricrfijdc .gt_from_md > :first-child {
+#xjiaojrqle .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#tricrfijdc .gt_from_md > :last-child {
+#xjiaojrqle .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#tricrfijdc .gt_row {
+#xjiaojrqle .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6825,7 +6824,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   overflow-x: hidden;
 }
 
-#tricrfijdc .gt_stub {
+#xjiaojrqle .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6838,7 +6837,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   padding-right: 5px;
 }
 
-#tricrfijdc .gt_stub_row_group {
+#xjiaojrqle .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -6852,15 +6851,15 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   vertical-align: top;
 }
 
-#tricrfijdc .gt_row_group_first td {
+#xjiaojrqle .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#tricrfijdc .gt_row_group_first th {
+#xjiaojrqle .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#tricrfijdc .gt_summary_row {
+#xjiaojrqle .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -6870,16 +6869,16 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   padding-right: 5px;
 }
 
-#tricrfijdc .gt_first_summary_row {
+#xjiaojrqle .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_first_summary_row.thick {
+#xjiaojrqle .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#tricrfijdc .gt_last_summary_row {
+#xjiaojrqle .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6889,7 +6888,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-bottom-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_grand_summary_row {
+#xjiaojrqle .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -6899,7 +6898,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   padding-right: 5px;
 }
 
-#tricrfijdc .gt_first_grand_summary_row {
+#xjiaojrqle .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6909,7 +6908,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-top-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_last_grand_summary_row_top {
+#xjiaojrqle .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -6919,11 +6918,11 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-bottom-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_striped {
+#xjiaojrqle .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#tricrfijdc .gt_table_body {
+#xjiaojrqle .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -6932,7 +6931,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-bottom-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_footnotes {
+#xjiaojrqle .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -6946,7 +6945,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-right-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_footnote {
+#xjiaojrqle .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -6955,7 +6954,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   padding-right: 5px;
 }
 
-#tricrfijdc .gt_sourcenotes {
+#xjiaojrqle .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -6969,7 +6968,7 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   border-right-color: #D3D3D3;
 }
 
-#tricrfijdc .gt_sourcenote {
+#xjiaojrqle .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -6977,72 +6976,72 @@ report_plans(estrategias_pof$resultado[[1]])%>%
   padding-right: 5px;
 }
 
-#tricrfijdc .gt_left {
+#xjiaojrqle .gt_left {
   text-align: left;
 }
 
-#tricrfijdc .gt_center {
+#xjiaojrqle .gt_center {
   text-align: center;
 }
 
-#tricrfijdc .gt_right {
+#xjiaojrqle .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#tricrfijdc .gt_font_normal {
+#xjiaojrqle .gt_font_normal {
   font-weight: normal;
 }
 
-#tricrfijdc .gt_font_bold {
+#xjiaojrqle .gt_font_bold {
   font-weight: bold;
 }
 
-#tricrfijdc .gt_font_italic {
+#xjiaojrqle .gt_font_italic {
   font-style: italic;
 }
 
-#tricrfijdc .gt_super {
+#xjiaojrqle .gt_super {
   font-size: 65%;
 }
 
-#tricrfijdc .gt_footnote_marks {
+#xjiaojrqle .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#tricrfijdc .gt_asterisk {
+#xjiaojrqle .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#tricrfijdc .gt_indent_1 {
+#xjiaojrqle .gt_indent_1 {
   text-indent: 5px;
 }
 
-#tricrfijdc .gt_indent_2 {
+#xjiaojrqle .gt_indent_2 {
   text-indent: 10px;
 }
 
-#tricrfijdc .gt_indent_3 {
+#xjiaojrqle .gt_indent_3 {
   text-indent: 15px;
 }
 
-#tricrfijdc .gt_indent_4 {
+#xjiaojrqle .gt_indent_4 {
   text-indent: 20px;
 }
 
-#tricrfijdc .gt_indent_5 {
+#xjiaojrqle .gt_indent_5 {
   text-indent: 25px;
 }
 
-#tricrfijdc .katex-display {
+#xjiaojrqle .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#tricrfijdc div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#xjiaojrqle div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -7051,35 +7050,29 @@ report_plans(estrategias_pof$resultado[[1]])%>%
 data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 <thead>
 <tr class="header gt_col_headings">
-<th class="gt_col_heading gt_columns_bottom_border gt_left"
+<th id="a::stub" class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col"></th>
-<th id="Custo Total Otimo"
+<th id="custo_total_otimo"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Total Otimo</th>
-<th id="Custo Total Jurisdicao"
+<th id="custo_total_jurisdicao"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Total Jurisdicao</th>
-<th id="Total Diarias Otimo"
+<th id="total_diarias_otimo"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Total Diarias Otimo</th>
-<th id="Total Diarias Jurisdicao"
+<th id="total_diarias_jurisdicao"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Total Diarias
 Jurisdicao</th>
-<th id="Custo Combustivel Otimo"
+<th id="custo_combustivel_otimo"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Combustivel
 Otimo</th>
-<th id="Custo Combustivel Jurisdicao"
+<th id="custo_combustivel_jurisdicao"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Combustivel
 Jurisdicao</th>
-<th id="N Ucs Otimo"
-class="gt_col_heading gt_columns_bottom_border gt_right"
-data-quarto-table-cell-role="th" scope="col">N Ucs Otimo</th>
-<th id="N Ucs Jurisdicao"
-class="gt_col_heading gt_columns_bottom_border gt_right"
-data-quarto-table-cell-role="th" scope="col">N Ucs Jurisdicao</th>
 </tr>
 </thead>
 <tbody class="gt_table_body">
@@ -7098,8 +7091,6 @@ headers="stub_1_1 total_diarias_jurisdicao">19</td>
 headers="stub_1_1 custo_combustivel_otimo">R$3.825</td>
 <td class="gt_row gt_right"
 headers="stub_1_1 custo_combustivel_jurisdicao">R$2.940</td>
-<td class="gt_row gt_right" headers="stub_1_1 n_ucs_otimo">6</td>
-<td class="gt_row gt_right" headers="stub_1_1 n_ucs_jurisdicao">6</td>
 </tr>
 <tr class="even">
 <td id="stub_1_2" class="gt_row gt_left gt_stub"
@@ -7116,8 +7107,6 @@ headers="stub_1_2 total_diarias_jurisdicao">10</td>
 headers="stub_1_2 custo_combustivel_otimo">R$1.289</td>
 <td class="gt_row gt_right"
 headers="stub_1_2 custo_combustivel_jurisdicao">R$206</td>
-<td class="gt_row gt_right" headers="stub_1_2 n_ucs_otimo">3</td>
-<td class="gt_row gt_right" headers="stub_1_2 n_ucs_jurisdicao">1</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_3" class="gt_row gt_left gt_stub"
@@ -7134,8 +7123,6 @@ headers="stub_1_3 total_diarias_jurisdicao">0</td>
 headers="stub_1_3 custo_combustivel_otimo">R$612</td>
 <td class="gt_row gt_right"
 headers="stub_1_3 custo_combustivel_jurisdicao">R$1.080</td>
-<td class="gt_row gt_right" headers="stub_1_3 n_ucs_otimo">4</td>
-<td class="gt_row gt_right" headers="stub_1_3 n_ucs_jurisdicao">5</td>
 </tr>
 <tr class="even">
 <td id="stub_1_4" class="gt_row gt_left gt_stub"
@@ -7152,8 +7139,6 @@ headers="stub_1_4 total_diarias_jurisdicao">0</td>
 headers="stub_1_4 custo_combustivel_otimo">R$748</td>
 <td class="gt_row gt_right"
 headers="stub_1_4 custo_combustivel_jurisdicao">R$418</td>
-<td class="gt_row gt_right" headers="stub_1_4 n_ucs_otimo">4</td>
-<td class="gt_row gt_right" headers="stub_1_4 n_ucs_jurisdicao">3</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_5" class="gt_row gt_left gt_stub"
@@ -7170,8 +7155,6 @@ headers="stub_1_5 total_diarias_jurisdicao">0</td>
 headers="stub_1_5 custo_combustivel_otimo">R$3.002</td>
 <td class="gt_row gt_right"
 headers="stub_1_5 custo_combustivel_jurisdicao">R$2.673</td>
-<td class="gt_row gt_right" headers="stub_1_5 n_ucs_otimo">21</td>
-<td class="gt_row gt_right" headers="stub_1_5 n_ucs_jurisdicao">20</td>
 </tr>
 <tr class="even">
 <td id="stub_1_6" class="gt_row gt_left gt_stub"
@@ -7188,8 +7171,6 @@ headers="stub_1_6 total_diarias_jurisdicao">28</td>
 headers="stub_1_6 custo_combustivel_otimo">R$1.319</td>
 <td class="gt_row gt_right"
 headers="stub_1_6 custo_combustivel_jurisdicao">R$1.615</td>
-<td class="gt_row gt_right" headers="stub_1_6 n_ucs_otimo">6</td>
-<td class="gt_row gt_right" headers="stub_1_6 n_ucs_jurisdicao">6</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_7" class="gt_row gt_left gt_stub"
@@ -7206,8 +7187,6 @@ headers="stub_1_7 total_diarias_jurisdicao">10</td>
 headers="stub_1_7 custo_combustivel_otimo">R$1.310</td>
 <td class="gt_row gt_right"
 headers="stub_1_7 custo_combustivel_jurisdicao">R$4.526</td>
-<td class="gt_row gt_right" headers="stub_1_7 n_ucs_otimo">5</td>
-<td class="gt_row gt_right" headers="stub_1_7 n_ucs_jurisdicao">9</td>
 </tr>
 <tr class="even">
 <td id="stub_1_8" class="gt_row gt_left gt_stub"
@@ -7224,8 +7203,6 @@ headers="stub_1_8 total_diarias_jurisdicao">10</td>
 headers="stub_1_8 custo_combustivel_otimo">R$6.466</td>
 <td class="gt_row gt_right"
 headers="stub_1_8 custo_combustivel_jurisdicao">R$3.329</td>
-<td class="gt_row gt_right" headers="stub_1_8 n_ucs_otimo">11</td>
-<td class="gt_row gt_right" headers="stub_1_8 n_ucs_jurisdicao">8</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_9" class="gt_row gt_left gt_stub"
@@ -7242,8 +7219,6 @@ headers="stub_1_9 total_diarias_jurisdicao">19</td>
 headers="stub_1_9 custo_combustivel_otimo">R$2.596</td>
 <td class="gt_row gt_right"
 headers="stub_1_9 custo_combustivel_jurisdicao">R$1.471</td>
-<td class="gt_row gt_right" headers="stub_1_9 n_ucs_otimo">9</td>
-<td class="gt_row gt_right" headers="stub_1_9 n_ucs_jurisdicao">6</td>
 </tr>
 <tr class="even">
 <td id="stub_1_10" class="gt_row gt_left gt_stub"
@@ -7260,8 +7235,6 @@ headers="stub_1_10 total_diarias_jurisdicao">10</td>
 headers="stub_1_10 custo_combustivel_otimo">R$963</td>
 <td class="gt_row gt_right"
 headers="stub_1_10 custo_combustivel_jurisdicao">R$2.138</td>
-<td class="gt_row gt_right" headers="stub_1_10 n_ucs_otimo">7</td>
-<td class="gt_row gt_right" headers="stub_1_10 n_ucs_jurisdicao">8</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_11" class="gt_row gt_left gt_stub"
@@ -7278,8 +7251,6 @@ headers="stub_1_11 total_diarias_jurisdicao">0</td>
 headers="stub_1_11 custo_combustivel_otimo">R$5.215</td>
 <td class="gt_row gt_right"
 headers="stub_1_11 custo_combustivel_jurisdicao">R$3.930</td>
-<td class="gt_row gt_right" headers="stub_1_11 n_ucs_otimo">8</td>
-<td class="gt_row gt_right" headers="stub_1_11 n_ucs_jurisdicao">6</td>
 </tr>
 <tr class="even">
 <td id="stub_1_12" class="gt_row gt_left gt_stub"
@@ -7296,8 +7267,6 @@ headers="stub_1_12 total_diarias_jurisdicao">0</td>
 headers="stub_1_12 custo_combustivel_otimo">R$2.305</td>
 <td class="gt_row gt_right"
 headers="stub_1_12 custo_combustivel_jurisdicao">R$1.843</td>
-<td class="gt_row gt_right" headers="stub_1_12 n_ucs_otimo">8</td>
-<td class="gt_row gt_right" headers="stub_1_12 n_ucs_jurisdicao">7</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_13" class="gt_row gt_left gt_stub"
@@ -7314,8 +7283,6 @@ headers="stub_1_13 total_diarias_jurisdicao">10</td>
 headers="stub_1_13 custo_combustivel_otimo">R$411</td>
 <td class="gt_row gt_right"
 headers="stub_1_13 custo_combustivel_jurisdicao">R$1.085</td>
-<td class="gt_row gt_right" headers="stub_1_13 n_ucs_otimo">3</td>
-<td class="gt_row gt_right" headers="stub_1_13 n_ucs_jurisdicao">4</td>
 </tr>
 <tr class="even">
 <td id="stub_1_14" class="gt_row gt_left gt_stub"
@@ -7332,8 +7299,6 @@ headers="stub_1_14 total_diarias_jurisdicao">38</td>
 headers="stub_1_14 custo_combustivel_otimo">R$617</td>
 <td class="gt_row gt_right"
 headers="stub_1_14 custo_combustivel_jurisdicao">R$1.120</td>
-<td class="gt_row gt_right" headers="stub_1_14 n_ucs_otimo">2</td>
-<td class="gt_row gt_right" headers="stub_1_14 n_ucs_jurisdicao">4</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_15" class="gt_row gt_left gt_stub"
@@ -7350,8 +7315,6 @@ headers="stub_1_15 total_diarias_jurisdicao">0</td>
 headers="stub_1_15 custo_combustivel_otimo">R$3.012</td>
 <td class="gt_row gt_right"
 headers="stub_1_15 custo_combustivel_jurisdicao">R$3.453</td>
-<td class="gt_row gt_right" headers="stub_1_15 n_ucs_otimo">9</td>
-<td class="gt_row gt_right" headers="stub_1_15 n_ucs_jurisdicao">10</td>
 </tr>
 <tr class="even">
 <td id="stub_1_16" class="gt_row gt_left gt_stub"
@@ -7368,8 +7331,6 @@ headers="stub_1_16 total_diarias_jurisdicao">0</td>
 headers="stub_1_16 custo_combustivel_otimo">R$3.445</td>
 <td class="gt_row gt_right"
 headers="stub_1_16 custo_combustivel_jurisdicao">R$3.322</td>
-<td class="gt_row gt_right" headers="stub_1_16 n_ucs_otimo">9</td>
-<td class="gt_row gt_right" headers="stub_1_16 n_ucs_jurisdicao">8</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_17" class="gt_row gt_left gt_stub"
@@ -7386,8 +7347,6 @@ headers="stub_1_17 total_diarias_jurisdicao">10</td>
 headers="stub_1_17 custo_combustivel_otimo">R$1.038</td>
 <td class="gt_row gt_right"
 headers="stub_1_17 custo_combustivel_jurisdicao">R$743</td>
-<td class="gt_row gt_right" headers="stub_1_17 n_ucs_otimo">3</td>
-<td class="gt_row gt_right" headers="stub_1_17 n_ucs_jurisdicao">2</td>
 </tr>
 <tr class="even">
 <td id="stub_1_18" class="gt_row gt_left gt_stub"
@@ -7404,8 +7363,6 @@ headers="stub_1_18 total_diarias_jurisdicao">0</td>
 headers="stub_1_18 custo_combustivel_otimo">R$3.769</td>
 <td class="gt_row gt_right"
 headers="stub_1_18 custo_combustivel_jurisdicao">R$3.360</td>
-<td class="gt_row gt_right" headers="stub_1_18 n_ucs_otimo">8</td>
-<td class="gt_row gt_right" headers="stub_1_18 n_ucs_jurisdicao">7</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_19" class="gt_row gt_left gt_stub"
@@ -7422,8 +7379,6 @@ headers="stub_1_19 total_diarias_jurisdicao">28</td>
 headers="stub_1_19 custo_combustivel_otimo">R$4.971</td>
 <td class="gt_row gt_right"
 headers="stub_1_19 custo_combustivel_jurisdicao">R$5.602</td>
-<td class="gt_row gt_right" headers="stub_1_19 n_ucs_otimo">9</td>
-<td class="gt_row gt_right" headers="stub_1_19 n_ucs_jurisdicao">12</td>
 </tr>
 <tr class="even">
 <td id="stub_1_20" class="gt_row gt_left gt_stub"
@@ -7440,8 +7395,6 @@ headers="stub_1_20 total_diarias_jurisdicao">57</td>
 headers="stub_1_20 custo_combustivel_otimo">R$3.639</td>
 <td class="gt_row gt_right"
 headers="stub_1_20 custo_combustivel_jurisdicao">R$5.250</td>
-<td class="gt_row gt_right" headers="stub_1_20 n_ucs_otimo">14</td>
-<td class="gt_row gt_right" headers="stub_1_20 n_ucs_jurisdicao">18</td>
 </tr>
 <tr class="odd">
 <td id="stub_1_21" class="gt_row gt_left gt_stub"
@@ -7458,8 +7411,6 @@ headers="stub_1_21 total_diarias_jurisdicao">0</td>
 headers="stub_1_21 custo_combustivel_otimo">R$2.024</td>
 <td class="gt_row gt_right"
 headers="stub_1_21 custo_combustivel_jurisdicao">R$1.699</td>
-<td class="gt_row gt_right" headers="stub_1_21 n_ucs_otimo">4</td>
-<td class="gt_row gt_right" headers="stub_1_21 n_ucs_jurisdicao">3</td>
 </tr>
 <tr class="even">
 <td id="stub_1_22" class="gt_row gt_left gt_stub"
@@ -7477,9 +7428,6 @@ headers="stub_1_22 total_diarias_jurisdicao">76</td>
 headers="stub_1_22 custo_combustivel_otimo">R$46.124</td>
 <td class="gt_row gt_right"
 headers="stub_1_22 custo_combustivel_jurisdicao">R$46.124</td>
-<td class="gt_row gt_right" headers="stub_1_22 n_ucs_otimo">124</td>
-<td class="gt_row gt_right"
-headers="stub_1_22 n_ucs_jurisdicao">124</td>
 </tr>
 <tr class="odd">
 <td id="grand_summary_stub_1"
@@ -7503,16 +7451,10 @@ headers="grand_summary_stub_1 custo_combustivel_otimo">R$98.699</td>
 <td
 class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
 headers="grand_summary_stub_1 custo_combustivel_jurisdicao">R$97.927</td>
-<td
-class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
-headers="grand_summary_stub_1 n_ucs_otimo">277</td>
-<td
-class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
-headers="grand_summary_stub_1 n_ucs_jurisdicao">277</td>
 </tr>
 </tbody><tfoot class="gt_footnotes">
 <tr class="even">
-<td colspan="9" class="gt_footnote">** Agências sem alteração:
+<td colspan="7" class="gt_footnote">** Agências sem alteração:
 Alagoinhas, Bom Jesus da Lapa, Cachoeira, Camaçari, Cipó, Conceição do
 Coité, Esplanada, Euclides da Cunha, Guanambi, Ipirá, Irecê, Itaberaba,
 Jacobina, Jequié, Jeremoabo, Juazeiro, Livramento de nossa Senhora,
@@ -7556,23 +7498,23 @@ sumario_pof%>%
   print_gt()
 ```
 
-<div id="qlpmynvsxs" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#qlpmynvsxs table {
+<div id="dmkkymmqnq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#dmkkymmqnq table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#qlpmynvsxs thead, #qlpmynvsxs tbody, #qlpmynvsxs tfoot, #qlpmynvsxs tr, #qlpmynvsxs td, #qlpmynvsxs th {
+#dmkkymmqnq thead, #dmkkymmqnq tbody, #dmkkymmqnq tfoot, #dmkkymmqnq tr, #dmkkymmqnq td, #dmkkymmqnq th {
   border-style: none;
 }
 
-#qlpmynvsxs p {
+#dmkkymmqnq p {
   margin: 0;
   padding: 0;
 }
 
-#qlpmynvsxs .gt_table {
+#dmkkymmqnq .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -7598,12 +7540,12 @@ sumario_pof%>%
   border-left-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_caption {
+#dmkkymmqnq .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#qlpmynvsxs .gt_title {
+#dmkkymmqnq .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -7615,7 +7557,7 @@ sumario_pof%>%
   border-bottom-width: 0;
 }
 
-#qlpmynvsxs .gt_subtitle {
+#dmkkymmqnq .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -7627,7 +7569,7 @@ sumario_pof%>%
   border-top-width: 0;
 }
 
-#qlpmynvsxs .gt_heading {
+#dmkkymmqnq .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -7639,13 +7581,13 @@ sumario_pof%>%
   border-right-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_bottom_border {
+#dmkkymmqnq .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_col_headings {
+#dmkkymmqnq .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -7660,7 +7602,7 @@ sumario_pof%>%
   border-right-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_col_heading {
+#dmkkymmqnq .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7680,7 +7622,7 @@ sumario_pof%>%
   overflow-x: hidden;
 }
 
-#qlpmynvsxs .gt_column_spanner_outer {
+#dmkkymmqnq .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7692,15 +7634,15 @@ sumario_pof%>%
   padding-right: 4px;
 }
 
-#qlpmynvsxs .gt_column_spanner_outer:first-child {
+#dmkkymmqnq .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#qlpmynvsxs .gt_column_spanner_outer:last-child {
+#dmkkymmqnq .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#qlpmynvsxs .gt_column_spanner {
+#dmkkymmqnq .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -7712,11 +7654,11 @@ sumario_pof%>%
   width: 100%;
 }
 
-#qlpmynvsxs .gt_spanner_row {
+#dmkkymmqnq .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#qlpmynvsxs .gt_group_heading {
+#dmkkymmqnq .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7742,7 +7684,7 @@ sumario_pof%>%
   text-align: left;
 }
 
-#qlpmynvsxs .gt_empty_group_heading {
+#dmkkymmqnq .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -7757,15 +7699,15 @@ sumario_pof%>%
   vertical-align: middle;
 }
 
-#qlpmynvsxs .gt_from_md > :first-child {
+#dmkkymmqnq .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#qlpmynvsxs .gt_from_md > :last-child {
+#dmkkymmqnq .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#qlpmynvsxs .gt_row {
+#dmkkymmqnq .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7784,7 +7726,7 @@ sumario_pof%>%
   overflow-x: hidden;
 }
 
-#qlpmynvsxs .gt_stub {
+#dmkkymmqnq .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7797,7 +7739,7 @@ sumario_pof%>%
   padding-right: 5px;
 }
 
-#qlpmynvsxs .gt_stub_row_group {
+#dmkkymmqnq .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -7811,15 +7753,15 @@ sumario_pof%>%
   vertical-align: top;
 }
 
-#qlpmynvsxs .gt_row_group_first td {
+#dmkkymmqnq .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#qlpmynvsxs .gt_row_group_first th {
+#dmkkymmqnq .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#qlpmynvsxs .gt_summary_row {
+#dmkkymmqnq .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -7829,16 +7771,16 @@ sumario_pof%>%
   padding-right: 5px;
 }
 
-#qlpmynvsxs .gt_first_summary_row {
+#dmkkymmqnq .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_first_summary_row.thick {
+#dmkkymmqnq .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#qlpmynvsxs .gt_last_summary_row {
+#dmkkymmqnq .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7848,7 +7790,7 @@ sumario_pof%>%
   border-bottom-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_grand_summary_row {
+#dmkkymmqnq .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -7858,7 +7800,7 @@ sumario_pof%>%
   padding-right: 5px;
 }
 
-#qlpmynvsxs .gt_first_grand_summary_row {
+#dmkkymmqnq .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7868,7 +7810,7 @@ sumario_pof%>%
   border-top-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_last_grand_summary_row_top {
+#dmkkymmqnq .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -7878,11 +7820,11 @@ sumario_pof%>%
   border-bottom-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_striped {
+#dmkkymmqnq .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#qlpmynvsxs .gt_table_body {
+#dmkkymmqnq .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -7891,7 +7833,7 @@ sumario_pof%>%
   border-bottom-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_footnotes {
+#dmkkymmqnq .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -7905,7 +7847,7 @@ sumario_pof%>%
   border-right-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_footnote {
+#dmkkymmqnq .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -7914,7 +7856,7 @@ sumario_pof%>%
   padding-right: 5px;
 }
 
-#qlpmynvsxs .gt_sourcenotes {
+#dmkkymmqnq .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -7928,7 +7870,7 @@ sumario_pof%>%
   border-right-color: #D3D3D3;
 }
 
-#qlpmynvsxs .gt_sourcenote {
+#dmkkymmqnq .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -7936,72 +7878,72 @@ sumario_pof%>%
   padding-right: 5px;
 }
 
-#qlpmynvsxs .gt_left {
+#dmkkymmqnq .gt_left {
   text-align: left;
 }
 
-#qlpmynvsxs .gt_center {
+#dmkkymmqnq .gt_center {
   text-align: center;
 }
 
-#qlpmynvsxs .gt_right {
+#dmkkymmqnq .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#qlpmynvsxs .gt_font_normal {
+#dmkkymmqnq .gt_font_normal {
   font-weight: normal;
 }
 
-#qlpmynvsxs .gt_font_bold {
+#dmkkymmqnq .gt_font_bold {
   font-weight: bold;
 }
 
-#qlpmynvsxs .gt_font_italic {
+#dmkkymmqnq .gt_font_italic {
   font-style: italic;
 }
 
-#qlpmynvsxs .gt_super {
+#dmkkymmqnq .gt_super {
   font-size: 65%;
 }
 
-#qlpmynvsxs .gt_footnote_marks {
+#dmkkymmqnq .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#qlpmynvsxs .gt_asterisk {
+#dmkkymmqnq .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#qlpmynvsxs .gt_indent_1 {
+#dmkkymmqnq .gt_indent_1 {
   text-indent: 5px;
 }
 
-#qlpmynvsxs .gt_indent_2 {
+#dmkkymmqnq .gt_indent_2 {
   text-indent: 10px;
 }
 
-#qlpmynvsxs .gt_indent_3 {
+#dmkkymmqnq .gt_indent_3 {
   text-indent: 15px;
 }
 
-#qlpmynvsxs .gt_indent_4 {
+#dmkkymmqnq .gt_indent_4 {
   text-indent: 20px;
 }
 
-#qlpmynvsxs .gt_indent_5 {
+#dmkkymmqnq .gt_indent_5 {
   text-indent: 25px;
 }
 
-#qlpmynvsxs .katex-display {
+#dmkkymmqnq .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#qlpmynvsxs div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#dmkkymmqnq div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -8012,22 +7954,23 @@ data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 coleta</caption>
 <thead>
 <tr class="header gt_col_headings">
-<th id="Modelo" class="gt_col_heading gt_columns_bottom_border gt_left"
+<th id="descricao"
+class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Modelo</th>
-<th id="N Agencias"
+<th id="n_agencias_dif"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">N Agencias</th>
-<th id="Custo Total"
+<th id="custo_total_dif"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Total</th>
-<th id="Custo Total Entrevistadores"
+<th id="custo_total_entrevistadores_dif"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Total
 Entrevistadores</th>
-<th id="Custo Diarias"
+<th id="custo_diarias_dif"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Diarias</th>
-<th id="Custo Combustivel"
+<th id="custo_combustivel_dif"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Combustivel</th>
 </tr>
@@ -8060,15 +8003,15 @@ headers="custo_total_entrevistadores_dif">−R$66.473 (−31,4%)</td>
 <tr class="odd">
 <td class="gt_row gt_left" headers="descricao">Custo de treinamento +
 remuneração dos apms</td>
-<td class="gt_row gt_right" headers="n_agencias_dif">−39 (−81,2%)</td>
-<td class="gt_row gt_right" headers="custo_total_dif">−R$1.201.947
-(−55,3%)</td>
+<td class="gt_row gt_right" headers="n_agencias_dif">−41 (−85,4%)</td>
+<td class="gt_row gt_right" headers="custo_total_dif">−R$2.351.092
+(−66,6%)</td>
 <td class="gt_row gt_right"
-headers="custo_total_entrevistadores_dif">−R$1.579.641 (−81,4%)</td>
-<td class="gt_row gt_right" headers="custo_diarias_dif">R$336.172
-(310,7%)</td>
-<td class="gt_row gt_right" headers="custo_combustivel_dif">R$34.418
-(35,1%)</td>
+headers="custo_total_entrevistadores_dif">−R$2.817.185 (−85,5%)</td>
+<td class="gt_row gt_right" headers="custo_diarias_dif">R$409.872
+(378,8%)</td>
+<td class="gt_row gt_right" headers="custo_combustivel_dif">R$46.520
+(47,5%)</td>
 </tr>
 </tbody>
 </table>
@@ -8106,7 +8049,2101 @@ custo total.
     definitivamente aqui que está o mais efetivo instrumento para
     reduzir os custos de coleta.
 
-## Caso 3. Um novo modelo de coleta nas Agências
+## Caso 3. PNADC e CNEFE
+
+A seção anterior demonstrou que, pelo menos no caso da coleta da POF da
+Bahia, é possível atingir uma significativa redução de custos de coleta,
+quando contabilizamos a remuneração dos entrevistadores.
+
+``` r
+## amostra mestra/pnadc
+#pontos_upas_29 <- readRDS(here::here("data-raw/pontos_upas_29.rds"))
+uf_codigo_now <- 29
+ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
+
+
+amostra_mestra <- readr::read_rds(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))%>%
+  filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"), uf_codigo==uf_codigo_now)
+
+
+amostra_pnadc <- amostra_mestra%>%
+  distinct(uc=upa, pesquisa=paste("pnadc", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params$dias_coleta_pnadc, viagens=params$viagens_pnadc)
+
+library(lubridate)## so months works
+amostra_cnefe <- amostra_mestra%>%
+  filter(entrevista_numero==1)%>%
+  mutate(ano_mes=ano_mes-months(3))%>%
+  distinct(uc=upa, pesquisa=paste("cnefe", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params$dias_coleta_cnefe, viagens=params$viagens_cnefe)
+
+
+
+carga_pnadc <- bind_rows(amostra_cnefe, amostra_pnadc)%>%
+  group_by(uc, agencia_codigo, municipio_codigo=substr(uc,1,7))%>%
+  summarise(dias_coleta=sum(dias_coleta), viagens=sum(viagens))
+
+
+
+carga_pnadc_uf <- carga_pnadc%>%
+  filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
+  ## Importante: Sem as agências de Salvador
+  filter(!grepl("2927408", agencia_codigo))%>%
+  #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
+  ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
+
+## distancias uc
+fname <- here::here(paste0("data-raw/distancias_agencias_upas_osrm_", uf_codigo_now, ".rds"))
+distancias_ucs_all <- readRDS(fname)%>%
+  rename(uc=upa)%>%
+  transmute(uc, agencia_codigo, distancia_km, duracao_horas, municipio_codigo=substr(uc,1,7), ponto_origem)%>%
+  left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
+  semi_join(carga_pnadc_uf, by="uc")%>%
+  mutate(diaria_pernoite=duracao_horas>params$horas_viagem_pernoite)%>%
+  group_by(uc, agencia_codigo)%>%
+  ## só a configuração de upa mais distante
+  arrange(desc(duracao_horas))%>%
+  slice(1)%>%
+  ungroup()
+distancias_ucs_all%>%ungroup%>%count(ponto_origem)
+#> # A tibble: 1 × 2
+#>   ponto_origem     n
+#>   <chr>        <int>
+#> 1 pontos_upas  36000
+
+agencias_uf <-  carga_pnadc_uf%>%
+  group_by(agencia_codigo)%>%
+  summarise(n_ucs_jurisdicao=n(), dias_coleta_jurisdicao=sum(dias_coleta))%>%
+  mutate(dias_coleta_agencia_max=Inf, 
+         custo_fixo=0)%>%
+  ## tira Cipó
+  mutate(dias_coleta_agencia_max=if_else(agencia_codigo=="290790500", 0, dias_coleta_agencia_max))
+
+
+
+## sem custo fixo nem custo de treinamento
+params_pnadc_0  <- list(ucs=carga_pnadc_uf,
+                        agencias=agencias_uf,
+                        custo_litro_combustivel = params$custo_litro_combustivel,
+                        custo_hora_viagem = params$custo_hora_viagem,
+                        kml = params$kml,
+                        valor_diaria = params$valor_diaria,
+                        ## em um ano de coleta, um entrevistador consegue
+                        ## 48 upas pnadc / 24 upas POF / 18 Municipios
+                        dias_coleta_entrevistador_max=params$dias_coleta_entrevistador_max_pnadc,
+                        diarias_entrevistador_max=Inf,
+                        dias_treinamento = 0,
+                        agencias_treinadas = NULL,
+                        agencias_treinamento  = NULL,
+                        distancias_ucs=distancias_ucs_all,
+                        ## for symphony solver
+                        #gap_limit=5, 
+                        adicional_troca_jurisdicao  = params$adicional_troca_jurisdicao,
+                        solver=params$solver,
+                        max_time=params$max_time,
+                        rel_tol=params$rel_tol,
+                        resultado_completo=FALSE 
+                        )
+```
+
+``` r
+library(tictoc)
+tic()
+estrategias_pnadc <- bind_rows(
+  tibble(params_pnadc=list(params_pnadc_0), 
+         descricao='sem custo fixo / sem custo de treinamento'),
+  tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                      list( remuneracao_entrevistador=params$remuneracao_entrevistador*12)
+  )), 
+  descricao=glue::glue('sem mínimo de entrevistador, remuneracao entrevistador por mês {params$remuneracao_entrevistador}, sem custo fixo')),
+  tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                      list(n_entrevistadores_min=2, remuneracao_entrevistador=params$remuneracao_entrevistador*12)
+  )), 
+  descricao=glue::glue('mínimo de entrevistador=2, remuneracao entrevistador por mês {params$remuneracao_entrevistador}, sem custo fixo')),
+  tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                      list(n_entrevistadores_min=3, remuneracao_entrevistador=params$remuneracao_entrevistador*12)
+  )), 
+  descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params$remuneracao_entrevistador} por mês, sem custo fixo'))
+  )%>%
+  ungroup%>%#slice(1:2)%>%
+  mutate(resultado=purrr::map(params_pnadc, ~do.call(alocar_ucs, .x)))
+toc()
+#> 0,03 sec elapsed
+
+estrategias_pnadc_sum <-
+  estrategias_pnadc%>%
+  rowwise(descricao)%>%
+  reframe(
+    bind_rows(
+      resultado$resultado_agencias_otimo%>%mutate(modelo="Ótimo"),
+      resultado$resultado_agencias_jurisdicao%>%mutate(modelo="Jurisdição"))%>%
+      group_by(modelo)%>%
+      mutate(n_agencias=1)%>%
+      summarise(across(matches("custo|n_agencias"), ~sum(.x, na.rm=TRUE))))%>%
+  mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
+  select(descricao, modelo, n_agencias, custo_total, everything())
+
+report_plans(estrategias_pnadc$resultado[[4]])
+```
+
+<div id="cnphafeyki" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#cnphafeyki table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#cnphafeyki thead, #cnphafeyki tbody, #cnphafeyki tfoot, #cnphafeyki tr, #cnphafeyki td, #cnphafeyki th {
+  border-style: none;
+}
+
+#cnphafeyki p {
+  margin: 0;
+  padding: 0;
+}
+
+#cnphafeyki .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#cnphafeyki .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#cnphafeyki .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#cnphafeyki .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#cnphafeyki .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#cnphafeyki .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#cnphafeyki .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#cnphafeyki .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#cnphafeyki .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#cnphafeyki .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#cnphafeyki .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#cnphafeyki .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#cnphafeyki .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#cnphafeyki .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#cnphafeyki .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#cnphafeyki .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#cnphafeyki .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#cnphafeyki .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#cnphafeyki .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#cnphafeyki .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#cnphafeyki .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#cnphafeyki .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#cnphafeyki .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#cnphafeyki .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#cnphafeyki .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#cnphafeyki .gt_left {
+  text-align: left;
+}
+
+#cnphafeyki .gt_center {
+  text-align: center;
+}
+
+#cnphafeyki .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#cnphafeyki .gt_font_normal {
+  font-weight: normal;
+}
+
+#cnphafeyki .gt_font_bold {
+  font-weight: bold;
+}
+
+#cnphafeyki .gt_font_italic {
+  font-style: italic;
+}
+
+#cnphafeyki .gt_super {
+  font-size: 65%;
+}
+
+#cnphafeyki .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#cnphafeyki .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#cnphafeyki .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#cnphafeyki .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#cnphafeyki .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#cnphafeyki .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#cnphafeyki .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#cnphafeyki .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#cnphafeyki div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table" data-quarto-postprocess="true"
+data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<thead>
+<tr class="header gt_col_headings">
+<th id="a::stub" class="gt_col_heading gt_columns_bottom_border gt_left"
+data-quarto-table-cell-role="th" scope="col"></th>
+<th id="perde" class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Perde</th>
+<th id="recebe" class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Recebe</th>
+<th id="custo_total_otimo"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Custo Total Otimo</th>
+<th id="custo_total_jurisdicao"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Custo Total Jurisdicao</th>
+<th id="total_diarias_otimo"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Total Diarias Otimo</th>
+<th id="total_diarias_jurisdicao"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Total Diarias
+Jurisdicao</th>
+<th id="custo_combustivel_otimo"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Custo Combustivel
+Otimo</th>
+<th id="custo_combustivel_jurisdicao"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Custo Combustivel
+Jurisdicao</th>
+<th id="entrevistadores_otimo"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Entrevistadores Otimo</th>
+<th id="entrevistadores_jurisdicao"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Entrevistadores
+Jurisdicao</th>
+<th id="n_agencias_otimo"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">N Agencias Otimo</th>
+<th id="n_agencias_jurisdicao"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">N Agencias Jurisdicao</th>
+<th id="n_otimo"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">N Otimo</th>
+<th id="n_jurisdicao"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">N Jurisdicao</th>
+<th id="dias_coleta_otimo"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Dias Coleta Otimo</th>
+<th id="dias_coleta_jurisdicao"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Dias Coleta Jurisdicao</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td id="stub_1_1" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Alagoinhas</td>
+<td class="gt_row gt_right" headers="stub_1_1 perde">3</td>
+<td class="gt_row gt_right" headers="stub_1_1 recebe">7</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 custo_total_otimo">R$136.347</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 custo_total_jurisdicao">R$130.766</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 total_diarias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 total_diarias_jurisdicao">34</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 custo_combustivel_otimo">R$31.958</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 custo_combustivel_jurisdicao">R$18.055</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_1 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_1 n_otimo">29</td>
+<td class="gt_row gt_right" headers="stub_1_1 n_jurisdicao">25</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 dias_coleta_otimo">595</td>
+<td class="gt_row gt_right"
+headers="stub_1_1 dias_coleta_jurisdicao">520</td>
+</tr>
+<tr class="even">
+<td id="stub_1_2" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Barreiras</td>
+<td class="gt_row gt_right" headers="stub_1_2 perde">6</td>
+<td class="gt_row gt_right" headers="stub_1_2 recebe">7</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 custo_total_otimo">R$193.285</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 custo_total_jurisdicao">R$205.888</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 total_diarias_otimo">168</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 total_diarias_jurisdicao">224</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 custo_combustivel_otimo">R$32.267</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 custo_combustivel_jurisdicao">R$27.219</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_2 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_2 n_otimo">27</td>
+<td class="gt_row gt_right" headers="stub_1_2 n_jurisdicao">26</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 dias_coleta_otimo">550</td>
+<td class="gt_row gt_right"
+headers="stub_1_2 dias_coleta_jurisdicao">525</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_3" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Camaçari</td>
+<td class="gt_row gt_right" headers="stub_1_3 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_3 recebe">9</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 custo_total_otimo">R$198.845</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 custo_total_jurisdicao">R$157.369</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 total_diarias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 total_diarias_jurisdicao">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 custo_combustivel_otimo">R$29.611</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 custo_combustivel_jurisdicao">R$22.335</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 entrevistadores_otimo">5</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 entrevistadores_jurisdicao">4</td>
+<td class="gt_row gt_right" headers="stub_1_3 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_3 n_otimo">44</td>
+<td class="gt_row gt_right" headers="stub_1_3 n_jurisdicao">35</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 dias_coleta_otimo">925</td>
+<td class="gt_row gt_right"
+headers="stub_1_3 dias_coleta_jurisdicao">740</td>
+</tr>
+<tr class="even">
+<td id="stub_1_4" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Conceição do Coité</td>
+<td class="gt_row gt_right" headers="stub_1_4 perde">1</td>
+<td class="gt_row gt_right" headers="stub_1_4 recebe">18</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 custo_total_otimo">R$177.510</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 custo_total_jurisdicao">R$126.734</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 total_diarias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 total_diarias_jurisdicao">24</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 custo_combustivel_otimo">R$37.709</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 custo_combustivel_jurisdicao">R$17.102</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 entrevistadores_otimo">4</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_4 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_4 n_otimo">33</td>
+<td class="gt_row gt_right" headers="stub_1_4 n_jurisdicao">16</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 dias_coleta_otimo">725</td>
+<td class="gt_row gt_right"
+headers="stub_1_4 dias_coleta_jurisdicao">360</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_5" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Cruz das Almas</td>
+<td class="gt_row gt_right" headers="stub_1_5 perde">2</td>
+<td class="gt_row gt_right" headers="stub_1_5 recebe">12</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 custo_total_otimo">R$119.820</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 custo_total_jurisdicao">R$113.735</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 total_diarias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 total_diarias_jurisdicao">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 custo_combustivel_otimo">R$17.417</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 custo_combustivel_jurisdicao">R$13.015</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_5 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_5 n_otimo">27</td>
+<td class="gt_row gt_right" headers="stub_1_5 n_jurisdicao">17</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 dias_coleta_otimo">585</td>
+<td class="gt_row gt_right"
+headers="stub_1_5 dias_coleta_jurisdicao">355</td>
+</tr>
+<tr class="even">
+<td id="stub_1_6" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Eunápolis</td>
+<td class="gt_row gt_right" headers="stub_1_6 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_6 recebe">22</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 custo_total_otimo">R$243.403</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 custo_total_jurisdicao">R$107.496</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 total_diarias_otimo">356</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 total_diarias_jurisdicao">24</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 custo_combustivel_otimo">R$21.462</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 custo_combustivel_jurisdicao">R$2.173</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_6 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_6 n_otimo">29</td>
+<td class="gt_row gt_right" headers="stub_1_6 n_jurisdicao">7</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 dias_coleta_otimo">570</td>
+<td class="gt_row gt_right"
+headers="stub_1_6 dias_coleta_jurisdicao">145</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_7" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Feira de Santana</td>
+<td class="gt_row gt_right" headers="stub_1_7 perde">4</td>
+<td class="gt_row gt_right" headers="stub_1_7 recebe">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 custo_total_otimo">R$152.693</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 custo_total_jurisdicao">R$181.715</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 total_diarias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 total_diarias_jurisdicao">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 custo_combustivel_otimo">R$18.624</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 custo_combustivel_jurisdicao">R$16.299</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 entrevistadores_otimo">4</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 entrevistadores_jurisdicao">5</td>
+<td class="gt_row gt_right" headers="stub_1_7 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_7 n_otimo">38</td>
+<td class="gt_row gt_right" headers="stub_1_7 n_jurisdicao">39</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 dias_coleta_otimo">795</td>
+<td class="gt_row gt_right"
+headers="stub_1_7 dias_coleta_jurisdicao">820</td>
+</tr>
+<tr class="even">
+<td id="stub_1_8" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Guanambi</td>
+<td class="gt_row gt_right" headers="stub_1_8 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_8 recebe">7</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 custo_total_otimo">R$241.176</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 custo_total_jurisdicao">R$178.422</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 total_diarias_otimo">357</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 total_diarias_jurisdicao">190</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 custo_combustivel_otimo">R$19.210</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 custo_combustivel_jurisdicao">R$13.888</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_8 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_8 n_otimo">27</td>
+<td class="gt_row gt_right" headers="stub_1_8 n_jurisdicao">20</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 dias_coleta_otimo">600</td>
+<td class="gt_row gt_right"
+headers="stub_1_8 dias_coleta_jurisdicao">430</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_9" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Ibotirama</td>
+<td class="gt_row gt_right" headers="stub_1_9 perde">3</td>
+<td class="gt_row gt_right" headers="stub_1_9 recebe">16</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 custo_total_otimo">R$258.187</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 custo_total_jurisdicao">R$151.882</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 total_diarias_otimo">396</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 total_diarias_jurisdicao">127</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 custo_combustivel_otimo">R$22.768</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 custo_combustivel_jurisdicao">R$10.221</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_9 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_9 n_otimo">25</td>
+<td class="gt_row gt_right" headers="stub_1_9 n_jurisdicao">12</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 dias_coleta_otimo">580</td>
+<td class="gt_row gt_right"
+headers="stub_1_9 dias_coleta_jurisdicao">280</td>
+</tr>
+<tr class="even">
+<td id="stub_1_10" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Ipiaú</td>
+<td class="gt_row gt_right" headers="stub_1_10 perde">2</td>
+<td class="gt_row gt_right" headers="stub_1_10 recebe">8</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 custo_total_otimo">R$163.845</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 custo_total_jurisdicao">R$142.910</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 total_diarias_otimo">60</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 total_diarias_jurisdicao">49</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 custo_combustivel_otimo">R$36.845</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 custo_combustivel_jurisdicao">R$23.151</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_10 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_10 n_otimo">27</td>
+<td class="gt_row gt_right" headers="stub_1_10 n_jurisdicao">21</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 dias_coleta_otimo">600</td>
+<td class="gt_row gt_right"
+headers="stub_1_10 dias_coleta_jurisdicao">480</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_11" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Ipirá</td>
+<td class="gt_row gt_right" headers="stub_1_11 perde">3</td>
+<td class="gt_row gt_right" headers="stub_1_11 recebe">13</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 custo_total_otimo">R$180.433</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 custo_total_jurisdicao">R$131.238</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 total_diarias_otimo">146</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 total_diarias_jurisdicao">74</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 custo_combustivel_otimo">R$27.359</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 custo_combustivel_jurisdicao">R$7.879</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_11 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_11 n_otimo">20</td>
+<td class="gt_row gt_right" headers="stub_1_11 n_jurisdicao">10</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 dias_coleta_otimo">450</td>
+<td class="gt_row gt_right"
+headers="stub_1_11 dias_coleta_jurisdicao">245</td>
+</tr>
+<tr class="even">
+<td id="stub_1_12" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Itabuna</td>
+<td class="gt_row gt_right" headers="stub_1_12 perde">4</td>
+<td class="gt_row gt_right" headers="stub_1_12 recebe">15</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 custo_total_otimo">R$151.032</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 custo_total_jurisdicao">R$152.716</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 total_diarias_otimo">68</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 total_diarias_jurisdicao">127</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 custo_combustivel_otimo">R$24.766</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 custo_combustivel_jurisdicao">R$10.743</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_12 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_12 n_otimo">28</td>
+<td class="gt_row gt_right" headers="stub_1_12 n_jurisdicao">17</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 dias_coleta_otimo">580</td>
+<td class="gt_row gt_right"
+headers="stub_1_12 dias_coleta_jurisdicao">365</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_13" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Jacobina</td>
+<td class="gt_row gt_right" headers="stub_1_13 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_13 recebe">14</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 custo_total_otimo">R$217.105</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 custo_total_jurisdicao">R$125.369</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 total_diarias_otimo">263</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 total_diarias_jurisdicao">29</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 custo_combustivel_otimo">R$25.255</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 custo_combustivel_jurisdicao">R$14.975</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_13 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_13 n_otimo">27</td>
+<td class="gt_row gt_right" headers="stub_1_13 n_jurisdicao">13</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 dias_coleta_otimo">550</td>
+<td class="gt_row gt_right"
+headers="stub_1_13 dias_coleta_jurisdicao">260</td>
+</tr>
+<tr class="even">
+<td id="stub_1_14" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Jaguaquara</td>
+<td class="gt_row gt_right" headers="stub_1_14 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_14 recebe">9</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 custo_total_otimo">R$171.230</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 custo_total_jurisdicao">R$133.912</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 total_diarias_otimo">103</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 total_diarias_jurisdicao">44</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 custo_combustivel_otimo">R$31.488</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 custo_combustivel_jurisdicao">R$17.777</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_14 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_14 n_otimo">28</td>
+<td class="gt_row gt_right" headers="stub_1_14 n_jurisdicao">19</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 dias_coleta_otimo">580</td>
+<td class="gt_row gt_right"
+headers="stub_1_14 dias_coleta_jurisdicao">390</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_15" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Juazeiro</td>
+<td class="gt_row gt_right" headers="stub_1_15 perde">2</td>
+<td class="gt_row gt_right" headers="stub_1_15 recebe">11</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 custo_total_otimo">R$254.967</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 custo_total_jurisdicao">R$172.331</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 total_diarias_otimo">382</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 total_diarias_jurisdicao">181</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 custo_combustivel_otimo">R$24.354</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 custo_combustivel_jurisdicao">R$11.897</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_15 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_15 n_otimo">27</td>
+<td class="gt_row gt_right" headers="stub_1_15 n_jurisdicao">18</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 dias_coleta_otimo">595</td>
+<td class="gt_row gt_right"
+headers="stub_1_15 dias_coleta_jurisdicao">380</td>
+</tr>
+<tr class="even">
+<td id="stub_1_16" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Paulo Afonso</td>
+<td class="gt_row gt_right" headers="stub_1_16 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_16 recebe">9</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 custo_total_otimo">R$166.082</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 custo_total_jurisdicao">R$100.512</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 total_diarias_otimo">158</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 total_diarias_jurisdicao">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 custo_combustivel_otimo">R$12.786</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 custo_combustivel_jurisdicao">R$3.007</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_16 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_16 n_otimo">18</td>
+<td class="gt_row gt_right" headers="stub_1_16 n_jurisdicao">9</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 dias_coleta_otimo">380</td>
+<td class="gt_row gt_right"
+headers="stub_1_16 dias_coleta_jurisdicao">205</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_17" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Poções</td>
+<td class="gt_row gt_right" headers="stub_1_17 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_17 recebe">15</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 custo_total_otimo">R$218.593</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 custo_total_jurisdicao">R$117.397</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 total_diarias_otimo">240</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 total_diarias_jurisdicao">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 custo_combustivel_otimo">R$32.772</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 custo_combustivel_jurisdicao">R$16.174</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_17 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_17 n_otimo">25</td>
+<td class="gt_row gt_right" headers="stub_1_17 n_jurisdicao">10</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 dias_coleta_otimo">560</td>
+<td class="gt_row gt_right"
+headers="stub_1_17 dias_coleta_jurisdicao">245</td>
+</tr>
+<tr class="even">
+<td id="stub_1_18" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Ribeira do Pombal</td>
+<td class="gt_row gt_right" headers="stub_1_18 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_18 recebe">15</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 custo_total_otimo">R$245.728</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 custo_total_jurisdicao">R$114.394</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 total_diarias_otimo">215</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 total_diarias_jurisdicao">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 custo_combustivel_otimo">R$34.879</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 custo_combustivel_jurisdicao">R$13.857</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 entrevistadores_otimo">4</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_18 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_18 n_otimo">27</td>
+<td class="gt_row gt_right" headers="stub_1_18 n_jurisdicao">12</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 dias_coleta_otimo">610</td>
+<td class="gt_row gt_right"
+headers="stub_1_18 dias_coleta_jurisdicao">250</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_19" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Santa Maria da Vitória</td>
+<td class="gt_row gt_right" headers="stub_1_19 perde">1</td>
+<td class="gt_row gt_right" headers="stub_1_19 recebe">7</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 custo_total_otimo">R$212.417</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 custo_total_jurisdicao">R$172.822</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 total_diarias_otimo">264</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 total_diarias_jurisdicao">156</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 custo_combustivel_otimo">R$21.367</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 custo_combustivel_jurisdicao">R$18.430</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_19 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_19 n_otimo">27</td>
+<td class="gt_row gt_right" headers="stub_1_19 n_jurisdicao">21</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 dias_coleta_otimo">590</td>
+<td class="gt_row gt_right"
+headers="stub_1_19 dias_coleta_jurisdicao">480</td>
+</tr>
+<tr class="even">
+<td id="stub_1_20" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Santo Amaro</td>
+<td class="gt_row gt_right" headers="stub_1_20 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_20 recebe">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 custo_total_otimo">R$122.182</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 custo_total_jurisdicao">R$120.983</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 total_diarias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 total_diarias_jurisdicao">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 custo_combustivel_otimo">R$20.207</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 custo_combustivel_jurisdicao">R$19.288</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_20 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_20 n_otimo">29</td>
+<td class="gt_row gt_right" headers="stub_1_20 n_jurisdicao">28</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 dias_coleta_otimo">570</td>
+<td class="gt_row gt_right"
+headers="stub_1_20 dias_coleta_jurisdicao">545</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_21" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Santo Antônio de Jesus</td>
+<td class="gt_row gt_right" headers="stub_1_21 perde">2</td>
+<td class="gt_row gt_right" headers="stub_1_21 recebe">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 custo_total_otimo">R$123.410</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 custo_total_jurisdicao">R$135.769</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 total_diarias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 total_diarias_jurisdicao">39</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 custo_combustivel_otimo">R$20.984</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 custo_combustivel_jurisdicao">R$20.475</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_21 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_21 n_otimo">31</td>
+<td class="gt_row gt_right" headers="stub_1_21 n_jurisdicao">30</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 dias_coleta_otimo">550</td>
+<td class="gt_row gt_right"
+headers="stub_1_21 dias_coleta_jurisdicao">535</td>
+</tr>
+<tr class="even">
+<td id="stub_1_22" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Senhor do Bonfim</td>
+<td class="gt_row gt_right" headers="stub_1_22 perde">1</td>
+<td class="gt_row gt_right" headers="stub_1_22 recebe">6</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 custo_total_otimo">R$160.129</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 custo_total_jurisdicao">R$123.630</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 total_diarias_otimo">126</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 total_diarias_jurisdicao">29</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 custo_combustivel_otimo">R$16.350</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 custo_combustivel_jurisdicao">R$13.363</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_22 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_22 n_otimo">24</td>
+<td class="gt_row gt_right" headers="stub_1_22 n_jurisdicao">19</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 dias_coleta_otimo">505</td>
+<td class="gt_row gt_right"
+headers="stub_1_22 dias_coleta_jurisdicao">405</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_23" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Teixeira de Freitas</td>
+<td class="gt_row gt_right" headers="stub_1_23 perde">2</td>
+<td class="gt_row gt_right" headers="stub_1_23 recebe">10</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 custo_total_otimo">R$144.523</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 custo_total_jurisdicao">R$122.263</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 total_diarias_otimo">49</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 total_diarias_jurisdicao">29</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 custo_combustivel_otimo">R$25.021</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 custo_combustivel_jurisdicao">R$12.511</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_23 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_23 n_otimo">26</td>
+<td class="gt_row gt_right" headers="stub_1_23 n_jurisdicao">18</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 dias_coleta_otimo">600</td>
+<td class="gt_row gt_right"
+headers="stub_1_23 dias_coleta_jurisdicao">410</td>
+</tr>
+<tr class="even">
+<td id="stub_1_24" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Valença</td>
+<td class="gt_row gt_right" headers="stub_1_24 perde">6</td>
+<td class="gt_row gt_right" headers="stub_1_24 recebe">4</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 custo_total_otimo">R$163.985</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 custo_total_jurisdicao">R$177.464</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 total_diarias_otimo">102</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 total_diarias_jurisdicao">142</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 custo_combustivel_otimo">R$25.823</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 custo_combustivel_jurisdicao">R$26.069</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_24 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_24 n_otimo">24</td>
+<td class="gt_row gt_right" headers="stub_1_24 n_jurisdicao">26</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 dias_coleta_otimo">525</td>
+<td class="gt_row gt_right"
+headers="stub_1_24 dias_coleta_jurisdicao">565</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_25" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Vitória da Conquista</td>
+<td class="gt_row gt_right" headers="stub_1_25 perde">12</td>
+<td class="gt_row gt_right" headers="stub_1_25 recebe">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 custo_total_otimo">R$117.301</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 custo_total_jurisdicao">R$267.097</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 total_diarias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 total_diarias_jurisdicao">220</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 custo_combustivel_otimo">R$16.287</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 custo_combustivel_jurisdicao">R$25.605</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 entrevistadores_jurisdicao">5</td>
+<td class="gt_row gt_right" headers="stub_1_25 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_25 n_otimo">27</td>
+<td class="gt_row gt_right" headers="stub_1_25 n_jurisdicao">39</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 dias_coleta_otimo">600</td>
+<td class="gt_row gt_right"
+headers="stub_1_25 dias_coleta_jurisdicao">865</td>
+</tr>
+<tr class="even">
+<td id="stub_1_26" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Xique Xique</td>
+<td class="gt_row gt_right" headers="stub_1_26 perde">0</td>
+<td class="gt_row gt_right" headers="stub_1_26 recebe">17</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 custo_total_otimo">R$233.587</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 custo_total_jurisdicao">R$108.833</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 total_diarias_otimo">322</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 total_diarias_jurisdicao">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 custo_combustivel_otimo">R$22.683</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 custo_combustivel_jurisdicao">R$9.602</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 entrevistadores_otimo">3</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 entrevistadores_jurisdicao">3</td>
+<td class="gt_row gt_right" headers="stub_1_26 n_agencias_otimo">1</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 n_agencias_jurisdicao">1</td>
+<td class="gt_row gt_right" headers="stub_1_26 n_otimo">26</td>
+<td class="gt_row gt_right" headers="stub_1_26 n_jurisdicao">9</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 dias_coleta_otimo">535</td>
+<td class="gt_row gt_right"
+headers="stub_1_26 dias_coleta_jurisdicao">205</td>
+</tr>
+<tr class="odd">
+<td id="stub_1_27" class="gt_row gt_left gt_stub"
+data-quarto-table-cell-role="th" scope="row">Agências excluídas**</td>
+<td class="gt_row gt_right" headers="stub_1_27 perde">204</td>
+<td class="gt_row gt_right" headers="stub_1_27 recebe">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 custo_total_otimo">R$0</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 custo_total_jurisdicao">R$2.641.460</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 total_diarias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 total_diarias_jurisdicao">848</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 custo_combustivel_otimo">R$0</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 custo_combustivel_jurisdicao">R$185.059</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 entrevistadores_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 entrevistadores_jurisdicao">66</td>
+<td class="gt_row gt_right" headers="stub_1_27 n_agencias_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 n_agencias_jurisdicao">22</td>
+<td class="gt_row gt_right" headers="stub_1_27 n_otimo">0</td>
+<td class="gt_row gt_right" headers="stub_1_27 n_jurisdicao">204</td>
+<td class="gt_row gt_right" headers="stub_1_27 dias_coleta_otimo">0</td>
+<td class="gt_row gt_right"
+headers="stub_1_27 dias_coleta_jurisdicao">4.300</td>
+</tr>
+<tr class="even">
+<td id="grand_summary_stub_1"
+class="gt_row gt_left gt_stub gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+data-quarto-table-cell-role="th" scope="row">Total Superintendência</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 perde">258</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 recebe">258</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 custo_total_otimo">R$4.767.815</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 custo_total_jurisdicao">R$6.415.108</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 total_diarias_otimo">3.776</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 total_diarias_jurisdicao">2.591</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 custo_combustivel_otimo">R$650.253</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 custo_combustivel_jurisdicao">R$590.167</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 entrevistadores_otimo">83</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 entrevistadores_jurisdicao">149</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 n_agencias_otimo">26</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 n_agencias_jurisdicao">48</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 n_otimo">720</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 n_jurisdicao">720</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 dias_coleta_otimo">15.305</td>
+<td
+class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row"
+headers="grand_summary_stub_1 dias_coleta_jurisdicao">15.305</td>
+</tr>
+</tbody><tfoot class="gt_footnotes">
+<tr class="odd">
+<td colspan="17" class="gt_footnote">* Agências excluídas: Bom Jesus da
+Lapa, Brumado, Cachoeira, Cipó, Esplanada, Euclides da Cunha, Ilhéus,
+Irecê, Itaberaba, Itamaraju, Itapetinga, Jequié, Jeremoabo, Livramento
+de nossa Senhora, Morro do Chapéu, Porto Seguro, Remanso, Riachão do
+Jacuípe, Santa Rita de Cássia, São Francisco do Conde, Seabra,
+Serrinha</td>
+</tr>
+</tfoot>
+&#10;</table>
+
+</div>
+
+``` r
+# 
+estrategias_pnadc_sum%>%
+  group_by(descricao)%>%
+  select(-modelo)%>%
+  reframe(across(everything(), diff))%>%
+  group_by(descricao)%>%
+  arrange(descricao)%>%
+  slice(1)%>%
+  arrange(desc(n_agencias), custo_total)%>%
+  select(descricao, n_agencias, custo_total, custo_total_entrevistadores, custo_diarias, custo_combustivel)%>%
+  ungroup%>%
+  #arrange(-custo_total)%>%
+  gt::gt()%>%
+  gt::cols_label(descricao='Modelo')%>%
+  gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%
+  print_gt()
+```
+
+<div id="ccsxkxnykq" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#ccsxkxnykq table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#ccsxkxnykq thead, #ccsxkxnykq tbody, #ccsxkxnykq tfoot, #ccsxkxnykq tr, #ccsxkxnykq td, #ccsxkxnykq th {
+  border-style: none;
+}
+
+#ccsxkxnykq p {
+  margin: 0;
+  padding: 0;
+}
+
+#ccsxkxnykq .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#ccsxkxnykq .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#ccsxkxnykq .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#ccsxkxnykq .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#ccsxkxnykq .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#ccsxkxnykq .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#ccsxkxnykq .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#ccsxkxnykq .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#ccsxkxnykq .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#ccsxkxnykq .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#ccsxkxnykq .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#ccsxkxnykq .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#ccsxkxnykq .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#ccsxkxnykq .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#ccsxkxnykq .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ccsxkxnykq .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#ccsxkxnykq .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#ccsxkxnykq .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#ccsxkxnykq .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ccsxkxnykq .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#ccsxkxnykq .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ccsxkxnykq .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#ccsxkxnykq .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ccsxkxnykq .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ccsxkxnykq .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ccsxkxnykq .gt_left {
+  text-align: left;
+}
+
+#ccsxkxnykq .gt_center {
+  text-align: center;
+}
+
+#ccsxkxnykq .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#ccsxkxnykq .gt_font_normal {
+  font-weight: normal;
+}
+
+#ccsxkxnykq .gt_font_bold {
+  font-weight: bold;
+}
+
+#ccsxkxnykq .gt_font_italic {
+  font-style: italic;
+}
+
+#ccsxkxnykq .gt_super {
+  font-size: 65%;
+}
+
+#ccsxkxnykq .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#ccsxkxnykq .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#ccsxkxnykq .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#ccsxkxnykq .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#ccsxkxnykq .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#ccsxkxnykq .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#ccsxkxnykq .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#ccsxkxnykq .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#ccsxkxnykq div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table" data-quarto-postprocess="true"
+data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<caption>Redução de custos promovido pela otimização da rede de
+coleta</caption>
+<thead>
+<tr class="header gt_col_headings">
+<th id="descricao"
+class="gt_col_heading gt_columns_bottom_border gt_center"
+data-quarto-table-cell-role="th" scope="col">Modelo</th>
+<th id="n_agencias"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">N Agencias</th>
+<th id="custo_total"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Custo Total</th>
+<th id="custo_total_entrevistadores"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Custo Total
+Entrevistadores</th>
+<th id="custo_diarias"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Custo Diarias</th>
+<th id="custo_combustivel"
+class="gt_col_heading gt_columns_bottom_border gt_right"
+data-quarto-table-cell-role="th" scope="col">Custo Combustivel</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_center" headers="descricao">sem custo fixo / sem
+custo de treinamento</td>
+<td class="gt_row gt_right" headers="n_agencias">−1</td>
+<td class="gt_row gt_right" headers="custo_total">−R$115.154</td>
+<td class="gt_row gt_right"
+headers="custo_total_entrevistadores">R$0</td>
+<td class="gt_row gt_right" headers="custo_diarias">−R$127.468</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$9.032</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="descricao">sem mínimo de
+entrevistador, remuneracao entrevistador por mês 2675, sem custo
+fixo</td>
+<td class="gt_row gt_right" headers="n_agencias">−3</td>
+<td class="gt_row gt_right" headers="custo_total">−R$699.028</td>
+<td class="gt_row gt_right"
+headers="custo_total_entrevistadores">−R$706.200</td>
+<td class="gt_row gt_right" headers="custo_diarias">−R$50.418</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$45.129</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_center" headers="descricao">mínimo de
+entrevistador=2, remuneracao entrevistador por mês 2675, sem custo
+fixo</td>
+<td class="gt_row gt_right" headers="n_agencias">−13</td>
+<td class="gt_row gt_right" headers="custo_total">−R$948.616</td>
+<td class="gt_row gt_right"
+headers="custo_total_entrevistadores">−R$1.187.700</td>
+<td class="gt_row gt_right" headers="custo_diarias">R$153.765</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$68.844</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_center" headers="descricao">mínimo de
+entrevistador=3, remuneracao entrevistador 2675 por mês, sem custo
+fixo</td>
+<td class="gt_row gt_right" headers="n_agencias">−22</td>
+<td class="gt_row gt_right" headers="custo_total">−R$1.647.293</td>
+<td class="gt_row gt_right"
+headers="custo_total_entrevistadores">−R$2.118.600</td>
+<td class="gt_row gt_right" headers="custo_diarias">R$396.808</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$60.086</td>
+</tr>
+</tbody>
+</table>
+
+Redução de custos promovido pela otimização da rede de coleta
+
+</div>
+
+## Caso 4. Um novo modelo de coleta nas Agências
 
 A seção anterior demonstrou que, pelo menos no caso da coleta da POF da
 Bahia, é possível atingir uma significativa redução de custos de coleta,
@@ -8188,7 +10225,7 @@ agencias_uf <-  carga_uf%>%
   group_by(agencia_codigo)%>%
   summarise(n_ucs_jurisdicao=n(), dias_coleta_jurisdicao=sum(dias_coleta))%>%
   mutate(uc_agencia_max=Inf, 
-         dias_coleta_agencia_max=pmax(dias_coleta_jurisdicao, params$dias_coleta_agencia_max_carga), custo_fixo=0)
+         dias_coleta_agencia_max=Inf, custo_fixo=0)
 
 
 ## sem custo fixo nem custo de treinamento
@@ -8307,23 +10344,23 @@ estrategias_carga_sum%>%
   print_gt()
 ```
 
-<div id="vpxtvybqvx" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#vpxtvybqvx table {
+<div id="obzasdpame" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#obzasdpame table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#vpxtvybqvx thead, #vpxtvybqvx tbody, #vpxtvybqvx tfoot, #vpxtvybqvx tr, #vpxtvybqvx td, #vpxtvybqvx th {
+#obzasdpame thead, #obzasdpame tbody, #obzasdpame tfoot, #obzasdpame tr, #obzasdpame td, #obzasdpame th {
   border-style: none;
 }
 
-#vpxtvybqvx p {
+#obzasdpame p {
   margin: 0;
   padding: 0;
 }
 
-#vpxtvybqvx .gt_table {
+#obzasdpame .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -8349,12 +10386,12 @@ estrategias_carga_sum%>%
   border-left-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_caption {
+#obzasdpame .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#vpxtvybqvx .gt_title {
+#obzasdpame .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -8366,7 +10403,7 @@ estrategias_carga_sum%>%
   border-bottom-width: 0;
 }
 
-#vpxtvybqvx .gt_subtitle {
+#obzasdpame .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -8378,7 +10415,7 @@ estrategias_carga_sum%>%
   border-top-width: 0;
 }
 
-#vpxtvybqvx .gt_heading {
+#obzasdpame .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -8390,13 +10427,13 @@ estrategias_carga_sum%>%
   border-right-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_bottom_border {
+#obzasdpame .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_col_headings {
+#obzasdpame .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -8411,7 +10448,7 @@ estrategias_carga_sum%>%
   border-right-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_col_heading {
+#obzasdpame .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -8431,7 +10468,7 @@ estrategias_carga_sum%>%
   overflow-x: hidden;
 }
 
-#vpxtvybqvx .gt_column_spanner_outer {
+#obzasdpame .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -8443,15 +10480,15 @@ estrategias_carga_sum%>%
   padding-right: 4px;
 }
 
-#vpxtvybqvx .gt_column_spanner_outer:first-child {
+#obzasdpame .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#vpxtvybqvx .gt_column_spanner_outer:last-child {
+#obzasdpame .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#vpxtvybqvx .gt_column_spanner {
+#obzasdpame .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -8463,11 +10500,11 @@ estrategias_carga_sum%>%
   width: 100%;
 }
 
-#vpxtvybqvx .gt_spanner_row {
+#obzasdpame .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#vpxtvybqvx .gt_group_heading {
+#obzasdpame .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -8493,7 +10530,7 @@ estrategias_carga_sum%>%
   text-align: left;
 }
 
-#vpxtvybqvx .gt_empty_group_heading {
+#obzasdpame .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -8508,15 +10545,15 @@ estrategias_carga_sum%>%
   vertical-align: middle;
 }
 
-#vpxtvybqvx .gt_from_md > :first-child {
+#obzasdpame .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#vpxtvybqvx .gt_from_md > :last-child {
+#obzasdpame .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#vpxtvybqvx .gt_row {
+#obzasdpame .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -8535,7 +10572,7 @@ estrategias_carga_sum%>%
   overflow-x: hidden;
 }
 
-#vpxtvybqvx .gt_stub {
+#obzasdpame .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -8548,7 +10585,7 @@ estrategias_carga_sum%>%
   padding-right: 5px;
 }
 
-#vpxtvybqvx .gt_stub_row_group {
+#obzasdpame .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -8562,15 +10599,15 @@ estrategias_carga_sum%>%
   vertical-align: top;
 }
 
-#vpxtvybqvx .gt_row_group_first td {
+#obzasdpame .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#vpxtvybqvx .gt_row_group_first th {
+#obzasdpame .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#vpxtvybqvx .gt_summary_row {
+#obzasdpame .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -8580,16 +10617,16 @@ estrategias_carga_sum%>%
   padding-right: 5px;
 }
 
-#vpxtvybqvx .gt_first_summary_row {
+#obzasdpame .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_first_summary_row.thick {
+#obzasdpame .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#vpxtvybqvx .gt_last_summary_row {
+#obzasdpame .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -8599,7 +10636,7 @@ estrategias_carga_sum%>%
   border-bottom-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_grand_summary_row {
+#obzasdpame .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -8609,7 +10646,7 @@ estrategias_carga_sum%>%
   padding-right: 5px;
 }
 
-#vpxtvybqvx .gt_first_grand_summary_row {
+#obzasdpame .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -8619,7 +10656,7 @@ estrategias_carga_sum%>%
   border-top-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_last_grand_summary_row_top {
+#obzasdpame .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -8629,11 +10666,11 @@ estrategias_carga_sum%>%
   border-bottom-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_striped {
+#obzasdpame .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#vpxtvybqvx .gt_table_body {
+#obzasdpame .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -8642,7 +10679,7 @@ estrategias_carga_sum%>%
   border-bottom-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_footnotes {
+#obzasdpame .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -8656,7 +10693,7 @@ estrategias_carga_sum%>%
   border-right-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_footnote {
+#obzasdpame .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -8665,7 +10702,7 @@ estrategias_carga_sum%>%
   padding-right: 5px;
 }
 
-#vpxtvybqvx .gt_sourcenotes {
+#obzasdpame .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -8679,7 +10716,7 @@ estrategias_carga_sum%>%
   border-right-color: #D3D3D3;
 }
 
-#vpxtvybqvx .gt_sourcenote {
+#obzasdpame .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -8687,72 +10724,72 @@ estrategias_carga_sum%>%
   padding-right: 5px;
 }
 
-#vpxtvybqvx .gt_left {
+#obzasdpame .gt_left {
   text-align: left;
 }
 
-#vpxtvybqvx .gt_center {
+#obzasdpame .gt_center {
   text-align: center;
 }
 
-#vpxtvybqvx .gt_right {
+#obzasdpame .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#vpxtvybqvx .gt_font_normal {
+#obzasdpame .gt_font_normal {
   font-weight: normal;
 }
 
-#vpxtvybqvx .gt_font_bold {
+#obzasdpame .gt_font_bold {
   font-weight: bold;
 }
 
-#vpxtvybqvx .gt_font_italic {
+#obzasdpame .gt_font_italic {
   font-style: italic;
 }
 
-#vpxtvybqvx .gt_super {
+#obzasdpame .gt_super {
   font-size: 65%;
 }
 
-#vpxtvybqvx .gt_footnote_marks {
+#obzasdpame .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#vpxtvybqvx .gt_asterisk {
+#obzasdpame .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#vpxtvybqvx .gt_indent_1 {
+#obzasdpame .gt_indent_1 {
   text-indent: 5px;
 }
 
-#vpxtvybqvx .gt_indent_2 {
+#obzasdpame .gt_indent_2 {
   text-indent: 10px;
 }
 
-#vpxtvybqvx .gt_indent_3 {
+#obzasdpame .gt_indent_3 {
   text-indent: 15px;
 }
 
-#vpxtvybqvx .gt_indent_4 {
+#obzasdpame .gt_indent_4 {
   text-indent: 20px;
 }
 
-#vpxtvybqvx .gt_indent_5 {
+#obzasdpame .gt_indent_5 {
   text-indent: 25px;
 }
 
-#vpxtvybqvx .katex-display {
+#obzasdpame .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#vpxtvybqvx div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#obzasdpame div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -8763,22 +10800,23 @@ data-quarto-disable-processing="false" data-quarto-bootstrap="false">
 coleta</caption>
 <thead>
 <tr class="header gt_col_headings">
-<th id="Modelo" class="gt_col_heading gt_columns_bottom_border gt_left"
+<th id="descricao"
+class="gt_col_heading gt_columns_bottom_border gt_left"
 data-quarto-table-cell-role="th" scope="col">Modelo</th>
-<th id="N Agencias"
+<th id="n_agencias"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">N Agencias</th>
-<th id="Custo Total"
+<th id="custo_total"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Total</th>
-<th id="Custo Total Entrevistadores"
+<th id="custo_total_entrevistadores"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Total
 Entrevistadores</th>
-<th id="Custo Diarias"
+<th id="custo_diarias"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Diarias</th>
-<th id="Custo Combustivel"
+<th id="custo_combustivel"
 class="gt_col_heading gt_columns_bottom_border gt_right"
 data-quarto-table-cell-role="th" scope="col">Custo Combustivel</th>
 </tr>
@@ -8788,72 +10826,72 @@ data-quarto-table-cell-role="th" scope="col">Custo Combustivel</th>
 <td class="gt_row gt_left" headers="descricao">sem custo fixo / sem
 custo de treinamento</td>
 <td class="gt_row gt_right" headers="n_agencias">0</td>
-<td class="gt_row gt_right" headers="custo_total">−R$108.432</td>
+<td class="gt_row gt_right" headers="custo_total">−R$117.855</td>
 <td class="gt_row gt_right"
 headers="custo_total_entrevistadores">R$0</td>
 <td class="gt_row gt_right" headers="custo_diarias">−R$121.605</td>
-<td class="gt_row gt_right" headers="custo_combustivel">R$9.210</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$2.122</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="descricao">sem mínimo de
-entrevistador, remuneracao 2500, sem custo fixo</td>
+entrevistador, sem custo fixo</td>
 <td class="gt_row gt_right" headers="n_agencias">−1</td>
-<td class="gt_row gt_right" headers="custo_total">−R$441.881</td>
+<td class="gt_row gt_right" headers="custo_total">−R$594.544</td>
 <td class="gt_row gt_right"
-headers="custo_total_entrevistadores">−R$420.000</td>
-<td class="gt_row gt_right" headers="custo_diarias">−R$53.432</td>
-<td class="gt_row gt_right" headers="custo_combustivel">R$24.055</td>
+headers="custo_total_entrevistadores">−R$642.000</td>
+<td class="gt_row gt_right" headers="custo_diarias">−R$23.115</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$56.320</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="descricao">sem mínimo de
-entrevistador, sem custo fixo</td>
-<td class="gt_row gt_right" headers="n_agencias">−1</td>
-<td class="gt_row gt_right" headers="custo_total">−R$325.864</td>
+entrevistador, remuneracao 2500, sem custo fixo</td>
+<td class="gt_row gt_right" headers="n_agencias">−3</td>
+<td class="gt_row gt_right" headers="custo_total">−R$534.402</td>
 <td class="gt_row gt_right"
-headers="custo_total_entrevistadores">−R$378.000</td>
-<td class="gt_row gt_right" headers="custo_diarias">−R$6.198</td>
-<td class="gt_row gt_right" headers="custo_combustivel">R$45.154</td>
+headers="custo_total_entrevistadores">−R$630.000</td>
+<td class="gt_row gt_right" headers="custo_diarias">−R$7.035</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$83.414</td>
 </tr>
 <tr class="even">
 <td class="gt_row gt_left" headers="descricao">mínimo de 2
 entrevistadores, sem custo fixo</td>
-<td class="gt_row gt_right" headers="n_agencias">−4</td>
-<td class="gt_row gt_right" headers="custo_total">−R$389.712</td>
+<td class="gt_row gt_right" headers="n_agencias">−6</td>
+<td class="gt_row gt_right" headers="custo_total">−R$680.782</td>
 <td class="gt_row gt_right"
-headers="custo_total_entrevistadores">−R$396.000</td>
-<td class="gt_row gt_right" headers="custo_diarias">−R$31.322</td>
-<td class="gt_row gt_right" headers="custo_combustivel">R$28.394</td>
+headers="custo_total_entrevistadores">−R$898.800</td>
+<td class="gt_row gt_right" headers="custo_diarias">R$135.005</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$66.011</td>
 </tr>
 <tr class="odd">
 <td class="gt_row gt_left" headers="descricao">mínimo de 2
 entrevistadores/2 Técnicos 10000 p/ mes (custo fixo)/ custo diaria
 2x</td>
-<td class="gt_row gt_right" headers="n_agencias">−15</td>
-<td class="gt_row gt_right" headers="custo_total">−R$1.548.620</td>
+<td class="gt_row gt_right" headers="n_agencias">−20</td>
+<td class="gt_row gt_right" headers="custo_total">−R$2.445.552</td>
 <td class="gt_row gt_right"
-headers="custo_total_entrevistadores">−R$522.000</td>
-<td class="gt_row gt_right" headers="custo_diarias">R$596.635</td>
-<td class="gt_row gt_right" headers="custo_combustivel">R$140.385</td>
+headers="custo_total_entrevistadores">−R$802.500</td>
+<td class="gt_row gt_right" headers="custo_diarias">R$585.245</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$135.762</td>
 </tr>
 <tr class="even">
-<td class="gt_row gt_left" headers="descricao">mínimo de 2
-entrevistadores /2 Técnicos 10000 p/ mes (custo fixo)</td>
-<td class="gt_row gt_right" headers="n_agencias">−16</td>
-<td class="gt_row gt_right" headers="custo_total">−R$965.095</td>
-<td class="gt_row gt_right"
-headers="custo_total_entrevistadores">−R$450.000</td>
-<td class="gt_row gt_right" headers="custo_diarias">R$1.124.092</td>
-<td class="gt_row gt_right" headers="custo_combustivel">R$226.650</td>
-</tr>
-<tr class="odd">
 <td class="gt_row gt_left" headers="descricao">mínimo 2 entrevistadores
 /2 Técnicos (10000 p/ mes custo fixo), reorganizacao jurisdicao</td>
-<td class="gt_row gt_right" headers="n_agencias">−17</td>
-<td class="gt_row gt_right" headers="custo_total">−R$1.730.877</td>
+<td class="gt_row gt_right" headers="n_agencias">−32</td>
+<td class="gt_row gt_right" headers="custo_total">−R$3.640.948</td>
 <td class="gt_row gt_right"
-headers="custo_total_entrevistadores">−R$522.000</td>
-<td class="gt_row gt_right" headers="custo_diarias">R$604.842</td>
-<td class="gt_row gt_right" headers="custo_combustivel">R$181.182</td>
+headers="custo_total_entrevistadores">−R$1.027.200</td>
+<td class="gt_row gt_right" headers="custo_diarias">R$1.026.608</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$161.081</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="descricao">mínimo de 2
+entrevistadores /2 Técnicos 10000 p/ mes (custo fixo)</td>
+<td class="gt_row gt_right" headers="n_agencias">−32</td>
+<td class="gt_row gt_right" headers="custo_total">−R$3.365.024</td>
+<td class="gt_row gt_right"
+headers="custo_total_entrevistadores">−R$1.027.200</td>
+<td class="gt_row gt_right" headers="custo_diarias">R$1.318.560</td>
+<td class="gt_row gt_right" headers="custo_combustivel">R$149.502</td>
 </tr>
 </tbody>
 </table>

@@ -2,10 +2,11 @@ pandoc: '3.2'
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
+  articles/orce_presentation_pnadc: orce_presentation_pnadc.html
   articles/orce_presentation: orce_presentation.html
   articles/orce: orce.html
   articles/Technical-details-of-the-optimization-procedure: Technical-details-of-the-optimization-procedure.html
-last_built: 2024-10-03T16:16Z
+last_built: 2024-10-16T23:50Z
 urls:
   reference: https://leoniedu.github.io/orce/reference
   article: https://leoniedu.github.io/orce/articles

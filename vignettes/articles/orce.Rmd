@@ -3,7 +3,6 @@ title: "Otimizando a Coleta de Dados do IBGE com o Pacote R 'orce'"
 author: "Eduardo Leoni - SES/BA - IBGE"
 format: 
   html: default
-  md: default
 lang: pt
 echo: true
 message: false
