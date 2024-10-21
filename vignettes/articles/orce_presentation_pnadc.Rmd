@@ -215,44 +215,45 @@ Parâmetros (3):
 #pontos_upas_29 <- readRDS(here::here("data-raw/pontos_upas_29.rds"))
 #ufs_now <- ufs%>%filter(uf_sigla==params2$uf_sigla)
 
-render_tables <- function(ufnow) {
-  ufs_now <- ufs%>%filter(uf_sigla==ufnow)
-  uf_codigo_now <- ufs_now$uf_codigo
-  ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
+render_tables <- function(uf_sigla_now) {
+  #ufs_now <- ufs%>%filter(uf_sigla==uf_sigla_now)
+  ufnow <- ufs%>%filter(uf_sigla==uf_sigla_now)
+  uf_codigo_now <- ufnow$uf_codigo
   amostra_mestra <- readr::read_rds(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))%>%
     filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"), uf_codigo==uf_codigo_now)
   amostra_pnadc <- amostra_mestra%>%
-    distinct(uc=upa, pesquisa=paste("pnadc", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params2$dias_coleta_pnadc, viagens=params2$viagens_pnadc)
+    distinct(upa, pesquisa=paste("pnadc", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params2$dias_coleta_pnadc, viagens=params2$viagens_pnadc, ano_mes)
   library(lubridate)## so months works
   amostra_cnefe <- amostra_mestra%>%
     filter(entrevista_numero==1)%>%
     mutate(ano_mes=ano_mes-months(3))%>%
-    distinct(uc=upa, pesquisa=paste("cnefe", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params2$dias_coleta_cnefe, viagens=params2$viagens_cnefe)
+    distinct(upa, pesquisa=paste("cnefe", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params2$dias_coleta_cnefe, viagens=params2$viagens_cnefe, ano_mes)
   carga_pnadc <- bind_rows(amostra_cnefe, amostra_pnadc)%>%
-    group_by(uc, agencia_codigo, municipio_codigo=substr(uc,1,7))%>%
+    group_by(upa, agencia_codigo, municipio_codigo=substr(upa,1,7), ano_mes)%>%
     summarise(dias_coleta=sum(dias_coleta), viagens=sum(viagens))
   municipio_principal <- carga_pnadc%>%group_by(municipio_codigo)%>%summarise(dias_coleta=sum(dias_coleta))%>%arrange(desc(dias_coleta))%>%
     head(1)
   carga_pnadc_uf <- carga_pnadc%>%
-    filter(substr(uc,1,2)==ufnow$uf_codigo)%>%
+    filter(substr(upa,1,2)==ufnow$uf_codigo)%>%
     ## Importante: Sem as agências do principal municipio
     filter(!grepl(municipio_principal$municipio_codigo, agencia_codigo))%>%
     #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
-    ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
-  
+    ungroup%>%
+    mutate(uc=paste(upa,ano_mes),periodo=ano_mes)#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
   ## distancias uc
   fname <- here::here(paste0("data-raw/distancias_agencias_upas_osrm_", uf_codigo_now, ".rds"))
-  distancias_ucs_all <- readRDS(fname)%>%
-    rename(uc=upa)%>%
-    transmute(uc, agencia_codigo, distancia_km, duracao_horas, municipio_codigo=substr(uc,1,7), ponto_origem)%>%
+  distancias_upas_all <- readRDS(fname)%>%
+    distinct(upa, agencia_codigo, distancia_km, duracao_horas, municipio_codigo=substr(upa,1,7), ponto_origem)%>%
     left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
-    semi_join(carga_pnadc_uf, by="uc")%>%
+    semi_join(carga_pnadc_uf, by="upa")%>%
     mutate(diaria_pernoite=duracao_horas>params2$horas_viagem_pernoite)%>%
-    group_by(uc, agencia_codigo)%>%
+    group_by(upa, agencia_codigo)%>%
     ## só a configuração de upa mais distante
     arrange(desc(duracao_horas))%>%
     slice(1)%>%
     ungroup()
+  distancias_ucs_all <- distancias_upas_all%>%
+    left_join(carga_pnadc_uf%>%distinct(upa,uc), by="upa", relationship = "many-to-many")
   #distancias_ucs_all%>%ungroup%>%count(ponto_origem)
   
   agencias_uf <-  carga_pnadc_uf%>%
@@ -288,8 +289,8 @@ render_tables <- function(ufnow) {
                           rel_tol=params2$rel_tol,
                           resultado_completo=FALSE 
   )
-  library(tictoc)
-  tic()
+  #library(tictoc)
+  #tic()
   estrategias_pnadc <- bind_rows(
     tibble(params_pnadc=list(params_pnadc_0), 
            descricao='sem remuneração entrevistadores'),

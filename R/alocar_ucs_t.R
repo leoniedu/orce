@@ -22,7 +22,7 @@
 #' @param diarias_entrevistador_max Total máximo de diárias que um entrevistador pode receber, somando todos os períodos. Padrão: `Inf`.
 #' @param remuneracao_entrevistador Remuneração total por entrevistador para todos os períodos. Padrão: 0.
 #' @param n_entrevistadores_min Número mínimo de entrevistadores por agência. Padrão: 1.
-#' @param dias_coleta_entrevistador_max_max Número máximo de dias de coleta por entrevistador por período.
+#' @param dias_coleta_entrevistador_max Número máximo de dias de coleta por entrevistador por período.
 #' @param dias_treinamento Número de dias/diárias para treinamento. Padrão: 0 (nenhum treinamento).
 #' @param agencias_treinadas (Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. Padrão: NULL.
 #' @param agencias_treinamento Código da(s) agência(s) onde o treinamento será realizado.
@@ -162,7 +162,7 @@ alocar_ucs_t <- function(ucs,
                      periodo,
                      uc,
                      agencia_codigo_jurisdicao=agencia_codigo, dias_coleta, viagens)|>
-    dplyr::left_join(indice_t)
+    dplyr::left_join(indice_t, by="periodo")
 
   agencias_i <- ucs_i|>
     dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao)|>
@@ -212,57 +212,48 @@ alocar_ucs_t <- function(ucs,
       custo_combustivel=((distancia_total_km / kml) * custo_litro_combustivel),
       custo_horas_viagem=(trechos * duracao_horas) * custo_hora_viagem,
       custo_troca_jurisdicao=if_else(agencia_codigo!=agencia_codigo_jurisdicao, adicional_troca_jurisdicao, 0),
-      custo_deslocamento= custo_combustivel + custo_horas_viagem + custo_diarias
+      custo_deslocamento= custo_combustivel + custo_horas_viagem + custo_diarias,
+      custo_deslocamento_com_troca=custo_deslocamento+custo_troca_jurisdicao
     )
 
   stopifnot(all(!is.na(dist_uc_agencias$distancia_km)))
-
-  diarias_ij <- function(i,j) {
-    stopifnot(length(i) == length(j))
-    tibble::tibble(i=i,j=j)|>
-      dplyr::left_join(dist_uc_agencias, by=c("i", "j"))|>
-      dplyr::pull(total_diarias)
+  ## check i,j
+  u_dist_uc_agencias <- dist_uc_agencias|>
+    dplyr::ungroup()|>
+    dplyr::count(i,j)
+  stopifnot(all(u_dist_uc_agencias$n==1))
+  make_i_j <- function(x,col) {
+    x|>
+      dplyr::ungroup()|>
+      dplyr::select(all_of(c("i","j",col)))|>
+      tidyr::pivot_wider(id_cols=i,names_from=j,values_from=col)|>
+      dplyr::arrange(i)|>
+      dplyr::select(-i)|>
+      as.matrix()
   }
-  dias_coleta_ij <- function(i,j) {
-    #browser()
-    stopifnot(length(i) == length(j))
-    tibble::tibble(i=i,j=j)|>
-      dplyr::left_join(dist_uc_agencias, by=c("i", "j"))|>
-      dplyr::pull(dias_coleta)
-  }
+  transport_cost_i_j <- make_i_j(x=dist_uc_agencias, col="custo_deslocamento_com_troca")
+  diarias_i_j <- make_i_j(x=dist_uc_agencias, col="total_diarias")
+  dias_coleta_ijt_df <- dist_uc_agencias|>
+      dplyr::ungroup()|>
+      dplyr::select(all_of(c("i","j","t", "dias_coleta")))|>
+      tidyr::pivot_wider(id_cols=c("i", "t"),names_from=j,values_from="dias_coleta")|>
+      dplyr::arrange(i,t)
+  tvec <- dias_coleta_ijt_df$t
+  dias_coleta_ijt_mat <- dias_coleta_ijt_df|>
+    dplyr::select(-i,-t)|>
+    as.matrix()
   dias_coleta_ijt <- function(i,j,t) {
-    #browser()
-    stopifnot(length(i) == length(j))
-    stopifnot(length(i) == length(t))
-    res <- tibble::tibble(i=i,j=j,t=t)|>
-      dplyr::left_join(dist_uc_agencias, by=c("i", "j", "t"))|>
-      dplyr::pull(dias_coleta)
-    res <- dplyr::coalesce(res,0)
-    res
+    if (tvec[i]==t) {
+      dias_coleta_ijt_mat[i,j]
+    } else {
+      0
+    }
   }
-  dias_coleta_max_ijt <- function(i,j) {
-    #browser()
-    stopifnot(length(i) == length(j))
-    max_j <- dist_uc_agencias|>
-      dplyr::group_by(j,t)|>
-      dplyr::mutate(dias_coleta=sum(dias_coleta))|>
-      dplyr::group_by(j)|>
-      dplyr::arrange(desc(dias_coleta))|>
-      dplyr::slice(1)
-    tibble::tibble(i=i,j=j)|>
-      dplyr::left_join(max_j, by=c("i", "j"))|>
-      dplyr::pull(dias_coleta)
-  }
-  transport_cost <- function(i,j) {
-    stopifnot(length(i) == length(j))
-    tibble::tibble(i=i,j=j)|>
-      dplyr::left_join(dist_uc_agencias, by=c("i", "j"))|>
-      dplyr::mutate(custo_deslocamento_com_troca=custo_deslocamento+custo_troca_jurisdicao)|>
-      dplyr::pull(custo_deslocamento_com_troca)
-  }
-  # Create optimization model using ompr package
+
+    # Create optimization model using ompr package
   n <- nrow(ucs_i)
   m <- nrow(agencias_sel)
+  p <- nrow(indice_t)
   stopifnot((agencias_sel$j)==(1:nrow(agencias_sel)))
   # max_over <- function (.expr, ...) {
   #   vals <- listcomp::gen_list(!!enquo(.expr), !!!enquos(...), .env = parent.frame())
@@ -281,7 +272,7 @@ alocar_ucs_t <- function(ucs,
     add_variable(w[j], j = 1:m, type = "integer", lb=0) |>
     # maximize the preferences
     set_objective(sum_over(
-      transport_cost(i, j)* x[i, j] , i = 1:n, j = 1:m)
+      transport_cost_i_j[i, j]* x[i, j] , i = 1:n, j = 1:m)
       + sum_over(
         (agencias_sel$custo_fixo[j]) * y[j]+w[j]*({remuneracao_entrevistador}+agencias_sel$custo_treinamento_por_entrevistador[j]), j = 1:m), "min") |>
     # toda UC precisa estar associada a uma agencia
@@ -292,7 +283,7 @@ alocar_ucs_t <- function(ucs,
     add_constraint((y[j]*{n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m)|>
     # w tem que ser o suficiente para dar conta das ucs para todos os
     # períodos
-    add_constraint((sum_over(x[i,j]*dias_coleta_ijt(i,j,t), i=1:n)/{dias_coleta_entrevistador_max}) <= w[j], j = 1:m, t = 1:T)
+    add_constraint((sum_over(x[i,j]*dias_coleta_ijt(i,j,t), i=1:n)/{dias_coleta_entrevistador_max}) <= w[j], j = 1:m, t = 1:p)
   ## respeitar o máximo de dias de coleta por agencia
   ## Fix: recolocar com i,j,t
   # if(any(is.finite(agencias_sel$dias_coleta_agencia_max))) {
@@ -302,7 +293,7 @@ alocar_ucs_t <- function(ucs,
   # }
   if (any(is.finite({diarias_entrevistador_max}))) {
     model <- model|>
-      add_constraint(sum_over(x[i, j]*diarias_ij(i,j), i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
+      add_constraint(sum_over(x[i, j]*diarias_i_j[i,j], i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
   }
   # Solve the model using solver
   if ({solver}=="symphony") {
