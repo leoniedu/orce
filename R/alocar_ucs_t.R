@@ -163,7 +163,7 @@ alocar_ucs_t <- function(ucs,
   }
   agencias_t$custo_treinamento_por_entrevistador <- custo_treinamento
   # Maximum UCs per agency
-  browser()
+  #browser()
   # Combining UC and agency information
   indice_t <- ucs|>dplyr::ungroup()|>
     dplyr::distinct(data)|>
@@ -316,16 +316,16 @@ alocar_ucs_t <- function(ucs,
     ompr::get_solution(w[j]) |>
     dplyr::filter(value > .9) |>
     dplyr::select(j, entrevistadores=value)
-  resultado_ucs_otimo <- matching|>
+  resultado_i_otimo <- matching|>
     dplyr::left_join(dist_uc_agencias|>select(-agencia_codigo_jurisdicao), by=c('i', 'j'))|>
-    dplyr::select(-i, -j)
-  resultado_ucs_jurisdicao <- dist_uc_agencias|>
+    dplyr::select(-j)
+  resultado_i_jurisdicao <- dist_uc_agencias|>
     dplyr::filter(agencia_codigo_jurisdicao==agencia_codigo)|>
-    dplyr::select(-agencia_codigo_jurisdicao, -i, -j, -custo_troca_jurisdicao)
+    dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao)
   ags_group_vars <- c(names(agencias_t),  'entrevistadores')
-  if(!all(resultado_ucs_jurisdicao$uc%in%(resultado_ucs_otimo$uc))) stop("Solução não encontrada!")
+  if(!all(resultado_i_jurisdicao$i%in%(resultado_i_otimo$i))) stop("Solução não encontrada!")
   resultado_agencias_otimo <- agencias_t|>
-    dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo'))|>
+    dplyr::inner_join(resultado_i_otimo, by = c('agencia_codigo'))|>
     dplyr::left_join(ucs_i|>dplyr::select(uc, agencia_codigo_jurisdicao), by = c('uc'))|>
     dplyr::group_by(pick(any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE), n_trocas_jurisdicao=sum(agencia_codigo!=agencia_codigo_jurisdicao))|>
@@ -334,7 +334,7 @@ alocar_ucs_t <- function(ucs,
     dplyr::select(-j)|>
     dplyr::mutate(custo_total_entrevistadores=entrevistadores*{remuneracao_entrevistador}+entrevistadores*custo_treinamento_por_entrevistador)
   resultado_agencias_jurisdicao <- agencias_t|>
-    dplyr::inner_join(resultado_ucs_jurisdicao, by = c('agencia_codigo'))|>
+    dplyr::inner_join(resultado_i_jurisdicao, by = c('agencia_codigo'))|>
     dplyr::group_by(pick(any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum),
                      n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
@@ -346,17 +346,17 @@ alocar_ucs_t <- function(ucs,
     dplyr::ungroup()
   #browser()
   resultado <- list()
-  resultado$resultado_ucs_otimo <- resultado_ucs_otimo
-  resultado$resultado_ucs_jurisdicao <- resultado_ucs_jurisdicao
+  resultado$resultado_i_otimo <- resultado_i_otimo
+  resultado$resultado_i_jurisdicao <- resultado_i_jurisdicao
   resultado$resultado_agencias_otimo <- resultado_agencias_otimo
   resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao
   attr(resultado, "solucao_status") <- result$additional_solver_output$ROI$status$msg$message
-  if (alocar_por!='uc') {
-    resultado$resultado_ucs_otimo <- resultado$resultado_ucs_otimo |>
-      dplyr::rename(!!rlang::sym(alocar_por) := uc)
-    resultado$resultado_ucs_jurisdicao <- resultado$resultado_ucs_jurisdicao |>
-      dplyr::rename(!!rlang::sym(alocar_por) := uc)
-  }
+  # if (alocar_por!='uc') {
+  #   resultado$resultado_i_otimo <- resultado$resultado_i_otimo |>
+  #     dplyr::rename(!!rlang::sym(alocar_por) := uc)
+  #   resultado$resultado_i_jurisdicao <- resultado$resultado_i_jurisdicao |>
+  #     dplyr::rename(!!rlang::sym(alocar_por) := uc)
+  # }
   if(resultado_completo) {
     resultado$ucs_agencias_todas <- dist_uc_agencias
     resultado$otimizacao <- result
