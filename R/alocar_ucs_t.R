@@ -1,20 +1,22 @@
-#' Alocação Otimizada de Unidades de Coleta (UCs) a Agências com períodos de coleta
+#' Alocação Otimizada de Unidades de Coleta (UCs) a Agências com Períodos de Coleta
 #'
-#' Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+#' Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
 #'
 #' @param ucs Um `tibble` ou `data.frame` contendo informações sobre as UCs, incluindo:
 #' \itemize{
 #'   \item `uc`: Código único da UC.
 #'   \item `agencia_codigo`: Código da agência à qual a UC está atualmente alocada.
-#'   \item `dias_coleta`: Número de dias de coleta na UC.
-#'   \item `viagens`: Número de viagens necessárias para a coleta na UC.
+#'   \item `dias_coleta`: Número de dias de coleta na UC, por período.
+#'   \item `viagens`: Número de viagens necessárias para a coleta na UC, por período.
+#'   \item `data`: Um identificador único para o período de coleta (e.g., "2024-01", "2024-02").
 #' }
 #' @param agencias Um `tibble` ou `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo`: Código único da agência.
-#'   \item `dias_coleta_agencia_max`: Número máximo de dias de coleta que a agência pode realizar.
-#'   \item `custo_fixo`: Custo fixo associado à agência.
+#'   \item `dias_coleta_agencia_max`: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos)
+#'   \item `custo_fixo`: Custo fixo associado à agência (soma de todos os períodos)
 #' }
+#' @param alocar_por Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em `ucs` para agrupar as UCs antes da alocação (e.g., "setor", "municipio").
 #' @param custo_litro_combustivel Custo do combustível por litro (em R$). Padrão: 6.
 #' @param custo_hora_viagem Custo de cada hora de viagem (em R$). Padrão: 10.
 #' @param kml Consumo médio de combustível do veículo (em km/l). Padrão: 10.
@@ -45,18 +47,22 @@
 #' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão: 0.
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
 #' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).
+#' @param rel_tol Tolerância relativa para a otimização. Valores menores levam a soluções mais precisas, mas podem aumentar o tempo de execução. Padrão: 0.005.
+#' @param max_time Tempo máximo de execução (em segundos) permitido para o solver. Padrão: 30*60 (30 minutos).
 #' @param ... Opções adicionais para o solver.
 #'
 #' @return Uma lista contendo:
 #' \itemize{
-#' * `resultado_ucs_jurisdicao`: Um `tibble` com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento.
-#' * `resultado_agencias_jurisdicao`: Um `tibble` com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
-#'   \item `resultado_ucs_otimo`: Um `tibble` com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
+#'   \item `resultado_i_jurisdicao`: Um `tibble` com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento, agrupadas por `alocar_por`.
+#'   \item `resultado_agencias_jurisdicao`: Um `tibble` com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
+#'   \item `resultado_i_otimo`: Um `tibble` com as UCs e suas alocações otimizadas, incluindo custos de deslocamento, agrupadas por `alocar_por`.
 #'   \item `resultado_agencias_otimo`: Um `tibble` com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
 #'   \item `ucs_agencias_todas` (opcional): Um `tibble` com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se `resultado_completo` for TRUE).
 #'   \item `otimizacao` (opcional): O resultado completo da otimização (retornado apenas se `resultado_completo` for TRUE).
+#'   \item `log` (opcional): últimas 100 linhas do log de execução do solver.
 #' }
 #'
+#' @import dplyr ompr ompr.roi ROI.plugin.glpk ROI.plugin.symphony checkmate sf tibble tidyr vctrs rlang
 #' @export
 alocar_ucs_t <- function(ucs,
                          agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo), dias_coleta_agencia_max = Inf, custo_fixo = 0),
