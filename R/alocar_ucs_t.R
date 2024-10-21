@@ -124,7 +124,7 @@ alocar_ucs_t <- function(ucs,
     }
     # Adjust distancias_ucs for the new aggregation
     distancias_ucs <- distancias_ucs |>
-      dplyr::left_join(ucs|>dplyr::select(uc, !!rlang::sym(alocar_por)))
+      dplyr::left_join(ucs|>dplyr::select(uc, !!rlang::sym(alocar_por)),by="uc")
   }
 
   # Seleciona agência de treinamento mais próxima das agências de coleta
@@ -214,7 +214,8 @@ alocar_ucs_t <- function(ucs,
       custo_deslocamento_com_troca=custo_deslocamento+custo_troca_jurisdicao
     )
   dist_i_agencias <- dist_uc_agencias|>
-    dplyr::group_by(i, t, j, agencia_codigo,
+    dplyr::select(-t)|>
+    dplyr::group_by(i, j, agencia_codigo,
                     agencia_codigo_jurisdicao)|>
     dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum), n_ucs=n())|>
     dplyr::ungroup()
@@ -237,11 +238,13 @@ alocar_ucs_t <- function(ucs,
   transport_cost_i_j <- make_i_j(x=dist_i_agencias, col="custo_deslocamento_com_troca")
   diarias_i_j <- make_i_j(x=dist_i_agencias, col="total_diarias")
   dias_coleta_ijt_df <- dist_i_agencias|>
-      dplyr::ungroup()|>
-      dplyr::select(all_of(c("i","j","t", "dias_coleta")))|>
-      tidyr::pivot_wider(id_cols=c("i", "t"),names_from=j,values_from="dias_coleta", names_sort = TRUE)|>
-      dplyr::arrange(i,t)
-  tvec <- dias_coleta_ijt_df$t
+    dplyr::left_join(ucs_i%>%distinct(i,t), by="i")%>%
+    dplyr::ungroup()|>
+    dplyr::select(all_of(c("i","j","t", "dias_coleta")))|>
+    tidyr::pivot_wider(id_cols=c("i", "t"),names_from=j,values_from="dias_coleta", names_sort = TRUE)|>
+    dplyr::arrange(i,t)
+  tvec <- dias_coleta_ijt_df%>%
+    pull(t)
   dias_coleta_ijt_mat <- dias_coleta_ijt_df|>
     dplyr::select(-i,-t)|>
     as.matrix()
@@ -300,9 +303,9 @@ alocar_ucs_t <- function(ucs,
   }
   stopifnot(result$status != "error")
   # Extract the solution
-  browser()
+  #browser()
   dist_i_agencias <- dist_i_agencias|>
-    dplyr::select(-custo_deslocamento_com_troca, -t)
+    dplyr::select(-custo_deslocamento_com_troca)
   matching <- result |>
     ompr::get_solution(x[i, j]) |>
     dplyr::filter(value > .9) |>
@@ -314,11 +317,11 @@ alocar_ucs_t <- function(ucs,
   resultado_i_otimo <- matching|>
     dplyr::left_join(dist_i_agencias|>select(-agencia_codigo_jurisdicao), by=c('i', 'j'))|>
     dplyr::select(-j)|>
-    dplyr::left_join(ucs|>dplyr::distinct(i, !!rlang::sym(alocar_por)))
+    dplyr::left_join(ucs|>dplyr::distinct(i, !!rlang::sym(alocar_por)), by="i")
   resultado_i_jurisdicao <- dist_i_agencias|>
     dplyr::filter(agencia_codigo_jurisdicao==agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao)|>
-    dplyr::left_join(ucs|>dplyr::distinct(i, !!rlang::sym(alocar_por)))
+    dplyr::left_join(ucs|>dplyr::distinct(i, !!rlang::sym(alocar_por)), by="i")
   ags_group_vars <- c(names(agencias_t),  'entrevistadores')
   if(!all(resultado_i_jurisdicao$i%in%(resultado_i_otimo$i))) stop("Solução não encontrada!")
   resultado_agencias_otimo <- agencias_t|>
@@ -343,10 +346,10 @@ alocar_ucs_t <- function(ucs,
     dplyr::ungroup()
   #browser()
   resultado <- list()
-  resultado$resultado_i_otimo <- resultado_i_otimo
-  resultado$resultado_i_jurisdicao <- resultado_i_jurisdicao
-  resultado$resultado_agencias_otimo <- resultado_agencias_otimo
-  resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao
+  resultado$resultado_i_otimo <- resultado_i_otimo|>dplyr::select(-i)
+  resultado$resultado_i_jurisdicao <- resultado_i_jurisdicao|>dplyr::select(-i)
+  resultado$resultado_agencias_otimo <- resultado_agencias_otimo|>dplyr::select(-i)
+  resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao|>dplyr::select(-i)
   attr(resultado, "solucao_status") <- result$additional_solver_output$ROI$status$msg$message
   # if (alocar_por!='uc') {
   #   resultado$resultado_i_otimo <- resultado$resultado_i_otimo |>
