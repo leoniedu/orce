@@ -59,23 +59,27 @@
 #'
 #' @export
 alocar_ucs_t <- function(ucs,
-                       agencias=data.frame(agencia_codigo=unique(ucs$agencia_codigo), dias_coleta_agencia_max=Inf, custo_fixo=0),
-                       custo_litro_combustivel = 6,
-                       custo_hora_viagem = 10,
-                       kml = 10,
-                       valor_diaria = 335,
-                       diarias_entrevistador_max=Inf,
-                       remuneracao_entrevistador = 0,
-                       n_entrevistadores_min=1,
-                       dias_coleta_entrevistador_max,
-                       dias_treinamento = 0,
-                       agencias_treinadas = NULL,
-                       agencias_treinamento = NULL,
-                       distancias_ucs,
-                       distancias_agencias=NULL,
-                       adicional_troca_jurisdicao = 0,
-                       resultado_completo = FALSE,
-                       solver="cbc", rel_tol=.02, max_time=30*60, ...) {
+                         agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo), dias_coleta_agencia_max = Inf, custo_fixo = 0),
+                         alocar_por = "uc",
+                         custo_litro_combustivel = 6,
+                         custo_hora_viagem = 10,
+                         kml = 10,
+                         valor_diaria = 335,
+                         diarias_entrevistador_max = Inf,
+                         remuneracao_entrevistador = 0,
+                         n_entrevistadores_min = 1,
+                         dias_coleta_entrevistador_max,
+                         dias_treinamento = 0,
+                         agencias_treinadas = NULL,
+                         agencias_treinamento = NULL,
+                         distancias_ucs,
+                         distancias_agencias = NULL,
+                         adicional_troca_jurisdicao = 0,
+                         resultado_completo = FALSE,
+                         solver = "cbc",
+                         rel_tol = .005,
+                         max_time = 30 * 60,
+                         ...) {
   requireNamespace("dplyr")
   require("ompr")
   require("ompr.roi")
@@ -93,14 +97,34 @@ alocar_ucs_t <- function(ucs,
   checkmate::assert_number(dias_coleta_entrevistador_max, lower = 1)
   checkmate::assert_number(remuneracao_entrevistador, lower = 0)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
+  checkmate::check_string(alocar_por, null.ok = FALSE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite')%in%names(distancias_ucs)))
-  checkmate::assertTRUE(all(c('dias_coleta', 'viagens', 'periodo'
-                              #, 'municipio_codigo'
-  )%in%names(ucs)))
+  checkmate::assertTRUE(all(c('dias_coleta', 'viagens', 'data')%in%names(ucs)))
   checkmate::assertTRUE(all(c('dias_coleta_agencia_max', 'custo_fixo')%in%names(agencias)))
+  ## sanitize
+  ucs <- ucs|>
+    dplyr::ungroup()|>
+    sf::st_drop_geometry()
+  stopifnot(n_distinct(ucs$uc)==nrow(ucs))
   agencias <- agencias|>
     dplyr::ungroup()|>
     dplyr::select(agencia_codigo, dias_coleta_agencia_max, custo_fixo)
+  stopifnot(n_distinct(agencias$agencia_codigo)==nrow(agencias))
+  distancias_ucs <- distancias_ucs|>
+    dplyr::ungroup()|>
+    sf::st_drop_geometry()
+  dcount <- distancias_ucs|>
+    count(agencia_codigo,uc)
+  stopifnot(all(dcount$n==1))
+  #browser()
+  if (alocar_por!="uc") {
+    if (!alocar_por %in% names(ucs)) {
+      stop(paste("alocar_por:", alocar_por, "não encontrado nos dados: ucs"))
+    }
+    # Adjust distancias_ucs for the new aggregation
+    distancias_ucs <- distancias_ucs |>
+      dplyr::left_join(ucs|>dplyr::select(uc, !!rlang::sym(alocar_por)))
+  }
   # Creating jurisdiction allocation
   agencias_jurisdicao <- tibble::tibble(agencia_codigo=unique(ucs$agencia_codigo))
 
@@ -111,11 +135,8 @@ alocar_ucs_t <- function(ucs,
     dplyr::mutate(j=1:n())
 
   # Seleciona agência de treinamento mais próxima das agências de coleta
-  agencias_t <- agencias |>
-    sf::st_drop_geometry()|>
-    dplyr::ungroup()
   if (dias_treinamento>0) {
-    agencias_t <- agencias_t|>
+    agencias_t <- agencias|>
       dplyr::left_join(distancias_agencias |>
                          dplyr::select(agencia_codigo_orig, agencia_codigo_dest, distancia_km, duracao_horas)|>
                          dplyr::filter(agencia_codigo_dest %in% agencias_treinamento) |>
@@ -145,33 +166,28 @@ alocar_ucs_t <- function(ucs,
     ) + {{valor_diaria}}*{{dias_treinamento}}*treinamento_com_diaria
     custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
   }
-
   agencias_t$custo_treinamento_por_entrevistador <- custo_treinamento
-
-
   # Maximum UCs per agency
   agencias_sel <- agencias_sel|>
     dplyr::inner_join(agencias_t, by="agencia_codigo")
   # Combining UC and agency information
-  indice_t <- ucs|>dplyr::ungroup()|>dplyr::distinct(periodo)|>dplyr::arrange(periodo)|>dplyr::mutate(t=1:dplyr::n())
+  indice_t <- ucs|>dplyr::ungroup()|>
+    dplyr::distinct(data)|>
+    dplyr::arrange(data)|>
+    dplyr::mutate(t=1:dplyr::n())
   ucs_i <- ucs |>
-    sf::st_drop_geometry()|>
-    dplyr::ungroup()|>
     dplyr::arrange(uc)|>
     dplyr::transmute(i=1:n(),
-                     periodo,
+                     data,
                      uc,
                      agencia_codigo_jurisdicao=agencia_codigo, dias_coleta, viagens)|>
-    dplyr::left_join(indice_t, by="periodo")
+    dplyr::left_join(indice_t, by="data")
 
   agencias_i <- ucs_i|>
     dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao)|>
     dplyr::summarise(dias_coleta_agencia_jurisdicao=sum(dias_coleta))
   agencias_check <- agencias_i|>
     dplyr::inner_join(agencias_t, by="agencia_codigo")
-
-  #with(agencias_check, stopifnot(dias_coleta_agencia_max>=dias_coleta_agencia_jurisdicao))
-
   ag_mun_grid <- tidyr::expand_grid(
     agencias_t|>
       transmute(municipio_codigo_agencia = substr(agencia_codigo, 1, 7), agencia_codigo),
@@ -179,8 +195,6 @@ alocar_ucs_t <- function(ucs,
   )
   distancias_ucs_1 <- ag_mun_grid |>
     dplyr::left_join(distancias_ucs, by = c('uc', 'agencia_codigo'))|>
-    dplyr::ungroup()|>
-    sf::st_drop_geometry()|>
     dplyr::select(i,t,uc, agencia_codigo, agencia_codigo_jurisdicao,
                   viagens, dias_coleta, distancia_km, duracao_horas, diaria_municipio, diaria_pernoite)
 
@@ -226,8 +240,8 @@ alocar_ucs_t <- function(ucs,
     x|>
       dplyr::ungroup()|>
       dplyr::select(all_of(c("i","j",col)))|>
-      tidyr::pivot_wider(id_cols=i,names_from=j,values_from=col)|>
-      dplyr::arrange(i)|>
+      tidyr::pivot_wider(id_cols=i,names_from=j,values_from=col, names_sort = TRUE)|>
+      dplyr::arrange(as.numeric(i))|>
       dplyr::select(-i)|>
       as.matrix()
   }
@@ -236,7 +250,7 @@ alocar_ucs_t <- function(ucs,
   dias_coleta_ijt_df <- dist_uc_agencias|>
       dplyr::ungroup()|>
       dplyr::select(all_of(c("i","j","t", "dias_coleta")))|>
-      tidyr::pivot_wider(id_cols=c("i", "t"),names_from=j,values_from="dias_coleta")|>
+      tidyr::pivot_wider(id_cols=c("i", "t"),names_from=j,values_from="dias_coleta", names_sort = TRUE)|>
       dplyr::arrange(i,t)
   tvec <- dias_coleta_ijt_df$t
   dias_coleta_ijt_mat <- dias_coleta_ijt_df|>
@@ -249,20 +263,11 @@ alocar_ucs_t <- function(ucs,
       0
     }
   }
-
-    # Create optimization model using ompr package
+  # Create optimization model using ompr package
   n <- nrow(ucs_i)
   m <- nrow(agencias_sel)
   p <- nrow(indice_t)
   stopifnot((agencias_sel$j)==(1:nrow(agencias_sel)))
-  # max_over <- function (.expr, ...) {
-  #   vals <- listcomp::gen_list(!!enquo(.expr), !!!enquos(...), .env = parent.frame())
-  #   res <- 0
-  #   for (x in vals) {
-  #     if (x>res) res <- x
-  #   }
-  #   res
-  # }
   model <- MIPModel() |>
     # 1 iff (se e somente se) uc i vai para a agencia j
     add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
@@ -286,11 +291,11 @@ alocar_ucs_t <- function(ucs,
     add_constraint((sum_over(x[i,j]*dias_coleta_ijt(i,j,t), i=1:n)/{dias_coleta_entrevistador_max}) <= w[j], j = 1:m, t = 1:p)
   ## respeitar o máximo de dias de coleta por agencia
   ## Fix: recolocar com i,j,t
-  # if(any(is.finite(agencias_sel$dias_coleta_agencia_max))) {
-  #   model <- model|>
-  #     # constraint com número máximo de UCs por agência
-  #     add_constraint(sum_over(x[i, j]*dias_coleta_ij(i,j), i = 1:n) <= agencias_sel$dias_coleta_agencia_max[j], j = 1:m)
-  # }
+  if(any(is.finite(agencias_sel$dias_coleta_agencia_max))) {
+    model <- model|>
+      # constraint com número máximo de UCs por agência
+      add_constraint(sum_over(x[i, j]*dias_coleta_ijt_mat[i,j], i = 1:n) <= agencias_sel$dias_coleta_agencia_max[j], j = 1:m)
+  }
   if (any(is.finite({diarias_entrevistador_max}))) {
     model <- model|>
       add_constraint(sum_over(x[i, j]*diarias_i_j[i,j], i = 1:n) <= (diarias_entrevistador_max*w[j]), j = 1:m)
@@ -301,13 +306,14 @@ alocar_ucs_t <- function(ucs,
   } else {
     log <- utils::capture.output(result <- ompr::solve_model(model, ompr.roi::with_ROI(solver = {solver}, max_time=as.numeric({max_time}), rel_tol={rel_tol}, ...)))
   }
-
-  #browser()
   if ({solver}=="symphony") {## acrescentar highs aqui
     if (result$additional_solver_output$ROI$status$msg$code%in%c(231L, 232L)) result$status <- result$additional_solver_output$ROI$status$msg$message
   }
   stopifnot(result$status != "error")
   # Extract the solution
+  #browser()
+  dist_uc_agencias <- dist_uc_agencias|>
+    dplyr::select(-custo_deslocamento_com_troca, -t)
   matching <- result |>
     ompr::get_solution(x[i, j]) |>
     dplyr::filter(value > .9) |>
@@ -344,12 +350,19 @@ alocar_ucs_t <- function(ucs,
       n_entrevistadores_min),
       custo_total_entrevistadores=entrevistadores*{remuneracao_entrevistador}+entrevistadores*custo_treinamento_por_entrevistador)|>
     dplyr::ungroup()
+  #browser()
   resultado <- list()
   resultado$resultado_ucs_otimo <- resultado_ucs_otimo
   resultado$resultado_ucs_jurisdicao <- resultado_ucs_jurisdicao
   resultado$resultado_agencias_otimo <- resultado_agencias_otimo
   resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao
   attr(resultado, "solucao_status") <- result$additional_solver_output$ROI$status$msg$message
+  if (alocar_por!='uc') {
+    resultado$resultado_ucs_otimo <- resultado$resultado_ucs_otimo |>
+      dplyr::rename(!!rlang::sym(alocar_por) := uc)
+    resultado$resultado_ucs_jurisdicao <- resultado$resultado_ucs_jurisdicao |>
+      dplyr::rename(!!rlang::sym(alocar_por) := uc)
+  }
   if(resultado_completo) {
     resultado$ucs_agencias_todas <- dist_uc_agencias
     resultado$otimizacao <- result
