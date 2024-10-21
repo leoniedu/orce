@@ -118,7 +118,6 @@ alocar_ucs_t <- function(ucs,
   dcount <- distancias_ucs|>
     count(agencia_codigo,uc)
   stopifnot(all(dcount$n==1))
-  #browser()
   if (alocar_por!="uc") {
     if (!alocar_por %in% names(ucs)) {
       stop(paste("alocar_por:", alocar_por, "não encontrado nos dados: ucs"))
@@ -162,9 +161,6 @@ alocar_ucs_t <- function(ucs,
     custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
   }
   agencias_t$custo_treinamento_por_entrevistador <- custo_treinamento
-  # Maximum UCs per agency
-  #browser()
-  # Combining UC and agency information
   indice_t <- ucs|>dplyr::ungroup()|>
     dplyr::distinct(data)|>
     dplyr::arrange(data)|>
@@ -176,12 +172,6 @@ alocar_ucs_t <- function(ucs,
                      uc,
                      agencia_codigo_jurisdicao=agencia_codigo, dias_coleta, viagens)|>
     dplyr::left_join(indice_t, by="data")
-
-  agencias_i <- ucs_i|>
-    dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao)|>
-    dplyr::summarise(dias_coleta_agencia_jurisdicao=sum(dias_coleta))
-  agencias_check <- agencias_i|>
-    dplyr::inner_join(agencias_t, by="agencia_codigo")
   ag_mun_grid <- tidyr::expand_grid(
     agencias_t|>
       transmute(municipio_codigo_agencia = substr(agencia_codigo, 1, 7), agencia_codigo),
@@ -223,13 +213,18 @@ alocar_ucs_t <- function(ucs,
       custo_deslocamento= custo_combustivel + custo_horas_viagem + custo_diarias,
       custo_deslocamento_com_troca=custo_deslocamento+custo_troca_jurisdicao
     )
-
-  stopifnot(all(!is.na(dist_uc_agencias$distancia_km)))
+  dist_i_agencias <- dist_uc_agencias|>
+    dplyr::group_by(i, t, j, agencia_codigo,
+                    agencia_codigo_jurisdicao)|>
+    dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum), n_ucs=n())|>
+    dplyr::ungroup()
+  rm(dist_uc_agencias)
+  stopifnot(all(!is.na(dist_i_agencias$distancia_km)))
   ## check i,j
-  u_dist_uc_agencias <- dist_uc_agencias|>
+  u_dist_i_agencias <- dist_i_agencias|>
     dplyr::ungroup()|>
     dplyr::count(i,j)
-  stopifnot(all(u_dist_uc_agencias$n==1))
+  stopifnot(all(u_dist_i_agencias$n==1))
   make_i_j <- function(x,col) {
     x|>
       dplyr::ungroup()|>
@@ -239,9 +234,9 @@ alocar_ucs_t <- function(ucs,
       dplyr::select(-i)|>
       as.matrix()
   }
-  transport_cost_i_j <- make_i_j(x=dist_uc_agencias, col="custo_deslocamento_com_troca")
-  diarias_i_j <- make_i_j(x=dist_uc_agencias, col="total_diarias")
-  dias_coleta_ijt_df <- dist_uc_agencias|>
+  transport_cost_i_j <- make_i_j(x=dist_i_agencias, col="custo_deslocamento_com_troca")
+  diarias_i_j <- make_i_j(x=dist_i_agencias, col="total_diarias")
+  dias_coleta_ijt_df <- dist_i_agencias|>
       dplyr::ungroup()|>
       dplyr::select(all_of(c("i","j","t", "dias_coleta")))|>
       tidyr::pivot_wider(id_cols=c("i", "t"),names_from=j,values_from="dias_coleta", names_sort = TRUE)|>
@@ -258,9 +253,9 @@ alocar_ucs_t <- function(ucs,
     }
   }
   # Create optimization model using ompr package
-  n <- nrow(ucs_i)
-  m <- nrow(agencias_t)
-  p <- nrow(indice_t)
+  n <- max(ucs$i)
+  m <- max(agencias_t$j)
+  p <- max(indice_t$t)
   stopifnot((agencias_t$j)==(1:nrow(agencias_t)))
   model <- MIPModel() |>
     # 1 iff (se e somente se) uc i vai para a agencia j
@@ -305,8 +300,8 @@ alocar_ucs_t <- function(ucs,
   }
   stopifnot(result$status != "error")
   # Extract the solution
-  #browser()
-  dist_uc_agencias <- dist_uc_agencias|>
+  browser()
+  dist_i_agencias <- dist_i_agencias|>
     dplyr::select(-custo_deslocamento_com_troca, -t)
   matching <- result |>
     ompr::get_solution(x[i, j]) |>
@@ -317,18 +312,20 @@ alocar_ucs_t <- function(ucs,
     dplyr::filter(value > .9) |>
     dplyr::select(j, entrevistadores=value)
   resultado_i_otimo <- matching|>
-    dplyr::left_join(dist_uc_agencias|>select(-agencia_codigo_jurisdicao), by=c('i', 'j'))|>
-    dplyr::select(-j)
-  resultado_i_jurisdicao <- dist_uc_agencias|>
+    dplyr::left_join(dist_i_agencias|>select(-agencia_codigo_jurisdicao), by=c('i', 'j'))|>
+    dplyr::select(-j)|>
+    dplyr::left_join(ucs|>dplyr::distinct(i, !!rlang::sym(alocar_por)))
+  resultado_i_jurisdicao <- dist_i_agencias|>
     dplyr::filter(agencia_codigo_jurisdicao==agencia_codigo)|>
-    dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao)
+    dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao)|>
+    dplyr::left_join(ucs|>dplyr::distinct(i, !!rlang::sym(alocar_por)))
   ags_group_vars <- c(names(agencias_t),  'entrevistadores')
   if(!all(resultado_i_jurisdicao$i%in%(resultado_i_otimo$i))) stop("Solução não encontrada!")
   resultado_agencias_otimo <- agencias_t|>
     dplyr::inner_join(resultado_i_otimo, by = c('agencia_codigo'))|>
-    dplyr::left_join(ucs_i|>dplyr::select(uc, agencia_codigo_jurisdicao), by = c('uc'))|>
+    dplyr::left_join(ucs|>dplyr::select(!!rlang::sym(alocar_por), agencia_codigo_jurisdicao=agencia_codigo,i), by = c('i'))|>
     dplyr::group_by(pick(any_of(ags_group_vars)))|>
-    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs=dplyr::n_distinct(uc, na.rm=TRUE), n_trocas_jurisdicao=sum(agencia_codigo!=agencia_codigo_jurisdicao))|>
+    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao=sum(agencia_codigo!=agencia_codigo_jurisdicao))|>
     dplyr::ungroup()|>
     dplyr::left_join(workers, by=c('j'))|>
     dplyr::select(-j)|>
@@ -337,7 +334,7 @@ alocar_ucs_t <- function(ucs,
     dplyr::inner_join(resultado_i_jurisdicao, by = c('agencia_codigo'))|>
     dplyr::group_by(pick(any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum),
-                     n_ucs=dplyr::n_distinct(uc, na.rm=TRUE))|>
+                     n_ucs=sum(n_ucs))|>
     dplyr::mutate(entrevistadores=pmax(
       ceiling(dias_coleta/dias_coleta_entrevistador_max),
       ceiling(total_diarias/diarias_entrevistador_max),
@@ -358,7 +355,7 @@ alocar_ucs_t <- function(ucs,
   #     dplyr::rename(!!rlang::sym(alocar_por) := uc)
   # }
   if(resultado_completo) {
-    resultado$ucs_agencias_todas <- dist_uc_agencias
+    resultado$ucs_agencias_todas <- dist_i_agencias
     resultado$otimizacao <- result
   }
   resultado$log <- tail(log,100)
