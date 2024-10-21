@@ -18,6 +18,7 @@ package <- new.env(parent = emptyenv())
   dir.create(file.path(package$cache_dir, "alocar_municipios"), showWarnings = FALSE, recursive = TRUE)
   dir.create(file.path(package$cache_dir, "get_map"), showWarnings = FALSE, recursive = TRUE)
   alocar_ucs <<- memoise::memoise(alocar_ucs, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "alocar_ucs")))
+  alocar_ucs_t <<- memoise::memoise(alocar_ucs_t, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "alocar_ucs_t")))
   alocar_municipios <<- memoise::memoise(alocar_municipios, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "alocar_municipios")))
   get_map_mem <<- memoise::memoise(ggmap::get_map, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "get_map")))
 }
