@@ -59,7 +59,7 @@ plano_municipios <- function(r) {
 
 #' @export
 report_plans <- function(r, level="uc") {
-  levels <- if_else(level=="uc", "ucs", "municipios")
+  levels <- dplyr::if_else(level=="uc", "ucs", "municipios")
   nlevels <- paste0("n_", levels)
   vs <- c('agencia_codigo', 'agencia_nome',"perde", "recebe",  'custo_total', 'total_diarias', 'custo_combustivel','entrevistadores','custo_fixo', "n_agencias_otimo", "n_agencias_jurisdicao",
           "n_otimo", "n_jurisdicao", 'dias_coleta'#,   'custo_diarias',  'distancia_total_km', 'custo_deslocamento',  'custo_troca_jurisdicao'
@@ -105,10 +105,10 @@ report_plans <- function(r, level="uc") {
     gt::cols_hide(agencias_nomes)
   if (any(grepl("sem alteração", rr$agencia_nome_rec))) {
     out <- out|>
-      gt::tab_footnote(paste0("** Agências sem alteração: ", rr|>filter(grepl("sem alteração", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
+      gt::tab_footnote(paste0("** Agências sem alteração: ", rr|>dplyr::filter(grepl("sem alteração", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
   }
   if (any(grepl("excluídas", rr$agencia_nome_rec))) {
-    out <- out|>gt::tab_footnote(paste0("* Agências excluídas: ", rr|>filter(grepl("excluídas", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
+    out <- out|>gt::tab_footnote(paste0("* Agências excluídas: ", rr|>dplyr::filter(grepl("excluídas", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
   }
   out
 }

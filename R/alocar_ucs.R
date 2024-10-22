@@ -13,10 +13,10 @@
 #' @param agencias Um `tibble` ou `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo`: Código único da agência.
-#'   \item `dias_coleta_agencia_max`: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos)
-#'   \item `custo_fixo`: Custo fixo associado à agência (soma de todos os períodos)
+#'   \item `dias_coleta_agencia_max`: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos).
+#'   \item `custo_fixo`: Custo fixo associado à agência (soma de todos os períodos).
 #' }
-#' @param alocar_por Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em `ucs` para agrupar as UCs antes da alocação (e.g., "setor", "municipio").
+#' @param alocar_por Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em `ucs` para agrupar as UCs antes da alocação (e.g., "setor", "municipio"). Padrão: "uc".
 #' @param custo_litro_combustivel Custo do combustível por litro (em R$). Padrão: 6.
 #' @param custo_hora_viagem Custo de cada hora de viagem (em R$). Padrão: 10.
 #' @param kml Consumo médio de combustível do veículo (em km/l). Padrão: 10.
@@ -53,9 +53,9 @@
 #'
 #' @return Uma lista contendo:
 #' \itemize{
-#'   \item `resultado_i_jurisdicao`: Um `tibble` com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento, agrupadas por `alocar_por`.
+#'   \item `resultado_ucs_jurisdicao`: Um `tibble` com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento.
 #'   \item `resultado_agencias_jurisdicao`: Um `tibble` com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
-#'   \item `resultado_i_otimo`: Um `tibble` com as UCs e suas alocações otimizadas, incluindo custos de deslocamento, agrupadas por `alocar_por`.
+#'   \item `resultado_ucs_otimo`: Um `tibble` com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
 #'   \item `resultado_agencias_otimo`: Um `tibble` com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
 #'   \item `ucs_agencias_todas` (opcional): Um `tibble` com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se `resultado_completo` for TRUE).
 #'   \item `otimizacao` (opcional): O resultado completo da otimização (retornado apenas se `resultado_completo` for TRUE).
@@ -92,6 +92,7 @@ alocar_ucs <- function(ucs,
                          max_time = 30 * 60,
                          ...) {
 
+  cli::cli_progress_step("Preparando os dados")
   # Importar pacotes necessários explicitamente
   requireNamespace("dplyr")
   require("ompr")
@@ -124,15 +125,15 @@ alocar_ucs <- function(ucs,
     dplyr::mutate(i = vctrs::vec_group_id(!!rlang::sym(alocar_por)))
   n_ucs <- nrow(ucs)
 
-  stopifnot(n_distinct(ucs$uc) == n_ucs)
+  stopifnot(dplyr::n_distinct(ucs$uc) == n_ucs)
 
   agencias <- agencias |>
     dplyr::ungroup() |>
     sf::st_drop_geometry()|>
     dplyr::select(agencia_codigo, dias_coleta_agencia_max, custo_fixo) |>
-    dplyr::mutate(j = 1:n())
+    dplyr::mutate(j = 1:dplyr::n())
 
-  stopifnot(n_distinct(agencias$agencia_codigo) == nrow(agencias))
+  stopifnot(dplyr::n_distinct(agencias$agencia_codigo) == nrow(agencias))
   distancias_ucs <- distancias_ucs |>
     dplyr::ungroup() |>
     sf::st_drop_geometry()
@@ -249,7 +250,7 @@ alocar_ucs <- function(ucs,
       duracao_total_horas = trechos * duracao_horas,
       custo_combustivel = ((distancia_total_km / kml) * custo_litro_combustivel),
       custo_horas_viagem = (trechos * duracao_horas) * custo_hora_viagem,
-      custo_troca_jurisdicao = if_else(agencia_codigo != agencia_codigo_jurisdicao, adicional_troca_jurisdicao, 0),
+      custo_troca_jurisdicao = dplyr::if_else(agencia_codigo != agencia_codigo_jurisdicao, adicional_troca_jurisdicao, 0),
       custo_deslocamento = custo_combustivel + custo_horas_viagem + custo_diarias,
       custo_deslocamento_com_troca = custo_deslocamento + custo_troca_jurisdicao
     )
@@ -258,10 +259,8 @@ alocar_ucs <- function(ucs,
   dist_i_agencias <- dist_uc_agencias |>
     dplyr::select(-t) |>
     dplyr::group_by(i, j, agencia_codigo, agencia_codigo_jurisdicao) |>
-    dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum), n_ucs = n()) |>
+    dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum), n_ucs = dplyr::n()) |>
     dplyr::ungroup()
-
-  rm(dist_uc_agencias)
 
   stopifnot(all(!is.na(dist_i_agencias$distancia_km)))
 
@@ -306,6 +305,7 @@ alocar_ucs <- function(ucs,
     }
   }
 
+  cli::cli_progress_step("Preparando a otimização")
   # Criar modelo de otimização
   n <- max(ucs$i)
   m <- max(agencias_t$j)
@@ -349,6 +349,8 @@ alocar_ucs <- function(ucs,
                                                                           w[j]), j = 1:m)
   }
 
+  cli::cli_progress_step("Otimizando...")
+
   # Resolver o modelo de otimização
   if ({solver} == "symphony") {
     log <- utils::capture.output(
@@ -377,6 +379,7 @@ alocar_ucs <- function(ucs,
   }
 
   stopifnot(result$status != "error")
+  cli::cli_progress_step("Otimização concluída")
 
   # Extrair a solução
   dist_i_agencias <- dist_i_agencias |> dplyr::select(-custo_deslocamento_com_troca)
@@ -392,27 +395,29 @@ alocar_ucs <- function(ucs,
     dplyr::select(j, entrevistadores = value)
 
   # Criar resultados para alocação ótima
-  resultado_i_otimo <- matching |>
-    dplyr::left_join(dist_i_agencias |> dplyr::select(-agencia_codigo_jurisdicao), by = c('i', 'j')) |>
-    dplyr::select(-j) |>
-    dplyr::left_join(ucs |> dplyr::distinct(i, !!rlang::sym(alocar_por)), by = "i")
+  resultado_ucs_otimo <- dist_uc_agencias|>
+    dplyr::inner_join(matching, by=c("i", "j"))|>
+    dplyr::left_join(ucs |> dplyr::distinct(i, !!rlang::sym(alocar_por)), by = "i")|>
+    dplyr::left_join(indice_t)|>
+    dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
 
   # Criar resultados para jurisdição
-  resultado_i_jurisdicao <- dist_i_agencias |>
-    dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo) |>
+  resultado_ucs_jurisdicao <- dist_uc_agencias |>
+    dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
-    dplyr::left_join(ucs |> dplyr::distinct(i, !!rlang::sym(alocar_por)), by = "i")
+    dplyr::left_join(ucs |> dplyr::distinct(i, !!rlang::sym(alocar_por)), by = "i")|>
+    dplyr::left_join(indice_t)|>
+    dplyr::select(-i,-t)
 
   ags_group_vars <- c(names(agencias_t), 'entrevistadores')
 
-  if (!all(resultado_i_jurisdicao$i %in% (resultado_i_otimo$i))) stop("Solução não encontrada!")
+  if (!all(resultado_ucs_jurisdicao$uc %in% (resultado_ucs_otimo$uc))) stop("Solução não encontrada!")
 
   # Criar resultados para agências - alocação ótima
   resultado_agencias_otimo <- agencias_t |>
-    dplyr::inner_join(resultado_i_otimo, by = c('agencia_codigo')) |>
-    dplyr::left_join(ucs |> dplyr::select(all_of(alocar_por), agencia_codigo_jurisdicao = agencia_codigo, i), by = c('i')) |>
+    dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo')) |>
     dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
-    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao)) |>
+    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao), n_ucs=dplyr::n())|>
     dplyr::ungroup() |>
     dplyr::left_join(workers, by = c('j')) |>
     dplyr::select(-j) |>
@@ -427,10 +432,11 @@ alocar_ucs <- function(ucs,
     dplyr::slice(1)|>
     dplyr::transmute(agencia_codigo, dias_coleta_max_data=dias_coleta)
   # Criar resultados para agências - jurisdição
-  resultado_agencias_jurisdicao <- agencias_t |>
-    dplyr::inner_join(resultado_i_jurisdicao, by = c('agencia_codigo')) |>
-    dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
-    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs = sum(n_ucs))|>
+  resultado_agencias_jurisdicao <- agencias_t|>
+    dplyr::left_join(resultado_ucs_jurisdicao, by="agencia_codigo")|>
+    dplyr::select(-j, -custo_deslocamento_com_troca)|>
+    dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars)))|>
+    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs = dplyr::n())|>
     dplyr::left_join(dias_coleta_j, by="agencia_codigo")|>
     dplyr::mutate(
       entrevistadores = pmax(
@@ -443,11 +449,10 @@ alocar_ucs <- function(ucs,
     dplyr::ungroup()
   # Preparar resultados finais
   resultado <- list()
-  resultado$resultado_i_otimo <- resultado_i_otimo |> dplyr::select(-i)
-  resultado$resultado_i_jurisdicao <- resultado_i_jurisdicao |> dplyr::select(-i)
-  resultado$resultado_agencias_otimo <- resultado_agencias_otimo |> dplyr::select(-i)
-  resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao |> dplyr::select(-i)
-
+  resultado$resultado_ucs_otimo <- resultado_ucs_otimo
+  resultado$resultado_ucs_jurisdicao <- resultado_ucs_jurisdicao
+  resultado$resultado_agencias_otimo <- resultado_agencias_otimo
+  resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao
   attr(resultado, "solucao_status") <- result$additional_solver_output$ROI$status$msg$message
   ## fix: acrescentar result$objective_value
   if (resultado_completo) {
@@ -455,5 +460,6 @@ alocar_ucs <- function(ucs,
     resultado$otimizacao <- result
   }
   resultado$log <- tail(log, 100)
+  cli::cli_progress_step("Sucesso")
   return(resultado)
 }
