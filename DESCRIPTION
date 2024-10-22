@@ -13,11 +13,17 @@ Depends:
     R (>= 2.10),
     sf
 LazyData: true
-Imports: 
-    ggmap,
-    ROI.plugin.cbc
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Config/Needs/website: rmarkdown
 URL: https://leoniedu.github.io/orce/
+Imports: 
+    checkmate,
+    dplyr,
+    ompr,
+    ompr.roi,
+    rlang,
+    tibble,
+    tidyr,
+    vctrs

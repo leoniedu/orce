@@ -16,7 +16,7 @@ params:
   viagens_cnefe: 1
   dias_coleta_cnefe: 5
   dias_coleta_pnadc: 5
-  dias_coleta_entrevistador_max: 200
+  dias_coleta_entrevistador_max: 20
   solver: 'cbc'
   max_time: 1800
   rel_tol: .01
@@ -156,28 +156,24 @@ Função:
 
 --- 
 
-**Ideal para pesquisas com equipes exclusivas ou com limitação no número de equipamentos (e.g. PeNSE).**
+**Alocação por UC(UPA): Ideal para pesquisas com equipes exclusivas ou com limitação no número de equipamentos (e.g. PeNSE).**
 
 --- 
 
-## Função para alocação de municípios: `alocar_municipios`
+## Argumento para alocar por municípios (ou outro nível): `alocar_por`
 
 - Realiza a alocação otimizada de municípios às agências. 
 
-- São utilizados os mesmos argumentos e dados da função `alocar_ucs`.
-
 - Ou seja, as UCs de um mesmo município são alocadas integralmente para uma mesma agência. **O custo de deslocamento agência-município é a soma dos custo de deslocamento entre cada UCs de um município e a agência candidata.**
 
----
-
-Permite maior  *sinergia* entre as várias pesquisas em campo. 
+- Permite maior  "sinergia" entre as várias pesquisas em campo. 
 
 ---
 
 ## Parâmetros para o cálculo:
 
 - CNEFE realizado no trimestre anterior ao da 1ª entrevista do Painel
-- **`r params2$dias_coleta_entrevistador_max`** dias de trabalho por entrevistador/ano
+- **`r params2$dias_coleta_entrevistador_max`** dias de trabalho por entrevistador/mês
 - **`r params2$dias_coleta_cnefe`** dias de coleta para CNEFE e **`r params2$dias_coleta_pnadc`** dias de coleta para a PNADC
 - Uma viagem em caso de diárias inteiras, **`r params2$dias_coleta_cnefe`** (CNEFE) e **`r params2$dias_coleta_pnadc`** (PNADC) viagens nos casos sem diárias (ou com meias-diárias)
 - São sugeridas alterações de jurisdição somente quando a economia proporcionada é maior que **R\$ `r params2$adicional_troca_jurisdicao`**.
@@ -211,10 +207,6 @@ Parâmetros (3):
 ## Executando a otimização:
 
 ```{r}
-## amostra mestra/pnadc
-#pontos_upas_29 <- readRDS(here::here("data-raw/pontos_upas_29.rds"))
-#ufs_now <- ufs%>%filter(uf_sigla==params2$uf_sigla)
-
 render_tables <- function(uf_sigla_now) {
   #ufs_now <- ufs%>%filter(uf_sigla==uf_sigla_now)
   ufnow <- ufs%>%filter(uf_sigla==uf_sigla_now)
@@ -239,7 +231,9 @@ render_tables <- function(uf_sigla_now) {
     filter(!grepl(municipio_principal$municipio_codigo, agencia_codigo))%>%
     #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
     ungroup%>%
-    mutate(uc=paste(upa,ano_mes),periodo=ano_mes)#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
+    mutate(uc=paste(upa,ano_mes),data=ano_mes)%>%
+    filter(data>="2024-07-01", data<="2025-06-01")
+  #%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
   ## distancias uc
   fname <- here::here(paste0("data-raw/distancias_agencias_upas_osrm_", uf_codigo_now, ".rds"))
   distancias_upas_all <- readRDS(fname)%>%
@@ -281,14 +275,14 @@ render_tables <- function(uf_sigla_now) {
                           agencias_treinadas = NULL,
                           agencias_treinamento  = NULL,
                           distancias_ucs=distancias_ucs_all,
-                          ## for symphony solver
-                          #gap_limit=5, 
                           adicional_troca_jurisdicao  = params2$adicional_troca_jurisdicao,
                           solver=params2$solver,
                           max_time=params2$max_time,
                           rel_tol=params2$rel_tol,
-                          resultado_completo=FALSE 
+                          resultado_completo=FALSE
   )
+  tmp <- do.call(alocar_ucs, modifyList(params_pnadc_0,
+                          list(alocar_por="municipio_codigo")))
   #library(tictoc)
   #tic()
   estrategias_pnadc <- bind_rows(
@@ -308,24 +302,12 @@ render_tables <- function(uf_sigla_now) {
     descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params2$remuneracao_entrevistador} por mês'))
   )%>%
     ungroup%>%#slice(1:2)%>%
-    mutate(resultado_uc=purrr::map(params_pnadc, ~do.call(alocar_ucs, .x)),
-           resultado_municipio=purrr::map(params_pnadc, ~do.call(alocar_municipios, .x))
-           )
+    mutate(resultado_municipio_o=purrr::map(params_pnadc, ~do.call(alocar_municipios, .x)),
+           resultado_municipio_t=purrr::map(params_pnadc, ~do.call(alocar_ucs, .x)),
+           resultado_municipio_sem_t=purrr::map(params_pnadc, ~do.call(alocar_ucs, modifyList(.x, list(ucs=.x$ucs%>%mutate(data=1))))))
   #toc()
   
-  estrategias_pnadc_sum_uc <-
-    estrategias_pnadc%>%
-    rowwise(descricao)%>%
-    reframe(
-      bind_rows(
-        resultado_uc$resultado_agencias_otimo%>%mutate(modelo="Ótimo"),
-        resultado_uc$resultado_agencias_jurisdicao%>%mutate(modelo="Jurisdição")
-        )%>%
-        group_by(modelo)%>%
-        mutate(n_agencias=1)%>%
-        summarise(across(matches("custo|n_agencias"), ~sum(.x, na.rm=TRUE))))%>%
-    mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
-    select(descricao, modelo, n_agencias, custo_total, everything())
+  
   estrategias_pnadc_sum_municipio <-
     estrategias_pnadc%>%
     rowwise(descricao)%>%

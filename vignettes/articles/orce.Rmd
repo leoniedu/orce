@@ -244,7 +244,9 @@ print(lapply(params_munic,head,2))
 print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_munic)), collapse=", ")))
 res <- do.call(what = alocar_ucs, 
               args=params_munic)
-
+# res_t <- do.call(what = alocar_ucs, 
+#               args=modifyList(params_munic, list(ucs=params_munic$ucs%>%mutate(data=1))))
+              
 ```
 
 

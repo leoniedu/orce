@@ -8,6 +8,7 @@ alocar_ucs(
   ucs,
   agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
     dias_coleta_agencia_max = Inf, custo_fixo = 0),
+  alocar_por = "uc",
   custo_litro_combustivel = 6,
   custo_hora_viagem = 10,
   kml = 10,
@@ -24,7 +25,7 @@ alocar_ucs(
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
   solver = "cbc",
-  rel_tol = 0.02,
+  rel_tol = 0.005,
   max_time = 30 * 60,
   ...
 )
@@ -34,16 +35,19 @@ alocar_ucs(
 \itemize{
 \item \code{uc}: Código único da UC.
 \item \code{agencia_codigo}: Código da agência à qual a UC está atualmente alocada.
-\item \code{dias_coleta}: Número de dias de coleta na UC.
-\item \code{viagens}: Número de viagens necessárias para a coleta na UC.
+\item \code{dias_coleta}: Número de dias de coleta na UC, por período.
+\item \code{viagens}: Número de viagens necessárias para a coleta na UC, por período.
+\item \code{data}: Um identificador único para o período de coleta (e.g., "2024-01", "2024-02").
 }}
 
 \item{agencias}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
 \itemize{
 \item \code{agencia_codigo}: Código único da agência.
-\item \code{dias_coleta_agencia_max}: Número máximo de dias de coleta que a agência pode realizar.
-\item \code{custo_fixo}: Custo fixo associado à agência.
+\item \code{dias_coleta_agencia_max}: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos)
+\item \code{custo_fixo}: Custo fixo associado à agência (soma de todos os períodos)
 }}
+
+\item{alocar_por}{Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em \code{ucs} para agrupar as UCs antes da alocação (e.g., "setor", "municipio").}
 
 \item{custo_litro_combustivel}{Custo do combustível por litro (em R$). Padrão: 6.}
 
@@ -53,13 +57,13 @@ alocar_ucs(
 
 \item{valor_diaria}{Valor da diária para deslocamentos (em R$). Padrão: 335.}
 
-\item{diarias_entrevistador_max}{Máximo de diárias que um entrevistador pode receber no período de referência. Padrão: \code{Inf}.}
+\item{diarias_entrevistador_max}{Total máximo de diárias que um entrevistador pode receber, somando todos os períodos. Padrão: \code{Inf}.}
 
-\item{remuneracao_entrevistador}{Remuneração por entrevistador para todo o período de referência. Padrão: 0.}
+\item{remuneracao_entrevistador}{Remuneração total por entrevistador para todos os períodos. Padrão: 0.}
 
 \item{n_entrevistadores_min}{Número mínimo de entrevistadores por agência. Padrão: 1.}
 
-\item{dias_coleta_entrevistador_max}{Número de dias de coleta por entrevistador.}
+\item{dias_coleta_entrevistador_max}{Número máximo de dias de coleta por entrevistador por período.}
 
 \item{dias_treinamento}{Número de dias/diárias para treinamento. Padrão: 0 (nenhum treinamento).}
 
@@ -91,21 +95,30 @@ alocar_ucs(
 
 \item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).}
 
+\item{rel_tol}{Tolerância relativa para a otimização. Valores menores levam a soluções mais precisas, mas podem aumentar o tempo de execução. Padrão: 0.005.}
+
+\item{max_time}{Tempo máximo de execução (em segundos) permitido para o solver. Padrão: 30*60 (30 minutos).}
+
 \item{...}{Opções adicionais para o solver.}
 }
 \value{
 Uma lista contendo:
 \itemize{
-\itemize{
-\item \code{resultado_ucs_jurisdicao}: Um \code{tibble} com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento.
+\item \code{resultado_i_jurisdicao}: Um \code{tibble} com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento, agrupadas por \code{alocar_por}.
 \item \code{resultado_agencias_jurisdicao}: Um \code{tibble} com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
-\item \code{resultado_ucs_otimo}: Um \code{tibble} com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
+\item \code{resultado_i_otimo}: Um \code{tibble} com as UCs e suas alocações otimizadas, incluindo custos de deslocamento, agrupadas por \code{alocar_por}.
 \item \code{resultado_agencias_otimo}: Um \code{tibble} com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
 \item \code{ucs_agencias_todas} (opcional): Um \code{tibble} com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se \code{resultado_completo} for TRUE).
 \item \code{otimizacao} (opcional): O resultado completo da otimização (retornado apenas se \code{resultado_completo} for TRUE).
-}
+\item \code{log} (opcional): últimas 100 linhas do log de execução do solver.
 }
 }
 \description{
-Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+Esta função (e sua versão memoizada \code{alocar_ucs_mem}) realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+}
+\details{
+A função \code{alocar_ucs_mem} é a versão memoizada de \code{alocar_ucs}, com cache em disco.
+Como \code{alocar_ucs} pode levar um tempo considerável para executar, a memoização
+evita o recálculo com os mesmos parâmetros, economizando tempo em execuções
+subsequentes com os mesmos dados de entrada.
 }
