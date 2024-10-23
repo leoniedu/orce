@@ -285,26 +285,15 @@ alocar_ucs <- function(ucs,
   # Criar matrizes de custos
   transport_cost_i_j <- make_i_j(x = dist_i_agencias, col = "custo_deslocamento_com_troca")
   diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias")
+  dias_coleta_i_j <- make_i_j(x = dist_i_agencias, col = "dias_coleta")
 
-  # Criar matriz de dias de coleta por i, j e t
-  dias_coleta_ijt_df <- dist_i_agencias |>
-    dplyr::left_join(ucs_i |> dplyr::distinct(i, t), by = "i") |>
-    dplyr::ungroup() |>
-    dplyr::select(all_of(c("i", "j", "t", "dias_coleta"))) |>
-    tidyr::pivot_wider(id_cols = c("i", "t"), names_from = j, values_from = "dias_coleta", names_sort = TRUE) |>
-    dplyr::arrange(i, t)
-
-  tvec <- dias_coleta_ijt_df |> dplyr::pull(t)
-  dias_coleta_ijt_mat <- dias_coleta_ijt_df |> dplyr::select(-i, -t) |> as.matrix()
-
-  dias_coleta_ijt <- function(i, j, t) {
-    if (tvec[i] == t) {
-      dias_coleta_ijt_mat[i, j]
-    } else {
-      0
-    }
+  dias_coleta_ijt_df <- dist_uc_agencias|>
+    dplyr::group_by(i,j,t)|>
+    dplyr::summarise(dias_coleta=sum(dias_coleta, na.rm=TRUE))
+  dias_coleta_ijt <- function(i,j,t) {
+    x <- dias_coleta_ijt_df
+    sum(x[(x$i==i)& (x$j==j) &(x$t==t),"dias_coleta"], na.rm=TRUE)
   }
-
   cli::cli_progress_step("Preparando a otimização")
   # Criar modelo de otimização
   n <- max(ucs$i)
@@ -339,7 +328,7 @@ alocar_ucs <- function(ucs,
   # Respeitar o máximo de dias de coleta por agencia
   if (any(is.finite(agencias_t$dias_coleta_agencia_max))) {
     model <- model |>
-      add_constraint(sum_over(x[i, j] * dias_coleta_ijt_mat[i, j], i = 1:n) <= agencias_t$dias_coleta_agencia_max[j], j = 1:m)
+      add_constraint(sum_over(x[i, j] * dias_coleta_i_j[i, j], i = 1:n) <= agencias_t$dias_coleta_agencia_max[j], j = 1:m)
   }
 
   # Respeitar o máximo de diárias por entrevistador
@@ -398,7 +387,7 @@ alocar_ucs <- function(ucs,
   resultado_ucs_otimo <- dist_uc_agencias|>
     dplyr::inner_join(matching, by=c("i", "j"))|>
     dplyr::left_join(ucs |> dplyr::distinct(i, !!rlang::sym(alocar_por)), by = "i")|>
-    dplyr::left_join(indice_t)|>
+    dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
 
   # Criar resultados para jurisdição
@@ -406,7 +395,7 @@ alocar_ucs <- function(ucs,
     dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
     dplyr::left_join(ucs |> dplyr::distinct(i, !!rlang::sym(alocar_por)), by = "i")|>
-    dplyr::left_join(indice_t)|>
+    dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-t)
 
   ags_group_vars <- c(names(agencias_t), 'entrevistadores')
@@ -422,7 +411,6 @@ alocar_ucs <- function(ucs,
     dplyr::left_join(workers, by = c('j')) |>
     dplyr::select(-j) |>
     dplyr::mutate(custo_total_entrevistadores = entrevistadores * {remuneracao_entrevistador} + entrevistadores * custo_treinamento_por_entrevistador)
-
   ## dias de coleta por período máximo  por agencia de jurisdicao
   dias_coleta_j <- ucs_i|>
     dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao,data)|>
@@ -454,7 +442,7 @@ alocar_ucs <- function(ucs,
   resultado$resultado_agencias_otimo <- resultado_agencias_otimo
   resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao
   attr(resultado, "solucao_status") <- result$additional_solver_output$ROI$status$msg$message
-  ## fix: acrescentar result$objective_value
+  attr(resultado, "valor") <- objective_value(result)
   if (resultado_completo) {
     resultado$ucs_agencias_todas <- dist_i_agencias
     resultado$otimizacao <- result
