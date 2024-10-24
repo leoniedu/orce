@@ -75,10 +75,10 @@ report_plans <- function(r, level="uc") {
     dplyr::mutate(troca=agencia_codigo_jurisdicao!=agencia_codigo_otimo)
   trocas_1 <- trocas_0|>
     dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao)|>
-    dplyr::summarise(perde=sum(troca), n=n())
+    dplyr::summarise(perde=sum(troca), n=dplyr::n())
   trocas_2 <- trocas_0|>
     dplyr::group_by(agencia_codigo=agencia_codigo_otimo)|>
-    dplyr::summarise(recebe=sum(troca), n=n())
+    dplyr::summarise(recebe=sum(troca), n=dplyr::n())
   trocas <- trocas_1|>dplyr::full_join(trocas_2, by="agencia_codigo", suffix=c("_jurisdicao", "_otimo"))|>
     dplyr::mutate(across(everything(),  ~tidyr::replace_na(.x,0)))
   r1 <- r$resultado_agencias_otimo|>

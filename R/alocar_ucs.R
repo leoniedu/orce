@@ -79,6 +79,7 @@ alocar_ucs <- function(ucs,
                          diarias_entrevistador_max = Inf,
                          remuneracao_entrevistador = 0,
                          n_entrevistadores_min = 1,
+                       n_entrevistadores_tipo="integer",
                          dias_coleta_entrevistador_max,
                          dias_treinamento = 0,
                          agencias_treinadas = NULL,
@@ -308,7 +309,7 @@ alocar_ucs <- function(ucs,
     # 1 sse agencia j ativada
     add_variable(y[j], j = 1:m, type = "binary") |>
     # trabalhadores na agencia j
-    add_variable(w[j], j = 1:m, type = "integer", lb = 0) |>
+    add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0) |>
     # minimizar custos
     set_objective(
       sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
@@ -386,7 +387,7 @@ alocar_ucs <- function(ucs,
   # Criar resultados para alocação ótima
   resultado_ucs_otimo <- dist_uc_agencias|>
     dplyr::inner_join(matching, by=c("i", "j"))|>
-    dplyr::left_join(ucs |> dplyr::distinct(i, pick(alocar_por)), by = "i")|>
+    dplyr::left_join(ucs |> dplyr::distinct(uc, pick(alocar_por)), by = "uc")|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
 
@@ -394,7 +395,7 @@ alocar_ucs <- function(ucs,
   resultado_ucs_jurisdicao <- dist_uc_agencias |>
     dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
-    dplyr::left_join(ucs |> dplyr::distinct(i, pick(alocar_por)), by = "i")|>
+    dplyr::left_join(ucs |> dplyr::distinct(uc, pick(alocar_por)), by = c("uc"))|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-t)
 

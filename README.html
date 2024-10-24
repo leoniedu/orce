@@ -11,9 +11,9 @@
 
 <meta name="author" content="Eduardo Leoni" />
 
-<meta name="date" content="2024-09-12" />
+<meta name="date" content="2024-10-24" />
 
-<title>README.knit</title>
+<title>Otimização de Redes de Coleta Estatística</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,6 +350,10 @@ display: none;
 
 
 
+<h1 class="title toc-ignore">Otimização de Redes de Coleta
+Estatística</h1>
+<h4 class="author">Eduardo Leoni</h4>
+<h4 class="date">2024-10-24</h4>
 
 </div>
 
@@ -406,6 +410,977 @@ adaptability make it a valuable tool for a wide range of survey and
 census operations in Brazil.</p>
 <hr />
 </div>
+</div>
+<div id="example-exemplo" class="section level1">
+<h1>Example / Exemplo</h1>
+<pre class="r"><code>library(testthat)
+library(orce)</code></pre>
+<pre><code>## Carregando pacotes exigidos: sf</code></pre>
+<pre><code>## Linking to GEOS 3.9.3, GDAL 3.5.2, PROJ 8.2.1; sf_use_s2() is TRUE</code></pre>
+<pre><code>## Registered S3 methods overwritten by &#39;registry&#39;:
+##   method               from 
+##   print.registry_field proxy
+##   print.registry_entry proxy</code></pre>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## Warning: package &#39;dplyr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:testthat&#39;:
+## 
+##     matches</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code># instalar solver cbc
+#install.packages(&quot;pak&quot;)
+#pak(&quot;dirkschumacher/ROI.plugin.cbc&quot;)
+#pak(&quot;dirkschumacher/rcbc&quot;)
+
+
+# Carregar dados de teste
+data(agencias_bdo_mun)
+data(agencias_bdo)
+data(distancias_agencias_municipios_osrm)
+data(agencias_municipios_diaria)
+
+# Criar dados de teste
+ucs_municipios &lt;- agencias_bdo_mun |&gt;
+  dplyr::filter(uf_codigo == 29) |&gt;
+  dplyr::filter(agencia_codigo %in% unique(agencia_codigo)) |&gt;
+  dplyr::group_by(agencia_codigo) |&gt;
+  dplyr::slice(1:2) |&gt;
+  dplyr::ungroup() |&gt;
+  ## uma agencia por municipio
+  dplyr::distinct(municipio_codigo, .keep_all = TRUE) |&gt;
+  dplyr::transmute(uc = municipio_codigo, municipio_codigo, agencia_codigo, dias_coleta = 10, viagens = 1, data = 1)
+
+agencias &lt;- agencias_bdo |&gt;
+  dplyr::semi_join(ucs_municipios,by = dplyr::join_by(agencia_codigo)) |&gt;
+  dplyr::transmute(agencia_codigo, dias_coleta_agencia_max = Inf, custo_fixo = 0) |&gt;
+  sf::st_drop_geometry()
+
+dists &lt;- distancias_agencias_municipios_osrm |&gt;
+  dplyr::left_join(agencias_municipios_diaria, by = dplyr::join_by(agencia_codigo, municipio_codigo)) |&gt;
+  dplyr::semi_join(ucs_municipios, by = &quot;municipio_codigo&quot;) |&gt;
+  dplyr::semi_join(agencias, by = &quot;agencia_codigo&quot;) |&gt;
+  dplyr::mutate(diaria_pernoite = duracao_horas &gt; 1.5, uc = municipio_codigo)
+
+m &lt;- alocar_ucs(ucs = ucs_municipios, agencias = agencias, dias_coleta_entrevistador_max = 14, distancias_ucs = dists, remuneracao_entrevistador = 0, rel_tol = 0.01)</code></pre>
+<pre><code>## 
+ℹ Preparando os dados</code></pre>
+<pre><code>## Carregando pacotes exigidos: ompr</code></pre>
+<pre><code>## Warning: package &#39;ompr&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Carregando pacotes exigidos: ompr.roi</code></pre>
+<pre><code>## Warning: package &#39;ompr.roi&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Carregando pacotes exigidos: ROI.plugin.cbc</code></pre>
+<pre><code>## 
+✔ Preparando os dados [1.9s]
+## 
+ℹ Preparando a otimização
+
+✔ Preparando a otimização [8.1s]
+## 
+ℹ Otimizando...
+
+✔ Otimizando... [5.9s]
+## 
+ℹ Otimização concluída
+
+✔ Otimização concluída [333ms]
+## 
+ℹ Sucesso
+
+✔ Sucesso [119ms]</code></pre>
+<pre class="r"><code>report_plans(m)</code></pre>
+<pre><code>## Joining with `by = join_by(agencia_codigo)`</code></pre>
+<div id="tmjxrniazj" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#tmjxrniazj table {
+font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+#tmjxrniazj thead, #tmjxrniazj tbody, #tmjxrniazj tfoot, #tmjxrniazj tr, #tmjxrniazj td, #tmjxrniazj th {
+border-style: none;
+}
+#tmjxrniazj p {
+margin: 0;
+padding: 0;
+}
+#tmjxrniazj .gt_table {
+display: table;
+border-collapse: collapse;
+line-height: normal;
+margin-left: auto;
+margin-right: auto;
+color: #333333;
+font-size: 16px;
+font-weight: normal;
+font-style: normal;
+background-color: #FFFFFF;
+width: auto;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #A8A8A8;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #A8A8A8;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+}
+#tmjxrniazj .gt_caption {
+padding-top: 4px;
+padding-bottom: 4px;
+}
+#tmjxrniazj .gt_title {
+color: #333333;
+font-size: 125%;
+font-weight: initial;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-color: #FFFFFF;
+border-bottom-width: 0;
+}
+#tmjxrniazj .gt_subtitle {
+color: #333333;
+font-size: 85%;
+font-weight: initial;
+padding-top: 3px;
+padding-bottom: 5px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-color: #FFFFFF;
+border-top-width: 0;
+}
+#tmjxrniazj .gt_heading {
+background-color: #FFFFFF;
+text-align: center;
+border-bottom-color: #FFFFFF;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#tmjxrniazj .gt_bottom_border {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#tmjxrniazj .gt_col_headings {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#tmjxrniazj .gt_col_heading {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+overflow-x: hidden;
+}
+#tmjxrniazj .gt_column_spanner_outer {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+padding-top: 0;
+padding-bottom: 0;
+padding-left: 4px;
+padding-right: 4px;
+}
+#tmjxrniazj .gt_column_spanner_outer:first-child {
+padding-left: 0;
+}
+#tmjxrniazj .gt_column_spanner_outer:last-child {
+padding-right: 0;
+}
+#tmjxrniazj .gt_column_spanner {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 5px;
+overflow-x: hidden;
+display: inline-block;
+width: 100%;
+}
+#tmjxrniazj .gt_spanner_row {
+border-bottom-style: hidden;
+}
+#tmjxrniazj .gt_group_heading {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+text-align: left;
+}
+#tmjxrniazj .gt_empty_group_heading {
+padding: 0.5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: middle;
+}
+#tmjxrniazj .gt_from_md > :first-child {
+margin-top: 0;
+}
+#tmjxrniazj .gt_from_md > :last-child {
+margin-bottom: 0;
+}
+#tmjxrniazj .gt_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+margin: 10px;
+border-top-style: solid;
+border-top-width: 1px;
+border-top-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+overflow-x: hidden;
+}
+#tmjxrniazj .gt_stub {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tmjxrniazj .gt_stub_row_group {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+vertical-align: top;
+}
+#tmjxrniazj .gt_row_group_first td {
+border-top-width: 2px;
+}
+#tmjxrniazj .gt_row_group_first th {
+border-top-width: 2px;
+}
+#tmjxrniazj .gt_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tmjxrniazj .gt_first_summary_row {
+border-top-style: solid;
+border-top-color: #D3D3D3;
+}
+#tmjxrniazj .gt_first_summary_row.thick {
+border-top-width: 2px;
+}
+#tmjxrniazj .gt_last_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#tmjxrniazj .gt_grand_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tmjxrniazj .gt_first_grand_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-style: double;
+border-top-width: 6px;
+border-top-color: #D3D3D3;
+}
+#tmjxrniazj .gt_last_grand_summary_row_top {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: double;
+border-bottom-width: 6px;
+border-bottom-color: #D3D3D3;
+}
+#tmjxrniazj .gt_striped {
+background-color: rgba(128, 128, 128, 0.05);
+}
+#tmjxrniazj .gt_table_body {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#tmjxrniazj .gt_footnotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#tmjxrniazj .gt_footnote {
+margin: 0px;
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tmjxrniazj .gt_sourcenotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#tmjxrniazj .gt_sourcenote {
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#tmjxrniazj .gt_left {
+text-align: left;
+}
+#tmjxrniazj .gt_center {
+text-align: center;
+}
+#tmjxrniazj .gt_right {
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+#tmjxrniazj .gt_font_normal {
+font-weight: normal;
+}
+#tmjxrniazj .gt_font_bold {
+font-weight: bold;
+}
+#tmjxrniazj .gt_font_italic {
+font-style: italic;
+}
+#tmjxrniazj .gt_super {
+font-size: 65%;
+}
+#tmjxrniazj .gt_footnote_marks {
+font-size: 75%;
+vertical-align: 0.4em;
+position: initial;
+}
+#tmjxrniazj .gt_asterisk {
+font-size: 100%;
+vertical-align: 0;
+}
+#tmjxrniazj .gt_indent_1 {
+text-indent: 5px;
+}
+#tmjxrniazj .gt_indent_2 {
+text-indent: 10px;
+}
+#tmjxrniazj .gt_indent_3 {
+text-indent: 15px;
+}
+#tmjxrniazj .gt_indent_4 {
+text-indent: 20px;
+}
+#tmjxrniazj .gt_indent_5 {
+text-indent: 25px;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="perde">perde</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="recebe">recebe</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="custo total otimo">custo total otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="custo total jurisdicao">custo total jurisdicao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="total diarias otimo">total diarias otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="total diarias jurisdicao">total diarias jurisdicao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="custo combustivel otimo">custo combustivel otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="custo combustivel jurisdicao">custo combustivel jurisdicao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="entrevistadores otimo">entrevistadores otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="entrevistadores jurisdicao">entrevistadores jurisdicao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n agencias otimo">n agencias otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n agencias jurisdicao">n agencias jurisdicao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n otimo">n otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n jurisdicao">n jurisdicao</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="dias coleta otimo">dias coleta otimo</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="dias coleta jurisdicao">dias coleta jurisdicao</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><th id="stub_1_1" scope="row" class="gt_row gt_left gt_stub">BOM JESUS DA LAPA</th>
+<td headers="stub_1_1 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_1 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_1 custo_total_otimo" class="gt_row gt_right">R$3.416</td>
+<td headers="stub_1_1 custo_total_jurisdicao" class="gt_row gt_right">R$3.499</td>
+<td headers="stub_1_1 total_diarias_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_1 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
+<td headers="stub_1_1 custo_combustivel_otimo" class="gt_row gt_right">R$167</td>
+<td headers="stub_1_1 custo_combustivel_jurisdicao" class="gt_row gt_right">R$233</td>
+<td headers="stub_1_1 entrevistadores_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_1 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_1 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_1 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_1 n_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_1 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_1 dias_coleta_otimo" class="gt_row gt_right">20</td>
+<td headers="stub_1_1 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_2" scope="row" class="gt_row gt_left gt_stub">BRUMADO</th>
+<td headers="stub_1_2 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_2 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_2 custo_total_otimo" class="gt_row gt_right">R$3.866</td>
+<td headers="stub_1_2 custo_total_jurisdicao" class="gt_row gt_right">R$3.900</td>
+<td headers="stub_1_2 total_diarias_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_2 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
+<td headers="stub_1_2 custo_combustivel_otimo" class="gt_row gt_right">R$535</td>
+<td headers="stub_1_2 custo_combustivel_jurisdicao" class="gt_row gt_right">R$563</td>
+<td headers="stub_1_2 entrevistadores_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_2 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_2 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_2 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_2 n_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_2 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_2 dias_coleta_otimo" class="gt_row gt_right">20</td>
+<td headers="stub_1_2 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_3" scope="row" class="gt_row gt_left gt_stub">CACHOEIRA</th>
+<td headers="stub_1_3 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_3 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_3 custo_total_otimo" class="gt_row gt_right">R$27</td>
+<td headers="stub_1_3 custo_total_jurisdicao" class="gt_row gt_right">R$478</td>
+<td headers="stub_1_3 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_3 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_3 custo_combustivel_otimo" class="gt_row gt_right">R$19</td>
+<td headers="stub_1_3 custo_combustivel_jurisdicao" class="gt_row gt_right">R$368</td>
+<td headers="stub_1_3 entrevistadores_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_3 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_3 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_3 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_3 n_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_3 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_3 dias_coleta_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_3 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_4" scope="row" class="gt_row gt_left gt_stub">CAMAÇARI</th>
+<td headers="stub_1_4 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_4 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_4 custo_total_otimo" class="gt_row gt_right">R$637</td>
+<td headers="stub_1_4 custo_total_jurisdicao" class="gt_row gt_right">R$265</td>
+<td headers="stub_1_4 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_4 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_4 custo_combustivel_otimo" class="gt_row gt_right">R$485</td>
+<td headers="stub_1_4 custo_combustivel_jurisdicao" class="gt_row gt_right">R$197</td>
+<td headers="stub_1_4 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_4 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_4 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_4 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_4 n_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_4 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_4 dias_coleta_otimo" class="gt_row gt_right">30</td>
+<td headers="stub_1_4 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_5" scope="row" class="gt_row gt_left gt_stub">CONCEIÇÃO DO COITÉ</th>
+<td headers="stub_1_5 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_5 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_5 custo_total_otimo" class="gt_row gt_right">R$22</td>
+<td headers="stub_1_5 custo_total_jurisdicao" class="gt_row gt_right">R$3.407</td>
+<td headers="stub_1_5 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_5 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
+<td headers="stub_1_5 custo_combustivel_otimo" class="gt_row gt_right">R$14</td>
+<td headers="stub_1_5 custo_combustivel_jurisdicao" class="gt_row gt_right">R$174</td>
+<td headers="stub_1_5 entrevistadores_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_5 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_5 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_5 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_5 n_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_5 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_5 dias_coleta_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_5 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_6" scope="row" class="gt_row gt_left gt_stub">CRUZ DAS ALMAS</th>
+<td headers="stub_1_6 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_6 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_6 custo_total_otimo" class="gt_row gt_right">R$673</td>
+<td headers="stub_1_6 custo_total_jurisdicao" class="gt_row gt_right">R$1.064</td>
+<td headers="stub_1_6 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_6 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_6 custo_combustivel_otimo" class="gt_row gt_right">R$489</td>
+<td headers="stub_1_6 custo_combustivel_jurisdicao" class="gt_row gt_right">R$814</td>
+<td headers="stub_1_6 entrevistadores_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_6 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_6 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_6 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_6 n_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_6 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_6 dias_coleta_otimo" class="gt_row gt_right">20</td>
+<td headers="stub_1_6 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_7" scope="row" class="gt_row gt_left gt_stub">EUCLIDES DA CUNHA</th>
+<td headers="stub_1_7 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_7 recebe" class="gt_row gt_right">2</td>
+<td headers="stub_1_7 custo_total_otimo" class="gt_row gt_right">R$9.083</td>
+<td headers="stub_1_7 custo_total_jurisdicao" class="gt_row gt_right">R$2.296</td>
+<td headers="stub_1_7 total_diarias_otimo" class="gt_row gt_right">19</td>
+<td headers="stub_1_7 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_7 custo_combustivel_otimo" class="gt_row gt_right">R$2.206</td>
+<td headers="stub_1_7 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.862</td>
+<td headers="stub_1_7 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_7 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_7 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_7 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_7 n_otimo" class="gt_row gt_right">4</td>
+<td headers="stub_1_7 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_7 dias_coleta_otimo" class="gt_row gt_right">40</td>
+<td headers="stub_1_7 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_8" scope="row" class="gt_row gt_left gt_stub">FEIRA DE SANTANA</th>
+<td headers="stub_1_8 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_8 recebe" class="gt_row gt_right">2</td>
+<td headers="stub_1_8 custo_total_otimo" class="gt_row gt_right">R$2.682</td>
+<td headers="stub_1_8 custo_total_jurisdicao" class="gt_row gt_right">R$1.613</td>
+<td headers="stub_1_8 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_8 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_8 custo_combustivel_otimo" class="gt_row gt_right">R$2.118</td>
+<td headers="stub_1_8 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.271</td>
+<td headers="stub_1_8 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_8 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_8 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_8 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_8 n_otimo" class="gt_row gt_right">4</td>
+<td headers="stub_1_8 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_8 dias_coleta_otimo" class="gt_row gt_right">40</td>
+<td headers="stub_1_8 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_9" scope="row" class="gt_row gt_left gt_stub">GUANAMBI</th>
+<td headers="stub_1_9 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_9 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_9 custo_total_otimo" class="gt_row gt_right">R$642</td>
+<td headers="stub_1_9 custo_total_jurisdicao" class="gt_row gt_right">R$3.998</td>
+<td headers="stub_1_9 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_9 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
+<td headers="stub_1_9 custo_combustivel_otimo" class="gt_row gt_right">R$494</td>
+<td headers="stub_1_9 custo_combustivel_jurisdicao" class="gt_row gt_right">R$630</td>
+<td headers="stub_1_9 entrevistadores_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_9 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_9 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_9 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_9 n_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_9 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_9 dias_coleta_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_9 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_10" scope="row" class="gt_row gt_left gt_stub">IPIRÁ</th>
+<td headers="stub_1_10 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_10 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_10 custo_total_otimo" class="gt_row gt_right">R$791</td>
+<td headers="stub_1_10 custo_total_jurisdicao" class="gt_row gt_right">R$1.697</td>
+<td headers="stub_1_10 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_10 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_10 custo_combustivel_otimo" class="gt_row gt_right">R$623</td>
+<td headers="stub_1_10 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.337</td>
+<td headers="stub_1_10 entrevistadores_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_10 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_10 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_10 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_10 n_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_10 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_10 dias_coleta_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_10 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_11" scope="row" class="gt_row gt_left gt_stub">IRECÊ</th>
+<td headers="stub_1_11 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_11 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_11 custo_total_otimo" class="gt_row gt_right">R$2.518</td>
+<td headers="stub_1_11 custo_total_jurisdicao" class="gt_row gt_right">R$1.972</td>
+<td headers="stub_1_11 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_11 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_11 custo_combustivel_otimo" class="gt_row gt_right">R$1.984</td>
+<td headers="stub_1_11 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.556</td>
+<td headers="stub_1_11 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_11 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_11 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_11 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_11 n_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_11 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_11 dias_coleta_otimo" class="gt_row gt_right">30</td>
+<td headers="stub_1_11 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_12" scope="row" class="gt_row gt_left gt_stub">ITABUNA</th>
+<td headers="stub_1_12 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_12 recebe" class="gt_row gt_right">2</td>
+<td headers="stub_1_12 custo_total_otimo" class="gt_row gt_right">R$3.252</td>
+<td headers="stub_1_12 custo_total_jurisdicao" class="gt_row gt_right">R$1.358</td>
+<td headers="stub_1_12 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_12 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_12 custo_combustivel_otimo" class="gt_row gt_right">R$2.616</td>
+<td headers="stub_1_12 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.080</td>
+<td headers="stub_1_12 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_12 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_12 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_12 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_12 n_otimo" class="gt_row gt_right">4</td>
+<td headers="stub_1_12 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_12 dias_coleta_otimo" class="gt_row gt_right">40</td>
+<td headers="stub_1_12 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_13" scope="row" class="gt_row gt_left gt_stub">JAGUAQUARA</th>
+<td headers="stub_1_13 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_13 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_13 custo_total_otimo" class="gt_row gt_right">R$996</td>
+<td headers="stub_1_13 custo_total_jurisdicao" class="gt_row gt_right">R$1.977</td>
+<td headers="stub_1_13 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_13 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_13 custo_combustivel_otimo" class="gt_row gt_right">R$760</td>
+<td headers="stub_1_13 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.445</td>
+<td headers="stub_1_13 entrevistadores_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_13 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_13 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_13 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_13 n_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_13 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_13 dias_coleta_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_13 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_14" scope="row" class="gt_row gt_left gt_stub">JEQUIÉ</th>
+<td headers="stub_1_14 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_14 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_14 custo_total_otimo" class="gt_row gt_right">R$1.536</td>
+<td headers="stub_1_14 custo_total_jurisdicao" class="gt_row gt_right">R$1.949</td>
+<td headers="stub_1_14 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_14 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_14 custo_combustivel_otimo" class="gt_row gt_right">R$1.192</td>
+<td headers="stub_1_14 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.535</td>
+<td headers="stub_1_14 entrevistadores_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_14 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_14 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_14 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_14 n_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_14 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_14 dias_coleta_otimo" class="gt_row gt_right">20</td>
+<td headers="stub_1_14 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_15" scope="row" class="gt_row gt_left gt_stub">LIVRAMENTO DE NOSSA SENHORA</th>
+<td headers="stub_1_15 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_15 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_15 custo_total_otimo" class="gt_row gt_right">R$9.997</td>
+<td headers="stub_1_15 custo_total_jurisdicao" class="gt_row gt_right">R$6.665</td>
+<td headers="stub_1_15 total_diarias_otimo" class="gt_row gt_right">28</td>
+<td headers="stub_1_15 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
+<td headers="stub_1_15 custo_combustivel_otimo" class="gt_row gt_right">R$347</td>
+<td headers="stub_1_15 custo_combustivel_jurisdicao" class="gt_row gt_right">R$237</td>
+<td headers="stub_1_15 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_15 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_15 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_15 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_15 n_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_15 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_15 dias_coleta_otimo" class="gt_row gt_right">30</td>
+<td headers="stub_1_15 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_16" scope="row" class="gt_row gt_left gt_stub">PAULO AFONSO</th>
+<td headers="stub_1_16 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_16 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_16 custo_total_otimo" class="gt_row gt_right">R$3.484</td>
+<td headers="stub_1_16 custo_total_jurisdicao" class="gt_row gt_right">R$6.983</td>
+<td headers="stub_1_16 total_diarias_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_16 total_diarias_jurisdicao" class="gt_row gt_right">19</td>
+<td headers="stub_1_16 custo_combustivel_otimo" class="gt_row gt_right">R$241</td>
+<td headers="stub_1_16 custo_combustivel_jurisdicao" class="gt_row gt_right">R$493</td>
+<td headers="stub_1_16 entrevistadores_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_16 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_16 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_16 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_16 n_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_16 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_16 dias_coleta_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_16 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_17" scope="row" class="gt_row gt_left gt_stub">POÇÕES</th>
+<td headers="stub_1_17 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_17 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_17 custo_total_otimo" class="gt_row gt_right">R$1.102</td>
+<td headers="stub_1_17 custo_total_jurisdicao" class="gt_row gt_right">R$3.805</td>
+<td headers="stub_1_17 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_17 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
+<td headers="stub_1_17 custo_combustivel_otimo" class="gt_row gt_right">R$854</td>
+<td headers="stub_1_17 custo_combustivel_jurisdicao" class="gt_row gt_right">R$474</td>
+<td headers="stub_1_17 entrevistadores_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_17 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_17 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_17 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_17 n_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_17 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_17 dias_coleta_otimo" class="gt_row gt_right">20</td>
+<td headers="stub_1_17 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_18" scope="row" class="gt_row gt_left gt_stub">SALVADOR 1</th>
+<td headers="stub_1_18 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_18 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_18 custo_total_otimo" class="gt_row gt_right">R$123</td>
+<td headers="stub_1_18 custo_total_jurisdicao" class="gt_row gt_right">R$545</td>
+<td headers="stub_1_18 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_18 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_18 custo_combustivel_otimo" class="gt_row gt_right">R$91</td>
+<td headers="stub_1_18 custo_combustivel_jurisdicao" class="gt_row gt_right">R$433</td>
+<td headers="stub_1_18 entrevistadores_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_18 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_18 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_18 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_18 n_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_18 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_18 dias_coleta_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_18 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_19" scope="row" class="gt_row gt_left gt_stub">SANTA MARIA DA VITÓRIA</th>
+<td headers="stub_1_19 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_19 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_19 custo_total_otimo" class="gt_row gt_right">R$7.520</td>
+<td headers="stub_1_19 custo_total_jurisdicao" class="gt_row gt_right">R$4.131</td>
+<td headers="stub_1_19 total_diarias_otimo" class="gt_row gt_right">19</td>
+<td headers="stub_1_19 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
+<td headers="stub_1_19 custo_combustivel_otimo" class="gt_row gt_right">R$874</td>
+<td headers="stub_1_19 custo_combustivel_jurisdicao" class="gt_row gt_right">R$717</td>
+<td headers="stub_1_19 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_19 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_19 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_19 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_19 n_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_19 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_19 dias_coleta_otimo" class="gt_row gt_right">30</td>
+<td headers="stub_1_19 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_20" scope="row" class="gt_row gt_left gt_stub">SANTO AMARO</th>
+<td headers="stub_1_20 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_20 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_20 custo_total_otimo" class="gt_row gt_right">R$5</td>
+<td headers="stub_1_20 custo_total_jurisdicao" class="gt_row gt_right">R$560</td>
+<td headers="stub_1_20 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_20 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_20 custo_combustivel_otimo" class="gt_row gt_right">R$3</td>
+<td headers="stub_1_20 custo_combustivel_jurisdicao" class="gt_row gt_right">R$450</td>
+<td headers="stub_1_20 entrevistadores_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_20 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_20 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_20 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_20 n_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_20 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_20 dias_coleta_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_20 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_21" scope="row" class="gt_row gt_left gt_stub">SANTO ANTÔNIO DE JESUS</th>
+<td headers="stub_1_21 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_21 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_21 custo_total_otimo" class="gt_row gt_right">R$2.109</td>
+<td headers="stub_1_21 custo_total_jurisdicao" class="gt_row gt_right">R$1.376</td>
+<td headers="stub_1_21 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_21 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_21 custo_combustivel_otimo" class="gt_row gt_right">R$1.637</td>
+<td headers="stub_1_21 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.082</td>
+<td headers="stub_1_21 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_21 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_21 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_21 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_21 n_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_21 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_21 dias_coleta_otimo" class="gt_row gt_right">30</td>
+<td headers="stub_1_21 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_22" scope="row" class="gt_row gt_left gt_stub">TEIXEIRA DE FREITAS</th>
+<td headers="stub_1_22 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_22 recebe" class="gt_row gt_right">2</td>
+<td headers="stub_1_22 custo_total_otimo" class="gt_row gt_right">R$4.863</td>
+<td headers="stub_1_22 custo_total_jurisdicao" class="gt_row gt_right">R$2.583</td>
+<td headers="stub_1_22 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_22 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_22 custo_combustivel_otimo" class="gt_row gt_right">R$3.801</td>
+<td headers="stub_1_22 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.999</td>
+<td headers="stub_1_22 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_22 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_22 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_22 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_22 n_otimo" class="gt_row gt_right">4</td>
+<td headers="stub_1_22 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_22 dias_coleta_otimo" class="gt_row gt_right">40</td>
+<td headers="stub_1_22 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_23" scope="row" class="gt_row gt_left gt_stub">VITÓRIA DA CONQUISTA</th>
+<td headers="stub_1_23 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_23 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_23 custo_total_otimo" class="gt_row gt_right">R$4.516</td>
+<td headers="stub_1_23 custo_total_jurisdicao" class="gt_row gt_right">R$1.217</td>
+<td headers="stub_1_23 total_diarias_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_23 total_diarias_jurisdicao" class="gt_row gt_right">0</td>
+<td headers="stub_1_23 custo_combustivel_otimo" class="gt_row gt_right">R$1.043</td>
+<td headers="stub_1_23 custo_combustivel_jurisdicao" class="gt_row gt_right">R$959</td>
+<td headers="stub_1_23 entrevistadores_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_23 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_23 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_23 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_23 n_otimo" class="gt_row gt_right">3</td>
+<td headers="stub_1_23 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_23 dias_coleta_otimo" class="gt_row gt_right">30</td>
+<td headers="stub_1_23 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_24" scope="row" class="gt_row gt_left gt_stub">XIQUE-XIQUE</th>
+<td headers="stub_1_24 perde" class="gt_row gt_right">1</td>
+<td headers="stub_1_24 recebe" class="gt_row gt_right">1</td>
+<td headers="stub_1_24 custo_total_otimo" class="gt_row gt_right">R$4.653</td>
+<td headers="stub_1_24 custo_total_jurisdicao" class="gt_row gt_right">R$4.511</td>
+<td headers="stub_1_24 total_diarias_otimo" class="gt_row gt_right">10</td>
+<td headers="stub_1_24 total_diarias_jurisdicao" class="gt_row gt_right">10</td>
+<td headers="stub_1_24 custo_combustivel_otimo" class="gt_row gt_right">R$1.165</td>
+<td headers="stub_1_24 custo_combustivel_jurisdicao" class="gt_row gt_right">R$1.049</td>
+<td headers="stub_1_24 entrevistadores_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_24 entrevistadores_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_24 n_agencias_otimo" class="gt_row gt_right">1</td>
+<td headers="stub_1_24 n_agencias_jurisdicao" class="gt_row gt_right">1</td>
+<td headers="stub_1_24 n_otimo" class="gt_row gt_right">2</td>
+<td headers="stub_1_24 n_jurisdicao" class="gt_row gt_right">2</td>
+<td headers="stub_1_24 dias_coleta_otimo" class="gt_row gt_right">20</td>
+<td headers="stub_1_24 dias_coleta_jurisdicao" class="gt_row gt_right">20</td></tr>
+    <tr><th id="stub_1_25" scope="row" class="gt_row gt_left gt_stub">Agências excluídas**</th>
+<td headers="stub_1_25 perde" class="gt_row gt_right">6</td>
+<td headers="stub_1_25 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_25 custo_total_otimo" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_25 custo_total_jurisdicao" class="gt_row gt_right">R$15.801</td>
+<td headers="stub_1_25 total_diarias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_25 total_diarias_jurisdicao" class="gt_row gt_right">38</td>
+<td headers="stub_1_25 custo_combustivel_otimo" class="gt_row gt_right">R$0</td>
+<td headers="stub_1_25 custo_combustivel_jurisdicao" class="gt_row gt_right">R$2.443</td>
+<td headers="stub_1_25 entrevistadores_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_25 entrevistadores_jurisdicao" class="gt_row gt_right">6</td>
+<td headers="stub_1_25 n_agencias_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_25 n_agencias_jurisdicao" class="gt_row gt_right">3</td>
+<td headers="stub_1_25 n_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_25 n_jurisdicao" class="gt_row gt_right">6</td>
+<td headers="stub_1_25 dias_coleta_otimo" class="gt_row gt_right">0</td>
+<td headers="stub_1_25 dias_coleta_jurisdicao" class="gt_row gt_right">60</td></tr>
+    <tr><th id="stub_1_26" scope="row" class="gt_row gt_left gt_stub">Agências sem alteração*</th>
+<td headers="stub_1_26 perde" class="gt_row gt_right">0</td>
+<td headers="stub_1_26 recebe" class="gt_row gt_right">0</td>
+<td headers="stub_1_26 custo_total_otimo" class="gt_row gt_right">R$41.344</td>
+<td headers="stub_1_26 custo_total_jurisdicao" class="gt_row gt_right">R$41.344</td>
+<td headers="stub_1_26 total_diarias_otimo" class="gt_row gt_right">48</td>
+<td headers="stub_1_26 total_diarias_jurisdicao" class="gt_row gt_right">48</td>
+<td headers="stub_1_26 custo_combustivel_otimo" class="gt_row gt_right">R$19.808</td>
+<td headers="stub_1_26 custo_combustivel_jurisdicao" class="gt_row gt_right">R$19.808</td>
+<td headers="stub_1_26 entrevistadores_otimo" class="gt_row gt_right">45</td>
+<td headers="stub_1_26 entrevistadores_jurisdicao" class="gt_row gt_right">45</td>
+<td headers="stub_1_26 n_agencias_otimo" class="gt_row gt_right">23</td>
+<td headers="stub_1_26 n_agencias_jurisdicao" class="gt_row gt_right">23</td>
+<td headers="stub_1_26 n_otimo" class="gt_row gt_right">45</td>
+<td headers="stub_1_26 n_jurisdicao" class="gt_row gt_right">45</td>
+<td headers="stub_1_26 dias_coleta_otimo" class="gt_row gt_right">450</td>
+<td headers="stub_1_26 dias_coleta_jurisdicao" class="gt_row gt_right">450</td></tr>
+    <tr><th id="grand_summary_stub_1" scope="row" class="gt_row gt_left gt_stub gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">Total Superintendência</th>
+<td headers="grand_summary_stub_1 perde" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">20</td>
+<td headers="grand_summary_stub_1 recebe" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">20</td>
+<td headers="grand_summary_stub_1 custo_total_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$109.856</td>
+<td headers="grand_summary_stub_1 custo_total_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$118.995</td>
+<td headers="grand_summary_stub_1 total_diarias_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">162</td>
+<td headers="grand_summary_stub_1 total_diarias_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">190</td>
+<td headers="grand_summary_stub_1 custo_combustivel_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$43.567</td>
+<td headers="grand_summary_stub_1 custo_combustivel_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">R$43.211</td>
+<td headers="grand_summary_stub_1 entrevistadores_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">95</td>
+<td headers="grand_summary_stub_1 entrevistadores_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">99</td>
+<td headers="grand_summary_stub_1 n_agencias_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">47</td>
+<td headers="grand_summary_stub_1 n_agencias_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">50</td>
+<td headers="grand_summary_stub_1 n_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">99</td>
+<td headers="grand_summary_stub_1 n_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">99</td>
+<td headers="grand_summary_stub_1 dias_coleta_otimo" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">990</td>
+<td headers="grand_summary_stub_1 dias_coleta_jurisdicao" class="gt_row gt_right gt_grand_summary_row gt_first_grand_summary_row gt_last_summary_row">990</td></tr>
+  </tbody>
+  
+  <tfoot class="gt_footnotes">
+    <tr>
+      <td class="gt_footnote" colspan="17"> ** Agências sem alteração: ALAGOINHAS, BARREIRAS, CIPÓ, ESPLANADA, EUNÁPOLIS, IPIAÚ, ITABERABA, ITAPETINGA, JACOBINA, JEREMOABO, JUAZEIRO, MORRO DO CHAPÉU, PORTO SEGURO, REMANSO, RIACHÃO DO JACUÍPE, RIBEIRA DO POMBAL, SALVADOR 2, SANTA RITA DE CÁSSIA, SÃO FRANCISCO DO CONDE, SEABRA, SENHOR DO BONFIM, SERRINHA, VALENÇA</td>
+    </tr>
+    <tr>
+      <td class="gt_footnote" colspan="17"> * Agências excluídas: IBOTIRAMA, ILHÉUS, ITAMARAJU</td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+<hr />
 <div id="português" class="section level2">
 <h2>Português</h2>
 <p>O pacote <code>orce</code> é um pacote R projetado para otimizar a
