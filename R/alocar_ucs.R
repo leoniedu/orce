@@ -386,7 +386,7 @@ alocar_ucs <- function(ucs,
   # Criar resultados para alocação ótima
   resultado_ucs_otimo <- dist_uc_agencias|>
     dplyr::inner_join(matching, by=c("i", "j"))|>
-    dplyr::left_join(ucs |> dplyr::distinct(i, pick(alocar_por)), by = "i")|>
+    dplyr::left_join(ucs |> dplyr::distinct(uc, pick(alocar_por)), by = "uc")|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
 
@@ -394,7 +394,7 @@ alocar_ucs <- function(ucs,
   resultado_ucs_jurisdicao <- dist_uc_agencias |>
     dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
-    dplyr::left_join(ucs |> dplyr::distinct(i, pick(alocar_por)), by = "i")|>
+    dplyr::left_join(ucs |> dplyr::distinct(uc, pick(alocar_por)), by = c("uc"))|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-t)
 
