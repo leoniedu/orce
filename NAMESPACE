@@ -3,6 +3,7 @@
 export(ToTitleCasePT)
 export(add_coordinates)
 export(alocar_ucs)
+export(alocar_ucs_dt)
 export(calcula_diarias)
 export(calcula_distancias)
 export(capitalizar)

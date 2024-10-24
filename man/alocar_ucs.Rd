@@ -43,11 +43,11 @@ alocar_ucs(
 \item{agencias}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
 \itemize{
 \item \code{agencia_codigo}: Código único da agência.
-\item \code{dias_coleta_agencia_max}: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos)
-\item \code{custo_fixo}: Custo fixo associado à agência (soma de todos os períodos)
+\item \code{dias_coleta_agencia_max}: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos).
+\item \code{custo_fixo}: Custo fixo associado à agência (soma de todos os períodos).
 }}
 
-\item{alocar_por}{Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em \code{ucs} para agrupar as UCs antes da alocação (e.g., "setor", "municipio").}
+\item{alocar_por}{Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em \code{ucs} para agrupar as UCs antes da alocação (e.g., "setor", "municipio"). Padrão: "uc".}
 
 \item{custo_litro_combustivel}{Custo do combustível por litro (em R$). Padrão: 6.}
 
@@ -104,9 +104,9 @@ alocar_ucs(
 \value{
 Uma lista contendo:
 \itemize{
-\item \code{resultado_i_jurisdicao}: Um \code{tibble} com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento, agrupadas por \code{alocar_por}.
+\item \code{resultado_ucs_jurisdicao}: Um \code{tibble} com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento.
 \item \code{resultado_agencias_jurisdicao}: Um \code{tibble} com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
-\item \code{resultado_i_otimo}: Um \code{tibble} com as UCs e suas alocações otimizadas, incluindo custos de deslocamento, agrupadas por \code{alocar_por}.
+\item \code{resultado_ucs_otimo}: Um \code{tibble} com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
 \item \code{resultado_agencias_otimo}: Um \code{tibble} com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
 \item \code{ucs_agencias_todas} (opcional): Um \code{tibble} com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se \code{resultado_completo} for TRUE).
 \item \code{otimizacao} (opcional): O resultado completo da otimização (retornado apenas se \code{resultado_completo} for TRUE).

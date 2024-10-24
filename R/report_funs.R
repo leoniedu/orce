@@ -44,8 +44,7 @@ gt1 <- function(..., decimal_pct=1, decimal_currency=0, decimal_num=2) gt::gt(..
 
 #' @export
 plano_municipios <- function(r) {
-  vs <- c("municipio_nome", 'agencia_nome','custo_total',
-          'n_ucs', 'total_diarias', 'custo_diarias', 'custo_combustivel', 'distancia_total_km', 'custo_deslocamento',  'custo_fixo', 'entrevistadores', "agencia_codigo")
+  vs <- c("municipio_nome", 'agencia_nome','custo_total', 'n_ucs', 'total_diarias', 'custo_diarias', 'custo_combustivel', 'distancia_total_km', 'custo_deslocamento',  'custo_fixo', 'entrevistadores', "agencia_codigo")
   r1 <- r$resultado_municipios_otimo|>
     dplyr::full_join(r$resultado_municipios_jurisdicao, by=c("municipio_codigo", "agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
     dplyr::left_join(agencias_bdo, by="agencia_codigo")|>
@@ -61,8 +60,13 @@ plano_municipios <- function(r) {
 report_plans <- function(r, level="uc") {
   levels <- dplyr::if_else(level=="uc", "ucs", "municipios")
   nlevels <- paste0("n_", levels)
-  vs <- c('agencia_codigo', 'agencia_nome',"perde", "recebe",  'custo_total', 'total_diarias', 'custo_combustivel','entrevistadores','custo_fixo', "n_agencias_otimo", "n_agencias_jurisdicao",
-          "n_otimo", "n_jurisdicao", 'dias_coleta'#,   'custo_diarias',  'distancia_total_km', 'custo_deslocamento',  'custo_troca_jurisdicao'
+  vs <- c('agencia_codigo', 'agencia_nome', 'custo_total',
+          "n_otimo", "n_jurisdicao", "perde", "recebe",
+          'total_diarias',
+          'custo_combustivel',
+          'entrevistadores',
+          'custo_fixo', "n_agencias_otimo"
+          #, 'dias_coleta'#,   'custo_diarias',  'distancia_total_km', 'custo_deslocamento',  'custo_troca_jurisdicao'
           )
   trocas_0 <- r[[paste0('resultado_',levels,'_otimo')]]|>
   dplyr::left_join(r[[paste0('resultado_',levels,'_jurisdicao')]]|>
@@ -98,6 +102,10 @@ report_plans <- function(r, level="uc") {
     dplyr::summarise(dplyr::across(dplyr::where(is.numeric), ~sum(.x, na.rm=TRUE)), agencias_nomes=paste(agencia_nome, collapse=", "))|>
     dplyr::arrange(grepl("\\*", agencia_nome_rec), agencia_nome_rec, desc(n_jurisdicao))|>
     dplyr::ungroup()|>
+    dplyr::mutate(N=glue::glue("{n_otimo}<br>({n_jurisdicao}{
+                               if_else((recebe>0) | (perde>0),
+                               paste(' +', recebe, if_else(perde>0, paste0(' -', perde), '')), '')})"))|>
+    dplyr::select(agencia_nome_rec, N, everything(), -n_otimo, -n_jurisdicao, -recebe, -perde)|>
     janitor::remove_constant()
   out <- gt::gt(rr|>sf::st_drop_geometry(), rowname_col = "agencia_nome_rec" )|>
     gt::grand_summary_rows(fns=list(fn='sum', label="Total Superintendência"), columns = where(is.numeric),fmt = ~fmt_nums(.x, decimal_num = 0, decimal_currency = 0))|>
@@ -105,10 +113,12 @@ report_plans <- function(r, level="uc") {
     gt::cols_hide(agencias_nomes)
   if (any(grepl("sem alteração", rr$agencia_nome_rec))) {
     out <- out|>
-      gt::tab_footnote(paste0("** Agências sem alteração: ", rr|>dplyr::filter(grepl("sem alteração", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
+      gt::tab_footnote(paste0("Agências sem alteração: ", rr|>dplyr::filter(grepl("sem alteração", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
   }
   if (any(grepl("excluídas", rr$agencia_nome_rec))) {
-    out <- out|>gt::tab_footnote(paste0("* Agências excluídas: ", rr|>dplyr::filter(grepl("excluídas", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
+    out <- out|>gt::tab_footnote(paste0("Agências excluídas: ", rr|>dplyr::filter(grepl("excluídas", agencia_nome_rec))|>dplyr::pull(agencias_nomes)))
   }
-  out
+  out|>
+    gt::cols_label("N"="Unidades de Coleta")|>
+    gt::fmt_markdown(N)
 }
