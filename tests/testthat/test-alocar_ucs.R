@@ -81,8 +81,8 @@ test_that("Alocação de UCs com períodos de coleta", {
 
 
   # Teste: número de entrevistadores como variável contínua
-  params_c <- modifyList(params_0, list(n_entrevistadores_tipo = "continuous"))
-  r_i <- do.call(f, params_0)
+  params_c <- modifyList(params_5, list(n_entrevistadores_tipo = "continuous"))
+  r_i <- do.call(f, params_5)
   r_c <- do.call(f, params_c)
 
 
