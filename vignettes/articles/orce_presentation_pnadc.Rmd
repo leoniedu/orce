@@ -22,6 +22,26 @@ params:
   rel_tol: .01
 ---
 
+
+```{r}
+library(orce)
+library(dplyr)
+library(sf)
+
+amostra_pnds <- readRDS("~/gitlab/pnds/data/mapa_pnds.rds")%>%
+  sf::st_drop_geometry()%>%
+  orce::rename_ibge()%>%
+  select(setor=cd_geocodi, upa, municipio_codigo, agencia_codigo)
+
+upas_pnds <- amostra_pnds%>%
+  distinct(upa, municipio_codigo, agencia_codigo)
+## utilizando ponto do setor do número de identifição da UPA como ponto da UPA
+## dá pra fazer melhor, mas não deve influenciar muito os resultados
+stopifnot(all(upas_pnds$upa%in%pontos_setores$setor))
+head(upas_pnds)
+```
+
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
