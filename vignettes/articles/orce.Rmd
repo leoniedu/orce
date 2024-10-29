@@ -178,7 +178,8 @@ ucs_now <- municipios_22%>%
   group_by(municipio_codigo)%>%
   arrange(agencia_codigo)%>%
   slice(1)%>%
-  mutate(viagens=params$viagens_munic, dias_coleta=params$dias_coleta_munic)
+  mutate(viagens=params$viagens_munic, dias_coleta=params$dias_coleta_munic)%>%
+  mutate(data=1)
 
 
 ```
@@ -242,7 +243,7 @@ params_munic$dias_coleta_entrevistador_max <- params$dias_coleta_entrevistador_m
 
 print(lapply(params_munic,head,2))
 print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_munic)), collapse=", ")))
-res <- do.call(what = alocar_ucs, 
+res <- do.call(what = alocar_ucs_mem, 
               args=params_munic)
 # res_t <- do.call(what = alocar_ucs, 
 #               args=modifyList(params_munic, list(ucs=params_munic$ucs%>%mutate(data=1))))
@@ -494,7 +495,7 @@ for (uf_codigo_now in ufs_sem_missing_dist) {
     group_by(municipio_codigo)%>%
     arrange(agencia_codigo)%>%
     slice(1)%>%
-    mutate(viagens=params$viagens_munic, dias_coleta=params$dias_coleta_munic)%>%
+    mutate(viagens=params$viagens_munic, dias_coleta=params$dias_coleta_munic,data=1)%>%
     filter_uf()
   
   params_munic$agencias <- NULL

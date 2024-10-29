@@ -16,6 +16,7 @@ alocar_ucs(
   diarias_entrevistador_max = Inf,
   remuneracao_entrevistador = 0,
   n_entrevistadores_min = 1,
+  n_entrevistadores_tipo = "integer",
   dias_coleta_entrevistador_max,
   dias_treinamento = 0,
   agencias_treinadas = NULL,
@@ -27,6 +28,7 @@ alocar_ucs(
   solver = "cbc",
   rel_tol = 0.005,
   max_time = 30 * 60,
+  use_cache = TRUE,
   ...
 )
 }
@@ -99,6 +101,11 @@ alocar_ucs(
 
 \item{max_time}{Tempo máximo de execução (em segundos) permitido para o solver. Padrão: 30*60 (30 minutos).}
 
+\item{use_cache}{Lógico indicando se deve usar resultados em cache. Quando TRUE,
+resultados para entradas idênticas serão recuperados do cache em disco em vez
+de recalcular. Isso pode acelerar cálculos repetidos mas usa espaço em disco.
+O padrão é TRUE.}
+
 \item{...}{Opções adicionais para o solver.}
 }
 \value{
@@ -114,7 +121,7 @@ Uma lista contendo:
 }
 }
 \description{
-Esta função (e sua versão memoizada \code{alocar_ucs_mem}) realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+Esta função (e sua versão memoizada \code{alocar_ucs_mem}) realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento. Quando \code{use_cache = TRUE}, os resultados são armazenados em cache no disco e reutilizados para entradas idênticas, o que pode acelerar significativamente cálculos repetidos.
 }
 \details{
 A função \code{alocar_ucs_mem} é a versão memoizada de \code{alocar_ucs}, com cache em disco.

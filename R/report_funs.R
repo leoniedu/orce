@@ -65,7 +65,7 @@ report_plans <- function(r, level="uc") {
           'total_diarias',
           'custo_combustivel',
           'entrevistadores',
-          'custo_fixo', "n_agencias_otimo"
+          'custo_fixo', "n_agencias"
           #, 'dias_coleta'#,   'custo_diarias',  'distancia_total_km', 'custo_deslocamento',  'custo_troca_jurisdicao'
           )
   trocas_0 <- r[[paste0('resultado_',levels,'_otimo')]]|>
