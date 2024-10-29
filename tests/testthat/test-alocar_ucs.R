@@ -1,5 +1,6 @@
 library(testthat)
 library(orce)
+#options(warn = 2)
 
 # Carregar dados de teste
 data(agencias_bdo_mun)
@@ -33,10 +34,10 @@ params_0 <- list(ucs = ucs_municipios, agencias = agencias, dias_coleta_entrevis
 
 # Testes unitários
 test_that("Alocação de UCs com períodos de coleta", {
-  f <- alocar_ucs
+  f <- function(...) alocar_ucs(..., use_cache = FALSE)
 
   # Teste 1: Comparação com alocação sem períodos
-  r_t <- do.call(f, modifyList(params_0, list(use_cache=FALSE)))
+  r_t <- do.call(f, params_0)
   expect_equal(r_t$resultado_agencias_otimo$custo_deslocamento, c(486.72, 1596.88, 3415.552, 3866.176, 26.84, 637.28, 797.84, 21.92, 673.12, 717.92, 9083.32, 842.4, 2681.64, 641.56, 948.28, 791.04, 2517.84, 1237.6, 3252.48, 1534.12, 1071, 995.6, 1536.2, 1188, 2434.96, 9997.184, 1585.92, 3484.152, 1102.16, 3336.74,4445.504, 1480.56, 2029.32, 123.44, 246.24, 7519.5, 6762.72,5, 2108.56, 765.48, 4082.292, 985, 876.44, 4863.24, 1891.84,4515.508, 4653.08))
 
   # Teste 2: Alocação por grupo
