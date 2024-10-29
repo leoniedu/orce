@@ -206,6 +206,8 @@ alocar_ucs <- function(ucs,
 
   stopifnot(dplyr::n_distinct(ucs$uc) == n_ucs)
 
+
+
   agencias <- agencias |>
     dplyr::ungroup() |>
     sf::st_drop_geometry()|>
@@ -387,7 +389,7 @@ alocar_ucs <- function(ucs,
     # 1 sse agencia j ativada
     ompr::add_variable(y[j], j = 1:m, type = "binary") |>
     # trabalhadores na agencia j
-    ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0) |>
+    ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf) |>
     # minimizar custos
     ompr::set_objective(
       ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
