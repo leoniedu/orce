@@ -16,6 +16,7 @@ alocar_ucs(
   diarias_entrevistador_max = Inf,
   remuneracao_entrevistador = 0,
   n_entrevistadores_min = 1,
+  n_entrevistadores_tipo = "integer",
   dias_coleta_entrevistador_max,
   dias_treinamento = 0,
   agencias_treinadas = NULL,
@@ -27,6 +28,7 @@ alocar_ucs(
   solver = "cbc",
   rel_tol = 0.005,
   max_time = 30 * 60,
+  use_cache = TRUE,
   ...
 )
 }
@@ -43,11 +45,11 @@ alocar_ucs(
 \item{agencias}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
 \itemize{
 \item \code{agencia_codigo}: Código único da agência.
-\item \code{dias_coleta_agencia_max}: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos)
-\item \code{custo_fixo}: Custo fixo associado à agência (soma de todos os períodos)
+\item \code{dias_coleta_agencia_max}: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos).
+\item \code{custo_fixo}: Custo fixo associado à agência (soma de todos os períodos).
 }}
 
-\item{alocar_por}{Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em \code{ucs} para agrupar as UCs antes da alocação (e.g., "setor", "municipio").}
+\item{alocar_por}{Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em \code{ucs} para agrupar as UCs antes da alocação (e.g., "setor", "municipio"). Padrão: "uc".}
 
 \item{custo_litro_combustivel}{Custo do combustível por litro (em R$). Padrão: 6.}
 
@@ -99,14 +101,19 @@ alocar_ucs(
 
 \item{max_time}{Tempo máximo de execução (em segundos) permitido para o solver. Padrão: 30*60 (30 minutos).}
 
+\item{use_cache}{Lógico indicando se deve usar resultados em cache. Quando TRUE,
+resultados para entradas idênticas serão recuperados do cache em disco em vez
+de recalcular. Isso pode acelerar cálculos repetidos mas usa espaço em disco.
+O padrão é TRUE.}
+
 \item{...}{Opções adicionais para o solver.}
 }
 \value{
 Uma lista contendo:
 \itemize{
-\item \code{resultado_i_jurisdicao}: Um \code{tibble} com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento, agrupadas por \code{alocar_por}.
+\item \code{resultado_ucs_jurisdicao}: Um \code{tibble} com as UCs e suas alocações originais (jurisdição), incluindo custos de deslocamento.
 \item \code{resultado_agencias_jurisdicao}: Um \code{tibble} com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
-\item \code{resultado_i_otimo}: Um \code{tibble} com as UCs e suas alocações otimizadas, incluindo custos de deslocamento, agrupadas por \code{alocar_por}.
+\item \code{resultado_ucs_otimo}: Um \code{tibble} com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
 \item \code{resultado_agencias_otimo}: Um \code{tibble} com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
 \item \code{ucs_agencias_todas} (opcional): Um \code{tibble} com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se \code{resultado_completo} for TRUE).
 \item \code{otimizacao} (opcional): O resultado completo da otimização (retornado apenas se \code{resultado_completo} for TRUE).
@@ -114,7 +121,7 @@ Uma lista contendo:
 }
 }
 \description{
-Esta função (e sua versão memoizada \code{alocar_ucs_mem}) realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+Esta função (e sua versão memoizada \code{alocar_ucs_mem}) realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento. Quando \code{use_cache = TRUE}, os resultados são armazenados em cache no disco e reutilizados para entradas idênticas, o que pode acelerar significativamente cálculos repetidos.
 }
 \details{
 A função \code{alocar_ucs_mem} é a versão memoizada de \code{alocar_ucs}, com cache em disco.

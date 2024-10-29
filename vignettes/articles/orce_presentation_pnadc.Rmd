@@ -60,7 +60,7 @@ library(orce)
 library(dplyr)
 library(sf)
 
-params_alocar_ucs <- setdiff(args(alocar_ucs)%>%as.list%>%names(), c("...", ""))
+params_alocar_ucs <- setdiff(args(alocar_ucs_mem)%>%as.list%>%names(), c("...", ""))
 params2 <- params
 options(OutDec = ",", scipen=100)
 
@@ -139,6 +139,19 @@ Carga de trabalho máxima, custos fixos, etc.
 
 - Função `calcula_distancias` auxilia nesse trabalho. Utiliza dados do OpenStreetMaps com a Open Source Routing Machine (OSRM).
 - As distâncias são calculadas entre todas as agências para os pontos representativos de cada UPAs da amostra mestra.
+
+---
+
+## Número de distâncias a calcular
+
+```{r}
+amostra_mestra_0 <- readr::read_rds(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))%>%
+    filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"))
+
+amostra_mestra_0%>%left_join(ufs)%>%group_by(uf_sigla)%>%summarise(upas=n_distinct(upa), agencias=n_distinct(agencia_codigo))%>%mutate(n_distancias=agencias*upas)%>%arrange(desc(n_distancias))%>%gt()%>%gt::grand_summary_rows(columns = c(upas, agencias, n_distancias), fns = list(fn="sum", label="Total"))
+```
+
+
 
 --- 
 
@@ -222,6 +235,53 @@ Parâmetros (3):
 
 
 
+---
+
+## Modelo de otimização utilizando o pacote `ompr`
+
+```
+
+  model <- MIPModel() |>
+    # 1 sse uc i vai para a agencia j
+    add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
+    # 1 sse agencia j ativada
+    add_variable(y[j], j = 1:m, type = "binary") |>
+    # trabalhadores na agencia j
+    add_variable(w[j], j = 1:m, type = "integer", lb = 0) |>
+    # minimizar custos
+    set_objective(
+      sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
+        sum_over((agencias_t$custo_fixo[j]) * y[j] +
+                   w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
+                 j = 1:m),
+      "min"
+    ) |>
+    # toda UC precisa estar associada a uma agencia
+    add_constraint(sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
+    # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
+    add_constraint(x[i, j] <= y[j], i = 1:n, j = 1:m) |>
+    # se agencia está ativa, w tem que ser >= n_entrevistadores_min
+    add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m) |>
+    # w tem que ser suficiente para dar conta das ucs para todos os períodos
+    add_constraint(sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
+  # Respeitar o máximo de dias de coleta por agencia
+  if (any(is.finite(agencias_t$dias_coleta_agencia_max))) {
+    model <- model |>
+      add_constraint(sum_over(x[i, j] * dias_coleta_i_j[i, j], i = 1:n) <= agencias_t$dias_coleta_agencia_max[j], j = 1:m)
+  }
+
+  # Respeitar o máximo de diárias por entrevistador
+  if (any(is.finite({diarias_entrevistador_max}))) {
+    model <- model |>
+      add_constraint(sum_over(x[i, j] * diarias_i_j[i, j], i = 1:n) <= (diarias_entrevistador_max *
+                                                                          w[j]), j = 1:m)
+  }
+
+
+```
+
+
+
 --- 
 
 ## Executando a otimização:
@@ -231,8 +291,8 @@ render_tables <- function(uf_sigla_now) {
   #ufs_now <- ufs%>%filter(uf_sigla==uf_sigla_now)
   ufnow <- ufs%>%filter(uf_sigla==uf_sigla_now)
   uf_codigo_now <- ufnow$uf_codigo
-  amostra_mestra <- readr::read_rds(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))%>%
-    filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"), uf_codigo==uf_codigo_now)
+  amostra_mestra <- amostra_mestra_0%>%
+    filter(uf_codigo==uf_codigo_now)
   amostra_pnadc <- amostra_mestra%>%
     distinct(upa, pesquisa=paste("pnadc", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params2$dias_coleta_pnadc, viagens=params2$viagens_pnadc, ano_mes)
   library(lubridate)## so months works
@@ -299,10 +359,10 @@ render_tables <- function(uf_sigla_now) {
                           solver=params2$solver,
                           max_time=params2$max_time,
                           rel_tol=params2$rel_tol,
-                          resultado_completo=FALSE
+                          resultado_completo=FALSE,
+                          alocar_por="municipio_codigo"
   )
-  tmp <- do.call(alocar_ucs, modifyList(params_pnadc_0,
-                          list(alocar_por="municipio_codigo")))
+  tmp <- do.call(alocar_ucs_mem, params_pnadc_0)
   #library(tictoc)
   #tic()
   estrategias_pnadc <- bind_rows(
@@ -319,12 +379,16 @@ render_tables <- function(uf_sigla_now) {
     tibble(params_pnadc=list(modifyList(params_pnadc_0, 
                                         list(n_entrevistadores_min=3, remuneracao_entrevistador=params2$remuneracao_entrevistador*12)
     )), 
-    descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params2$remuneracao_entrevistador} por mês'))
+    descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params2$remuneracao_entrevistador} por mês')),
+    tibble(params_pnadc=list(modifyList(params_pnadc_0, 
+                                        list(n_entrevistadores_min=3, remuneracao_entrevistador=params2$remuneracao_entrevistador*12, diarias_entrevistador_max=40)
+    )), 
+    descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params2$remuneracao_entrevistador} por mês, máximo de 40 diárias por entrevistador'))
   )%>%
-    ungroup%>%#slice(1:2)%>%
-    mutate(resultado_municipio_o=purrr::map(params_pnadc, ~do.call(alocar_municipios, .x)),
-           resultado_municipio_t=purrr::map(params_pnadc, ~do.call(alocar_ucs, .x)),
-           resultado_municipio_sem_t=purrr::map(params_pnadc, ~do.call(alocar_ucs, modifyList(.x, list(ucs=.x$ucs%>%mutate(data=1))))))
+    ungroup%>%slice(1:2)%>%
+    mutate(resultado_municipio_t=purrr::map(params_pnadc, ~do.call(alocar_ucs_mem, .x))
+           #, resultado_municipio_sem_t=purrr::map(params_pnadc, ~do.call(alocar_ucs_mem, modifyList(.x, list(ucs=.x$ucs%>%mutate(data=1), dias_coleta_entrevistador_max=.x$dias_coleta_entrevistador_max*n_distinct(.x$uc$data)))))
+           )
   #toc()
   
   
@@ -333,40 +397,25 @@ render_tables <- function(uf_sigla_now) {
     rowwise(descricao)%>%
     reframe(
       bind_rows(
-        resultado_municipio$resultado_agencias_otimo%>%mutate(modelo="Ótimo"),
-        resultado_municipio$resultado_agencias_jurisdicao%>%mutate(modelo="Jurisdição")
+        resultado_municipio_t$resultado_agencias_otimo%>%mutate(modelo="Ótimo"),
+        resultado_municipio_t$resultado_agencias_jurisdicao%>%mutate(modelo="Jurisdição")
         )%>%
         group_by(modelo)%>%
         mutate(n_agencias=1)%>%
         summarise(across(matches("custo|n_agencias"), ~sum(.x, na.rm=TRUE))))%>%
     mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
     select(descricao, modelo, n_agencias, custo_total, everything())
-  tdist <- lapply(1:nrow(estrategias_pnadc), function(i) report_plans(estrategias_pnadc$resultado_uc[[i]])|>
-                    gt::tab_options(table.font.size = "small", footnotes.font.size ="small")|>
-                    gt::opt_interactive(use_compact_mode = TRUE, use_filters=TRUE))
-  tdist_municipios <- lapply(1:nrow(estrategias_pnadc), function(i) report_plans(estrategias_pnadc$resultado_municipio[[i]], level = "municipio_codigo")|>
-                    gt::tab_options(table.font.size = "small", footnotes.font.size ="small")|>
-                    gt::opt_interactive(use_compact_mode = TRUE, use_filters=TRUE))
-  alocacao_municipios <- lapply(1:nrow(estrategias_pnadc), function(i) plano_municipios(r = estrategias_pnadc$resultado_municipio[[i]])%>%
-                                  filter(troca)%>%
-  select(municipio_nome, agencia_nome, agencia_nome_jurisdicao, total_diarias, total_diarias_jurisdicao, custo_combustivel, custo_combustivel_jurisdicao)%>%gt::gt()%>%
-  gt::tab_caption("Sem remuneração por APM")%>%
-  gt::opt_interactive(use_compact_mode = TRUE, use_filters=TRUE))
+  # alocacao_municipios <- lapply(1:nrow(estrategias_pnadc), function(i) plano_municipios(r = estrategias_pnadc$resultado_municipio[[i]])%>%
+  #                                 filter(troca)%>%
+  # select(municipio_nome, agencia_nome, agencia_nome_jurisdicao, total_diarias, total_diarias_jurisdicao, custo_combustivel, custo_combustivel_jurisdicao)%>%gt::gt()%>%
+  # gt::tab_caption("Sem remuneração por APM")%>%
+  # gt::opt_interactive(use_compact_mode = TRUE, use_filters=TRUE))
   
-  tplans_uc <- estrategias_pnadc_sum_uc%>%
-    group_by(descricao)%>%
-    select(-modelo)%>%
-    reframe(across(everything(), diff))%>%
-    group_by(descricao)%>%
-    arrange(descricao)%>%
-    slice(1)%>%
-    select(descricao, n_agencias, custo_total, custo_total_entrevistadores, custo_diarias, custo_combustivel)%>%
-    ungroup%>%
-    #arrange(-custo_total)%>%
-    gt::gt()%>%
-    gt::cols_label(descricao='Modelo')%>%
-    gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%
-    print_gt()
+  tdist <- lapply(1:nrow(estrategias_pnadc), function(i) report_plans(estrategias_pnadc$resultado_municipio_t[[i]])|>
+                    gt::tab_options(table.font.size = "small", 
+                                    footnotes.font.size ="small", heading.background.color = "white")#|>gt::opt_interactive(use_compact_mode = TRUE, use_filters=TRUE)
+                  )
+  
   tplans_municipio <- estrategias_pnadc_sum_municipio%>%
     group_by(descricao)%>%
     select(-modelo)%>%
@@ -381,8 +430,11 @@ render_tables <- function(uf_sigla_now) {
     gt::cols_label(descricao='Modelo')%>%
     gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%
     print_gt()
-  
-  list(sumario_planos_uc=tplans_uc, sumario_planos_municipio=tplans_municipio, distribuicao=tdist, distribuicao_municipios=tdist_municipios, alocacao_municipios=alocacao_municipios)
+  list(
+    estrategias_pnadc=estrategias_pnadc,
+    sumario_planos=tplans_municipio, distribuicao=tdist
+       #, alocacao_municipios=alocacao_municipios
+       )
 }
 ```
 
@@ -394,120 +446,48 @@ plano_dist <- 3
 --- 
 
 
-## Planos RJ
-
-```{r}
-r <- render_tables("RJ")
-```
-
-```{r}
-r$alocacao_municipios[[1]]
-```
-
---- 
-
-```{r}
-r$sumario_planos_municipio%>%
-  gt::tab_caption("Por Município")
-r$sumario_planos_uc%>%
-  gt::tab_caption("Por UC")
-```
-
----
-
-## RJ - Com remuneração dos entrevistadores
-```{r}
-r$distribuicao_municipios[[2]]
-```
-
-
-
-
---- 
-
-## Planos ES
-
-```{r}
-r <- render_tables("ES")
-```
-
-```{r}
-r$alocacao_municipios[[1]]
-```
-
---- 
-
-```{r}
-r$sumario_planos_municipio%>%
-  gt::tab_caption("Por Município")
-r$sumario_planos_uc%>%
-  gt::tab_caption("Por UC")
-```
-
---- 
-
-
-## Planos BA
+## Planos UF
 
 ```{r}
 r <- render_tables("BA")
 ```
 
-```{r}
-r$alocacao_municipios[[1]]
-```
-
 --- 
 
 ```{r}
-r$sumario_planos_municipio%>%
-  gt::tab_caption("Por Município")
-r$sumario_planos_uc%>%
-  gt::tab_caption("Por UC")
+i <- 2
+r$distribuicao[[i]]%>%
+  gt::tab_header(capitalizar(r$estrategias_pnadc$descricao[i]))%>%
+  gt::cols_merge(columns=1:2, pattern = "{1}: {2}")%>%
+  gt::fmt_markdown(1)
 ```
+
+
 
 --- 
 
 
-## Planos MG
-
 ```{r}
-r <- render_tables("MG")
-```
-
-```{r}
-r$alocacao_municipios[[1]]
-```
-
---- 
-
-```{r}
-r$sumario_planos_municipio%>%
-  gt::tab_caption("Por Município")
-r$sumario_planos_uc%>%
-  gt::tab_caption("Por UC")
+r$sumario_planos
 ```
 
 --- 
 
 
-## Planos RS
+
 
 ```{r}
-r <- render_tables("RS")
+# r$sumario_planos_municipio%>%
+#   gt::tab_caption("Por Município")
+# r$sumario_planos_uc%>%
+#   gt::tab_caption("Por UC")
 ```
 
-```{r}
-r$alocacao_municipios[[1]]
-```
+---
 
---- 
-
+## UF - Com remuneração dos entrevistadores
 ```{r}
-r$sumario_planos_municipio%>%
-  gt::tab_caption("Por Município")
-r$sumario_planos_uc%>%
-  gt::tab_caption("Por UC")
+#r$distribuicao_municipios[[2]]
 ```
 
 

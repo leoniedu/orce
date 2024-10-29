@@ -1,6 +1,6 @@
 #' Alocação Otimizada de Unidades de Coleta (UCs) a Agências
 #'
-#' Esta função (e sua versão memoizada `alocar_ucs_mem`) realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento.
+#' Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento. Quando `use_cache = TRUE`, os resultados são armazenados em cache no disco e reutilizados para entradas idênticas, o que pode acelerar significativamente cálculos repetidos. A função `limpar_cache_ucs` auxilia na limpeza desse cache em disco.
 #'
 #' @param ucs Um `tibble` ou `data.frame` contendo informações sobre as UCs, incluindo:
 #' \itemize{
@@ -49,6 +49,11 @@
 #' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).
 #' @param rel_tol Tolerância relativa para a otimização. Valores menores levam a soluções mais precisas, mas podem aumentar o tempo de execução. Padrão: 0.005.
 #' @param max_time Tempo máximo de execução (em segundos) permitido para o solver. Padrão: 30*60 (30 minutos).
+#' @param use_cache Lógico indicando se deve usar resultados em cache. Quando TRUE,
+#'   resultados para entradas idênticas serão recuperados do cache em disco em vez
+#'   de recalcular. Isso pode acelerar cálculos repetidos mas usa espaço em disco.
+#'   O padrão é TRUE.
+#'
 #' @param ... Opções adicionais para o solver.
 #'
 #' @return Uma lista contendo:
@@ -70,29 +75,102 @@
 #'
 #' @export
 alocar_ucs <- function(ucs,
-                         agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo), dias_coleta_agencia_max = Inf, custo_fixo = 0),
-                         alocar_por = "uc",
-                         custo_litro_combustivel = 6,
-                         custo_hora_viagem = 10,
-                         kml = 10,
-                         valor_diaria = 335,
-                         diarias_entrevistador_max = Inf,
-                         remuneracao_entrevistador = 0,
-                         n_entrevistadores_min = 1,
-                       n_entrevistadores_tipo="integer",
-                         dias_coleta_entrevistador_max,
-                         dias_treinamento = 0,
-                         agencias_treinadas = NULL,
-                         agencias_treinamento = NULL,
-                         distancias_ucs,
-                         distancias_agencias = NULL,
-                         adicional_troca_jurisdicao = 0,
-                         resultado_completo = FALSE,
-                         solver = "cbc",
-                         rel_tol = .005,
-                         max_time = 30 * 60,
-                         ...) {
+                       agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
+                                             dias_coleta_agencia_max = Inf,
+                                             custo_fixo = 0),
+                       alocar_por = "uc",
+                       custo_litro_combustivel = 6,
+                       custo_hora_viagem = 10,
+                       kml = 10,
+                       valor_diaria = 335,
+                       diarias_entrevistador_max = Inf,
+                       remuneracao_entrevistador = 0,
+                       n_entrevistadores_min = 1,
+                       n_entrevistadores_tipo = "integer",
+                       dias_coleta_entrevistador_max,
+                       dias_treinamento = 0,
+                       agencias_treinadas = NULL,
+                       agencias_treinamento = NULL,
+                       distancias_ucs,
+                       distancias_agencias = NULL,
+                       adicional_troca_jurisdicao = 0,
+                       resultado_completo = FALSE,
+                       solver = "cbc",
+                       rel_tol = .005,
+                       max_time = 30 * 60,
+                       use_cache = TRUE,
+                       ...) {
 
+  # List of all arguments to pass
+  args <- list(
+    ucs = ucs,
+    agencias = agencias,
+    alocar_por = alocar_por,
+    custo_litro_combustivel = custo_litro_combustivel,
+    custo_hora_viagem = custo_hora_viagem,
+    kml = kml,
+    valor_diaria = valor_diaria,
+    diarias_entrevistador_max = diarias_entrevistador_max,
+    remuneracao_entrevistador = remuneracao_entrevistador,
+    n_entrevistadores_min = n_entrevistadores_min,
+    n_entrevistadores_tipo = n_entrevistadores_tipo,
+    dias_coleta_entrevistador_max = dias_coleta_entrevistador_max,
+    dias_treinamento = dias_treinamento,
+    agencias_treinadas = agencias_treinadas,
+    agencias_treinamento = agencias_treinamento,
+    distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias,
+    adicional_troca_jurisdicao = adicional_troca_jurisdicao,
+    resultado_completo = resultado_completo,
+    solver = solver,
+    rel_tol = rel_tol,
+    max_time = max_time
+  )
+
+  # Add any additional arguments
+  args <- c(args, list(...))
+
+  if (use_cache) {
+    # Verifica se existe cache para esses argumentos
+    is_cached <- do.call(memoise::has_cache(alocar_ucs_mem), args)
+
+    if (is_cached) {
+      cli::cli_alert_success("Usando resultado em cache para estes parâmetros.")
+    } else {
+      cli::cli_alert_info("Calculando e armazenando resultado em cache.")
+    }
+    do.call(alocar_ucs_mem, args)
+  } else {
+    cli::cli_alert_info("Calculando sem usar cache.")
+    do.call(.alocar_ucs_impl, args)
+  }
+}
+
+
+#' @keywords internal
+.alocar_ucs_impl <- function(ucs,
+                             agencias,
+                             alocar_por,
+                             custo_litro_combustivel,
+                             custo_hora_viagem,
+                             kml,
+                             valor_diaria,
+                             diarias_entrevistador_max,
+                             remuneracao_entrevistador,
+                             n_entrevistadores_min,
+                             n_entrevistadores_tipo,
+                             dias_coleta_entrevistador_max,
+                             dias_treinamento,
+                             agencias_treinadas,
+                             agencias_treinamento,
+                             distancias_ucs,
+                             distancias_agencias,
+                             adicional_troca_jurisdicao,
+                             resultado_completo,
+                             solver,
+                             rel_tol,
+                             max_time,
+                             ...) {
   cli::cli_progress_step("Preparando os dados")
   # Importar pacotes necessários explicitamente
   requireNamespace("dplyr")
@@ -150,7 +228,7 @@ alocar_ucs <- function(ucs,
     }
     # Ajustar distancias_ucs para a nova agregação
     distancias_ucs <- distancias_ucs |>
-      dplyr::left_join(ucs |> dplyr::select(all_of(c("uc", alocar_por))), by = "uc")
+      dplyr::left_join(ucs |> dplyr::select(dplyr::all_of(c("uc", alocar_por))), by = "uc")
   }
 
   # Selecionar agência de treinamento mais próxima das agências de coleta
@@ -276,7 +354,7 @@ alocar_ucs <- function(ucs,
   make_i_j <- function(x, col) {
     x |>
       dplyr::ungroup() |>
-      dplyr::select(all_of(c("i", "j", col))) |>
+      dplyr::select(dplyr::all_of(c("i", "j", col))) |>
       tidyr::pivot_wider(id_cols = i, names_from = j, values_from = col, names_sort = TRUE) |>
       dplyr::arrange(as.numeric(i)) |>
       dplyr::select(-i) |>
@@ -369,7 +447,6 @@ alocar_ucs <- function(ucs,
   }
 
   stopifnot(result$status != "error")
-  cli::cli_progress_step("Otimização concluída")
 
   # Extrair a solução
   dist_i_agencias <- dist_i_agencias |> dplyr::select(-custo_deslocamento_com_troca)
@@ -387,7 +464,7 @@ alocar_ucs <- function(ucs,
   # Criar resultados para alocação ótima
   resultado_ucs_otimo <- dist_uc_agencias|>
     dplyr::inner_join(matching, by=c("i", "j"))|>
-    dplyr::left_join(ucs |> dplyr::distinct(uc, pick(alocar_por)), by = "uc")|>
+    dplyr::left_join(ucs |> dplyr::distinct(uc, dplyr::pick(alocar_por)), by = "uc")|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
 
@@ -395,7 +472,7 @@ alocar_ucs <- function(ucs,
   resultado_ucs_jurisdicao <- dist_uc_agencias |>
     dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
-    dplyr::left_join(ucs |> dplyr::distinct(uc, pick(alocar_por)), by = c("uc"))|>
+    dplyr::left_join(ucs |> dplyr::distinct(uc, dplyr::pick(alocar_por)), by = c("uc"))|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-t)
 
@@ -445,8 +522,7 @@ alocar_ucs <- function(ucs,
   attr(resultado, "solucao_status") <- result$additional_solver_output$ROI$status$msg$message
   attr(resultado, "valor") <- objective_value(result)
   if (resultado_completo) {
-    resultado$ucs_agencias_todas <- dist_i_agencias
-    resultado$otimizacao <- result
+    resultado$ucs_agencias_todas <- dist_uc_agencias
   }
   resultado$log <- tail(log, 100)
   cli::cli_progress_step("Sucesso")
