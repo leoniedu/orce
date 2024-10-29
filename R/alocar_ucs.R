@@ -194,7 +194,7 @@ alocar_ucs <- function(ucs,
   checkmate::check_string(alocar_por, null.ok = FALSE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite') %in% names(distancias_ucs)))
   checkmate::assertTRUE(all(c('dias_coleta', 'viagens', 'data') %in% names(ucs)))
-  checkmate::assertTRUE(all(c('dias_coleta_agencia_max', 'custo_fixo') %in% names(agencias)))
+  checkmate::assertTRUE(all(c('n_entrevistadores_agencia_max', 'custo_fixo') %in% names(agencias)))
 
   stopifnot(alocar_por!="agencia_codigo")
   # Pré-processamento dos dados
@@ -211,7 +211,7 @@ alocar_ucs <- function(ucs,
   agencias <- agencias |>
     dplyr::ungroup() |>
     sf::st_drop_geometry()|>
-    dplyr::select(agencia_codigo, dias_coleta_agencia_max, custo_fixo) |>
+    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo) |>
     dplyr::mutate(j = 1:dplyr::n())
 
   stopifnot(dplyr::n_distinct(agencias$agencia_codigo) == nrow(agencias))
@@ -382,7 +382,6 @@ alocar_ucs <- function(ucs,
   p <- max(indice_t$t)
 
   stopifnot((agencias_t$j) == (1:nrow(agencias_t)))
-
   model <- ompr::MIPModel() |>
     # 1 sse uc i vai para a agencia j
     ompr::add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
@@ -403,15 +402,14 @@ alocar_ucs <- function(ucs,
     # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
     ompr::add_constraint(x[i, j] <= y[j], i = 1:n, j = 1:m) |>
     # se agencia está ativa, w tem que ser >= n_entrevistadores_min
-    ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m) |>
+    ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], j = 1:m) |>
     # w tem que ser suficiente para dar conta das ucs para todos os períodos
     ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
   # Respeitar o máximo de dias de coleta por agencia
-  if (any(is.finite(agencias_t$dias_coleta_agencia_max))) {
+  if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
     model <- model |>
-      ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_i_j[i, j], i = 1:n) <= agencias_t$dias_coleta_agencia_max[j], j = 1:m)
+      ompr::add_constraint(w[j] <= agencias_t$n_entrevistadores_agencia_max[j], j = 1:m)
   }
-
   # Respeitar o máximo de diárias por entrevistador
   if (any(is.finite({diarias_entrevistador_max}))) {
     model <- model |>
