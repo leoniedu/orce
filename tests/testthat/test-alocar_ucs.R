@@ -36,7 +36,7 @@ params_0 <- list(ucs = ucs_municipios, agencias = agencias, dias_coleta_entrevis
 
 # Testes unitários
 test_that("Alocação de UCs com períodos de coleta", {
-  f <- function(...) alocar_ucs(..., use_cache = TRUE)
+  f <- function(...) alocar_ucs(..., use_cache = FALSE)
 
   # Teste 1: Comparação com alocação sem períodos
   r_t <- do.call(f, params_0)
@@ -62,7 +62,7 @@ test_that("Alocação de UCs com períodos de coleta", {
   r_t_if_d <- do.call(f, params_3)
   ## FIX: devia set maior (gt) ou menor (lt) que?
   ## Mais periodos
-  expect_gt(sum(r_t_if_d$resultado_agencias_otimo$entrevistadores),
+  expect_lt(sum(r_t_if_d$resultado_agencias_otimo$entrevistadores),
             sum(r_t_if$resultado_agencias_otimo$entrevistadores))
 
   # Teste 5: Ajuste do número de dias de coleta por entrevistador

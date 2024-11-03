@@ -25,7 +25,7 @@ print_gt <- function(x, ..., processar_nomes_colunas=TRUE) {
     )
   output_type <- knitr::opts_knit$get("rmarkdown.pandoc.to")
   if (interactive()|(length(output_type)==0)) return(x)
-  if (output_type=="markdown") {
+  if (grepl("markdown", output_type)) {
     html_content <- gt::as_raw_html(x, inline_css = FALSE)
     # Handle HTML output using XML tools
     xml_doc <- xml2::read_html(html_content)
@@ -44,12 +44,13 @@ gt1 <- function(..., decimal_pct=1, decimal_currency=0, decimal_num=2) gt::gt(..
 
 #' @export
 plano_municipios <- function(r) {
-  vs <- c("municipio_nome", 'agencia_nome','custo_total', 'n_ucs', 'total_diarias', 'custo_diarias', 'custo_combustivel', 'distancia_total_km', 'custo_deslocamento',  'custo_fixo', 'entrevistadores', "agencia_codigo")
-  r1 <- r$resultado_municipios_otimo|>
-    dplyr::full_join(r$resultado_municipios_jurisdicao, by=c("municipio_codigo", "agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
+  vs <- c("municipio_nome", 'agencia_nome','custo_total', 'n_ucs', 'total_diarias', 'custo_diarias', 'custo_combustivel', 'distancia_total_km', 'custo_deslocamento',  'custo_fixo', 'entrevistadores', "agencia_codigo", "municipio_codigo")
+  r1 <- r$resultado_ucs_otimo|>
+    dplyr::full_join(r$resultado_ucs_jurisdicao, by=c("uc", "agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
     dplyr::left_join(agencias_bdo, by="agencia_codigo")|>
     dplyr::left_join(agencias_bdo|>select(agencia_codigo, agencia_nome), by=c("agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
-    dplyr::left_join(municipios_22, by="municipio_codigo")|>
+    dplyr::rename(municipio_codigo=uc)|>
+    dplyr::left_join(municipios_22, by=c("municipio_codigo"))|>
     dplyr::transmute(troca=agencia_codigo!=agencia_codigo_jurisdicao,
                      dplyr::pick(starts_with(vs)))
   r1

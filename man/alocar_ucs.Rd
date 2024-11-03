@@ -123,9 +123,3 @@ Uma lista contendo:
 \description{
 Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento. Quando \code{use_cache = TRUE}, os resultados são armazenados em cache no disco e reutilizados para entradas idênticas, o que pode acelerar significativamente cálculos repetidos. A função \code{limpar_cache_ucs} auxilia na limpeza desse cache em disco.
 }
-\details{
-A função \code{alocar_ucs_mem} é a versão memoizada de \code{alocar_ucs}, com cache em disco.
-Como \code{alocar_ucs} pode levar um tempo considerável para executar, a memoização
-evita o recálculo com os mesmos parâmetros, economizando tempo em execuções
-subsequentes com os mesmos dados de entrada.
-}

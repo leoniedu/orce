@@ -67,12 +67,6 @@
 #'   \item `log` (opcional): últimas 100 linhas do log de execução do solver.
 #' }
 #'
-#' @details
-#'  A função `alocar_ucs_mem` é a versão memoizada de `alocar_ucs`, com cache em disco.
-#'  Como `alocar_ucs` pode levar um tempo considerável para executar, a memoização
-#'  evita o recálculo com os mesmos parâmetros, economizando tempo em execuções
-#'  subsequentes com os mesmos dados de entrada.
-#'
 #' @export
 alocar_ucs <- function(ucs,
                        agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
@@ -171,6 +165,8 @@ alocar_ucs <- function(ucs,
                              rel_tol,
                              max_time,
                              ...) {
+  tictoc::tic.clearlog()
+  tictoc::tic("Tempo total da otimização", log=TRUE)
   cli::cli_progress_step("Preparando os dados")
   # Importar pacotes necessários explicitamente
   requireNamespace("dplyr")
@@ -405,7 +401,7 @@ alocar_ucs <- function(ucs,
     ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], j = 1:m) |>
     # w tem que ser suficiente para dar conta das ucs para todos os períodos
     ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
-  # Respeitar o máximo de dias de coleta por agencia
+  # Respeitar o máximo de entrevistadores por agencia
   if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
     model <- model |>
       ompr::add_constraint(w[j] <= agencias_t$n_entrevistadores_agencia_max[j], j = 1:m)
@@ -476,13 +472,14 @@ alocar_ucs <- function(ucs,
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-t)
 
-  ags_group_vars <- c(names(agencias_t), 'entrevistadores', "data")
+  ags_group_vars <- c(names(agencias_t), 'entrevistadores')
 
   if (!all(resultado_ucs_jurisdicao$uc %in% (resultado_ucs_otimo$uc))) stop("Solução não encontrada!")
 
   # Criar resultados para agências - alocação ótima
   resultado_agencias_otimo <- agencias_t |>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo')) |>
+    dplyr::select(-data)|>
     dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao), n_ucs=dplyr::n())|>
     dplyr::ungroup() |>
@@ -500,7 +497,7 @@ alocar_ucs <- function(ucs,
   # Criar resultados para agências - jurisdição
   resultado_agencias_jurisdicao <- agencias_t|>
     dplyr::left_join(resultado_ucs_jurisdicao, by="agencia_codigo")|>
-    dplyr::select(-j, -custo_deslocamento_com_troca)|>
+    dplyr::select(-j, -custo_deslocamento_com_troca, -data)|>
     dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs = dplyr::n())|>
     dplyr::left_join(dias_coleta_j, by="agencia_codigo")|>
@@ -525,6 +522,9 @@ alocar_ucs <- function(ucs,
     resultado$ucs_agencias_todas <- dist_uc_agencias
   }
   resultado$log <- tail(log, 100)
-  cli::cli_progress_step("Sucesso")
+  tictoc::toc(log=TRUE, quiet=TRUE)
+  tempo_otimizacao <- tictoc::tic.log(format = FALSE)
+  with(tempo_otimizacao[[1]], cli::cli_alert_success(paste0(msg, ": ", round(toc-tic),  " segundos.")))
+  attr(resultado, "tempo_otimizacao") <- with(tempo_otimizacao[[1]], toc-tic)
   return(resultado)
 }
