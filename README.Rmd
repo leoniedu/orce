@@ -17,7 +17,7 @@ The `orce` package is an R package designed to optimize the allocation of statis
 
 1. **Routing and Geocoding**: Determining the optimal routes between UCs and agencies requires accurate location data. The `orce` package leverages the CNEFE (National Register of Addresses for Statistical Purposes) database to obtain precise coordinates for each UC, prioritizing high-density areas within census tracts to ensure accessibility and representativeness. The `ponto_setor_densidade` function aids in identifying these representative locations.
 
-2. **Allocation Optimization**: The core of the `orce` package is its allocation optimization algorithm. It employs mixed-integer linear programming to minimize the overall cost of data collection, considering factors like travel distances, travel time, and fixed agency costs. The `alocar_ucs` function implements this optimization, allowing for flexible constraints on agency capacity and location preferences.
+2. **Allocation Optimization**: The core of the `orce` package is its allocation optimization algorithm. It employs mixed-integer linear programming to minimize the overall cost of data collection, considering factors like travel distances, travel time, and fixed agency costs. The `orce` function implements this optimization, allowing for flexible constraints on agency capacity and location preferences.
 
 3. **Cost Calculation**: Accurately estimating the cost of data collection involves more than just distances and travel time. The `orce` package incorporates knowledge of administrative boundaries to determine whether "diárias" (travel allowances) are applicable. This nuanced cost calculation ensures that the optimization results reflect the true financial implications of different allocation scenarios.
 
@@ -69,7 +69,7 @@ dists <- distancias_agencias_municipios_osrm |>
   dplyr::semi_join(agencias, by = "agencia_codigo") |>
   dplyr::mutate(diaria_pernoite = duracao_horas > 1.5, uc = municipio_codigo)
 
-m <- alocar_ucs(ucs = ucs_municipios, agencias = agencias, dias_coleta_entrevistador_max = 14, distancias_ucs = dists, remuneracao_entrevistador = 0, rel_tol = 0.01)
+m <- orce(ucs = ucs_municipios, agencias = agencias, dias_coleta_entrevistador_max = 14, distancias_ucs = dists, remuneracao_entrevistador = 0, rel_tol = 0.01)
 
 report_plans(m)
 ```
@@ -81,7 +81,7 @@ O pacote `orce` é um pacote R projetado para otimizar a alocação de unidades 
 
 1. **Roteamento e Geocodificação**: A determinação das rotas ideais entre as UCs e as agências requer dados de localização precisos. O pacote `orce` utiliza o banco de dados do CNEFE (Cadastro Nacional de Endereços para Fins Estatísticos) para obter coordenadas precisas para cada UC, priorizando áreas de alta densidade dentro dos setores censitários para garantir acessibilidade e representatividade. A função ponto_setor_densidade auxilia na identificação desses locais representativos.
 
-2. **Otimização da Alocação** O núcleo do pacote `orce` é seu algoritmo de otimização de alocação. Ele emprega programação linear inteira mista para minimizar o custo total da coleta de dados, considerando fatores como distâncias de viagem, tempo de viagem e custos fixos das agências. A função alocar_ucs implementa essa otimização, permitindo restrições flexíveis na capacidade da agência e nas preferências de localização.
+2. **Otimização da Alocação** O núcleo do pacote `orce` é seu algoritmo de otimização de alocação. Ele emprega programação linear inteira mista para minimizar o custo total da coleta de dados, considerando fatores como distâncias de viagem, tempo de viagem e custos fixos das agências. A função orce implementa essa otimização, permitindo restrições flexíveis na capacidade da agência e nas preferências de localização.
 
 3. **Cálculo de Custos** Estimar com precisão o custo da coleta de dados envolve mais do que apenas distâncias e tempo de viagem. O pacote `orce` incorpora o conhecimento das fronteiras administrativas para determinar se as "diárias" (ajudas de custo para viagens) são aplicáveis. Esse cálculo de custo diferenciado garante que os resultados da otimização reflitam as verdadeiras implicações financeiras de diferentes cenários de alocação.
 

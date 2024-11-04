@@ -1,6 +1,6 @@
 #' Limpa o cache de alocações
 #'
-#' Remove todos os resultados em cache da função alocar_ucs.
+#' Remove todos os resultados em cache da função orce.
 #' Útil quando você quer liberar espaço em disco ou garantir
 #' que novos cálculos sejam realizados do zero.
 #'
@@ -12,10 +12,10 @@
 #' @examples
 #' \dontrun{
 #' # Limpa todo o cache de alocações anteriores
-#' limpar_cache_alocar_ucs()
+#' limpar_cache_orce()
 #' }
-limpar_cache_alocar_ucs <- function(force = FALSE) {
-  cache_dir <- file.path(package$cache_dir, "alocar_ucs")
+limpar_cache_orce <- function(force = FALSE) {
+  cache_dir <- file.path(package$cache_dir, "orce")
   if (dir.exists(cache_dir)) {
     # Calcula o tamanho total dos arquivos antes de remover
     arquivos <- list.files(cache_dir, recursive = TRUE, full.names = TRUE)
@@ -34,7 +34,7 @@ limpar_cache_alocar_ucs <- function(force = FALSE) {
     }
 
     # Apaga o cache
-    memoise::forget(alocar_ucs)
+    memoise::forget(orce)
     message(sprintf("Cache limpo. Espaço em disco liberado."))
     return(invisible(TRUE))
   } else {

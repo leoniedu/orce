@@ -57,7 +57,7 @@ library(orce)
 library(dplyr)
 library(sf)
   
-params_alocar_ucs <- setdiff(args(alocar_ucs)%>%as.list%>%names(), c("...", ""))
+params_orce <- setdiff(args(orce)%>%as.list%>%names(), c("...", ""))
 
 options(OutDec = ",", scipen=100)
 
@@ -83,7 +83,7 @@ Coletar dados em milhares de domicílios espalhados por um vasto território é 
 2.  **Otimização Avançada da Alocação:**
 
     *   O `orce` implementa um algoritmo inteligente que encontra a melhor forma de distribuir as UCs entre as agências do IBGE, levando em conta diversos fatores, como a distância entre os locais, o tempo de viagem, os custos fixos de cada agência e a necessidade de pagar diárias aos pesquisadores.
-    *  A função `alocar_ucs` permite que você personalize as restrições, como a capacidade de cada agência e as preferências de localização, para que a alocação se adapte às necessidades específicas do seu projeto. A função `alocar_municipios`, por sua vez, otimiza a alocação mantendo as unidades de coleta de um mesmo município com uma só agência.
+    *  A função `orce` permite que você personalize as restrições, como a capacidade de cada agência e as preferências de localização, para que a alocação se adapte às necessidades específicas do seu projeto. A função `alocar_municipios`, por sua vez, otimiza a alocação mantendo as unidades de coleta de um mesmo município com uma só agência.
     
 
 3.  **Cálculo de Custos Detalhados:**
@@ -232,7 +232,7 @@ Observação: A coluna `diaria_pernoite` é calculada com base na duração da v
 Estamos, agora, prontos para calcular os custos de coleta.
 
 ```{r}
-params_munic <- params[names(params)%in%params_alocar_ucs]
+params_munic <- params[names(params)%in%params_orce]
 params_munic$remuneracao_entrevistador <- 0
 
 params_munic$agencias <- agencias_now%>%mutate(dias_coleta_agencia_max=Inf)
@@ -242,10 +242,10 @@ params_munic$resultado_completo <- TRUE
 params_munic$dias_coleta_entrevistador_max <- params$dias_coleta_entrevistador_max_munic
 
 print(lapply(params_munic,head,2))
-print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_munic)), collapse=", ")))
-res <- do.call(what = alocar_ucs_mem, 
+print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_orce, names(params_munic)), collapse=", ")))
+res <- do.call(what = orce_mem, 
               args=params_munic)
-# res_t <- do.call(what = alocar_ucs, 
+# res_t <- do.call(what = orce, 
 #               args=modifyList(params_munic, list(ucs=params_munic$ucs%>%mutate(data=1))))
               
 ```
@@ -324,7 +324,7 @@ mnow%>%
 munnow <- municipios_22%>%filter(municipio_codigo=='3200904')
 ```
 
-Suponha agora que é necessário fazer uma visita ao município de `r munnow$municipio_nome`, mas a agência de jurisdição não está disponível por qualquer motivo (férias, licença de saúde, veículo do IBGE quebrado, etc.) Quais são as agências alternativas para realizar essa coleta? A função `alocar_ucs` retorna, opcionalmente, a lista completa de combinações entre agências $X$ municípios, que permite facilmente responder essa pergunta.
+Suponha agora que é necessário fazer uma visita ao município de `r munnow$municipio_nome`, mas a agência de jurisdição não está disponível por qualquer motivo (férias, licença de saúde, veículo do IBGE quebrado, etc.) Quais são as agências alternativas para realizar essa coleta? A função `orce` retorna, opcionalmente, a lista completa de combinações entre agências $X$ municípios, que permite facilmente responder essa pergunta.
 
 
 ```{r}
@@ -502,7 +502,7 @@ for (uf_codigo_now in ufs_sem_missing_dist) {
   params_munic$distancias_ucs <- distancias_ucs%>%mutate(diaria_pernoite=duracao_horas>params$horas_viagem_pernoite)
   params_munic$ucs <- ucs_now
   params_munic$resultado_completo <- FALSE
-  res <- do.call(what = alocar_ucs, 
+  res <- do.call(what = orce, 
                  args=params_munic)
   
   resultado_ucs <- bind_rows(
@@ -605,7 +605,7 @@ params_pof_0  <- list(ucs=amostra_uf,
            )
 
 print(lapply(params_pof_0, head))
-print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_pof_0)), collapse=", ")))
+print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_orce, names(params_pof_0)), collapse=", ")))
 
 
 ```
@@ -619,7 +619,7 @@ params_pof_1 <- modifyList(params_pof_0,
                              distancias_agencias=distancias_agencias_osrm,
                              dias_treinamento = params$dias_treinamento_pof,# por funcionário
                              agencias_treinamento  = c('292740800', '291080000')))
-print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_pof_1)), collapse=", ")))
+print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_orce, names(params_pof_1)), collapse=", ")))
 
 
 estrategias_pof <- bind_rows(
@@ -639,7 +639,7 @@ estrategias_pof <- bind_rows(
   #                                 adicional_troca_jurisdicao=300))), 
   #        descricao='custo de treinamento  + Adicional troca de jurisdição R$300')
   )%>%
-  mutate(resultado=purrr::map(params_pof, ~do.call(alocar_ucs, .x), .progress = TRUE))
+  mutate(resultado=purrr::map(params_pof, ~do.call(orce, .x), .progress = TRUE))
 
 estrategias_pof_sum <- 
   estrategias_pof%>%
@@ -825,7 +825,7 @@ estrategias_pnadc <- bind_rows(
   descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params$remuneracao_entrevistador} por mês, sem custo fixo'))
   )%>%
   ungroup%>%#slice(1:2)%>%
-  mutate(resultado=purrr::map(params_pnadc, ~do.call(alocar_ucs, .x)))
+  mutate(resultado=purrr::map(params_pnadc, ~do.call(orce, .x)))
 toc()
 
 estrategias_pnadc_sum <-
@@ -1129,9 +1129,9 @@ Este modelo matemático representa o problema de alocação ótima e é resolvid
 
 
 
-## Apêndice: Função principal: `alocar_ucs`
+## Apêndice: Função principal: `orce`
 
-A função `alocar_ucs` realiza a alocação otimizada de Unidades de Coleta (UCs) às agências, buscando minimizar os custos totais de deslocamento e operação. O processo de otimização considera diversas variáveis e restrições para encontrar a solução mais eficiente. 
+A função `orce` realiza a alocação otimizada de Unidades de Coleta (UCs) às agências, buscando minimizar os custos totais de deslocamento e operação. O processo de otimização considera diversas variáveis e restrições para encontrar a solução mais eficiente. 
 
 **Entradas da Função**
 

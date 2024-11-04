@@ -43,7 +43,7 @@ O pacote R 'orce' é uma ferramenta para otimizar a alocação de Unidades de Co
 
 - Algoritmo distribui UCs entre agências
 - Considera distância, tempo de viagem, custos fixos, diárias
-- Funções `alocar_ucs` e `alocar_municipios` permitem personalização
+- Funções `orce` e `alocar_municipios` permitem personalização
 - Adapta-se às necessidades específicas de cada projeto
 
 ## Cálculo de Custos Detalhados
@@ -111,7 +111,7 @@ Pesquisas incluídas:
 
 ## Funções de alocação
 
-* **alocar_ucs**
+* **orce**
 
 Entradas:
 - Dados das UCs e Agências
@@ -133,5 +133,5 @@ Saídas:
 
 * **alocar_municipios**
 
-Diferença em relação a *alocar_ucs* é que unidades de coleta de um mesmo município são alocadas a uma só agência.
+Diferença em relação a *orce* é que unidades de coleta de um mesmo município são alocadas a uma só agência.
 

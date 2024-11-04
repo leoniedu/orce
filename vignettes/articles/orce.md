@@ -47,7 +47,7 @@ custos envolvidos.
         levando em conta diversos fatores, como a distância entre os
         locais, o tempo de viagem, os custos fixos de cada agência e a
         necessidade de pagar diárias aos pesquisadores.
-    -   A função `alocar_ucs` permite que você personalize as
+    -   A função `orce` permite que você personalize as
         restrições, como a capacidade de cada agência e as preferências
         de localização, para que a alocação se adapte às necessidades
         específicas do seu projeto. A função `alocar_municipios`, por
@@ -1810,7 +1810,7 @@ jurisdição da agência.
 Estamos, agora, prontos para calcular os custos de coleta.
 
 ``` r
-params_munic <- params[names(params)%in%params_alocar_ucs]
+params_munic <- params[names(params)%in%params_orce]
 params_munic$remuneracao_entrevistador <- 0
 
 params_munic$agencias <- agencias_now%>%mutate(dias_coleta_agencia_max=Inf)
@@ -1885,9 +1885,9 @@ print(lapply(params_munic,head,2))
 #> 
 #> $dias_coleta_entrevistador_max
 #> [1] 40
-print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_munic)), collapse=", ")))
+print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_orce, names(params_munic)), collapse=", ")))
 #> [1] "parâmetros sem valor fixado:  diarias_entrevistador_max, n_entrevistadores_min, dias_treinamento, agencias_treinadas, agencias_treinamento, distancias_agencias"
-res <- do.call(what = alocar_ucs, 
+res <- do.call(what = orce, 
               args=params_munic)
 ```
 
@@ -3119,7 +3119,7 @@ Suponha agora que é necessário fazer uma visita ao município de Barra de
 São Francisco, mas a agência de jurisdição não está disponível por
 qualquer motivo (férias, licença de saúde, veículo do IBGE quebrado,
 etc.) Quais são as agências alternativas para realizar essa coleta? A
-função `alocar_ucs` retorna, opcionalmente, a lista completa de
+função `orce` retorna, opcionalmente, a lista completa de
 combinações entre agências *X* municípios, que permite facilmente
 responder essa pergunta.
 
@@ -5425,7 +5425,7 @@ for (uf_codigo_now in ufs_sem_missing_dist) {
   params_munic$distancias_ucs <- distancias_ucs%>%mutate(diaria_pernoite=duracao_horas>params$horas_viagem_pernoite)
   params_munic$ucs <- ucs_now
   params_munic$resultado_completo <- FALSE
-  res <- do.call(what = alocar_ucs, 
+  res <- do.call(what = orce, 
                  args=params_munic)
   
   resultado_ucs <- bind_rows(
@@ -6529,7 +6529,7 @@ print(lapply(params_pof_0, head))
 #> 
 #> $rel_tol
 #> [1] 0,01
-print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_pof_0)), collapse=", ")))
+print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_orce, names(params_pof_0)), collapse=", ")))
 #> [1] "parâmetros sem valor fixado:  agencias, diarias_entrevistador_max, distancias_agencias, resultado_completo"
 ```
 
@@ -6549,7 +6549,7 @@ params_pof_1 <- modifyList(params_pof_0,
                              distancias_agencias=distancias_agencias_osrm,
                              dias_treinamento = params$dias_treinamento_pof,# por funcionário
                              agencias_treinamento  = c('292740800', '291080000')))
-print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_alocar_ucs, names(params_pof_1)), collapse=", ")))
+print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_orce, names(params_pof_1)), collapse=", ")))
 #> [1] "parâmetros sem valor fixado:  agencias, diarias_entrevistador_max, resultado_completo"
 
 
@@ -6570,7 +6570,7 @@ estrategias_pof <- bind_rows(
   #                                 adicional_troca_jurisdicao=300))), 
   #        descricao='custo de treinamento  + Adicional troca de jurisdição R$300')
   )%>%
-  mutate(resultado=purrr::map(params_pof, ~do.call(alocar_ucs, .x), .progress = TRUE))
+  mutate(resultado=purrr::map(params_pof, ~do.call(orce, .x), .progress = TRUE))
 
 estrategias_pof_sum <- 
   estrategias_pof%>%
@@ -8164,7 +8164,7 @@ estrategias_pnadc <- bind_rows(
   descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params$remuneracao_entrevistador} por mês, sem custo fixo'))
   )%>%
   ungroup%>%#slice(1:2)%>%
-  mutate(resultado=purrr::map(params_pnadc, ~do.call(alocar_ucs, .x)))
+  mutate(resultado=purrr::map(params_pnadc, ~do.call(orce, .x)))
 toc()
 #> 0,03 sec elapsed
 
@@ -10997,9 +10997,9 @@ resolvido pelo pacote `orce` para encontrar a solução que minimiza os
 custos totais, considerando as restrições e os custos específicos de
 cada cenário.
 
-## Apêndice: Função principal: `alocar_ucs`
+## Apêndice: Função principal: `orce`
 
-A função `alocar_ucs` realiza a alocação otimizada de Unidades de Coleta
+A função `orce` realiza a alocação otimizada de Unidades de Coleta
 (UCs) às agências, buscando minimizar os custos totais de deslocamento e
 operação. O processo de otimização considera diversas variáveis e
 restrições para encontrar a solução mais eficiente.

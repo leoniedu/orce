@@ -68,7 +68,7 @@
 #' }
 #'
 #' @export
-alocar_ucs <- function(ucs,
+orce <- function(ucs,
                        agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
                                              dias_coleta_agencia_max = Inf,
                                              custo_fixo = 0),
@@ -126,23 +126,23 @@ alocar_ucs <- function(ucs,
 
   if (use_cache) {
     # Verifica se existe cache para esses argumentos
-    is_cached <- do.call(memoise::has_cache(alocar_ucs_mem), args)
+    is_cached <- do.call(memoise::has_cache(orce_mem), args)
 
     if (is_cached) {
       cli::cli_alert_success("Usando resultado em cache para estes parâmetros.")
     } else {
       cli::cli_alert_info("Calculando e armazenando resultado em cache.")
     }
-    do.call(alocar_ucs_mem, args)
+    do.call(orce_mem, args)
   } else {
     cli::cli_alert_info("Calculando sem usar cache.")
-    do.call(.alocar_ucs_impl, args)
+    do.call(.orce_impl, args)
   }
 }
 
 
 #' @keywords internal
-.alocar_ucs_impl <- function(ucs,
+.orce_impl <- function(ucs,
                              agencias,
                              alocar_por,
                              custo_litro_combustivel,
@@ -358,7 +358,6 @@ alocar_ucs <- function(ucs,
       dplyr::select(-i) |>
       as.matrix()
   }
-
   # Criar matrizes de custos
   transport_cost_i_j <- make_i_j(x = dist_i_agencias, col = "custo_deslocamento_com_troca")
   diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias")
@@ -460,7 +459,7 @@ alocar_ucs <- function(ucs,
   # Criar resultados para alocação ótima
   resultado_ucs_otimo <- dist_uc_agencias|>
     dplyr::inner_join(matching, by=c("i", "j"))|>
-    dplyr::left_join(ucs |> dplyr::distinct(uc, dplyr::pick(alocar_por)), by = "uc")|>
+    dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = "uc")|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
 
@@ -468,7 +467,7 @@ alocar_ucs <- function(ucs,
   resultado_ucs_jurisdicao <- dist_uc_agencias |>
     dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
-    dplyr::left_join(ucs |> dplyr::distinct(uc, dplyr::pick(alocar_por)), by = c("uc"))|>
+    dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = c("uc"))|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-t)
 

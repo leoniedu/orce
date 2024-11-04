@@ -60,7 +60,7 @@ library(orce)
 library(dplyr)
 library(sf)
 
-params_alocar_ucs <- setdiff(args(alocar_ucs_mem)%>%as.list%>%names(), c("...", ""))
+params_orce <- setdiff(args(orce_mem)%>%as.list%>%names(), c("...", ""))
 params2 <- params
 options(OutDec = ",", scipen=100)
 
@@ -177,7 +177,7 @@ Função:
 --- 
 
 
-## Função para alocação de UCs: `alocar_ucs` 
+## Função para alocação de UCs: `orce` 
 
 - Alocação otimizada de Unidade de Coleta (UCs, no caso UPAs)  às agências. 
 
@@ -362,7 +362,7 @@ render_tables <- function(uf_sigla_now) {
                           resultado_completo=FALSE,
                           alocar_por="municipio_codigo"
   )
-  tmp <- do.call(alocar_ucs_mem, params_pnadc_0)
+  tmp <- do.call(orce_mem, params_pnadc_0)
   #library(tictoc)
   #tic()
   estrategias_pnadc <- bind_rows(
@@ -386,8 +386,8 @@ render_tables <- function(uf_sigla_now) {
     descricao=glue::glue('mínimo de entrevistador=3, remuneracao entrevistador {params2$remuneracao_entrevistador} por mês, máximo de 40 diárias por entrevistador'))
   )%>%
     ungroup%>%slice(1:2)%>%
-    mutate(resultado_municipio_t=purrr::map(params_pnadc, ~do.call(alocar_ucs_mem, .x))
-           #, resultado_municipio_sem_t=purrr::map(params_pnadc, ~do.call(alocar_ucs_mem, modifyList(.x, list(ucs=.x$ucs%>%mutate(data=1), dias_coleta_entrevistador_max=.x$dias_coleta_entrevistador_max*n_distinct(.x$uc$data)))))
+    mutate(resultado_municipio_t=purrr::map(params_pnadc, ~do.call(orce_mem, .x))
+           #, resultado_municipio_sem_t=purrr::map(params_pnadc, ~do.call(orce_mem, modifyList(.x, list(ucs=.x$ucs%>%mutate(data=1), dias_coleta_entrevistador_max=.x$dias_coleta_entrevistador_max*n_distinct(.x$uc$data)))))
            )
   #toc()
   

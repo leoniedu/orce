@@ -43,7 +43,7 @@ gt1 <- function(..., decimal_pct=1, decimal_currency=0, decimal_num=2) gt::gt(..
 
 
 #' @export
-plano_municipios <- function(r) {
+relatorio_municipios <- function(r) {
   vs <- c("municipio_nome", 'agencia_nome','custo_total', 'n_ucs', 'total_diarias', 'custo_diarias', 'custo_combustivel', 'distancia_total_km', 'custo_deslocamento',  'custo_fixo', 'entrevistadores', "agencia_codigo", "municipio_codigo")
   r1 <- r$resultado_ucs_otimo|>
     dplyr::full_join(r$resultado_ucs_jurisdicao, by=c("uc", "agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
@@ -58,7 +58,7 @@ plano_municipios <- function(r) {
 
 
 #' @export
-report_plans <- function(r, level="uc") {
+relatorio_planos <- function(r, level="uc") {
   levels <- dplyr::if_else(level=="uc", "ucs", "municipios")
   nlevels <- paste0("n_", levels)
   vs <- c('agencia_codigo', 'agencia_nome', 'custo_total',
@@ -93,12 +93,15 @@ report_plans <- function(r, level="uc") {
     dplyr::full_join(trocas, by=c("agencia_codigo"="agencia_codigo"))|>
     dplyr::select(any_of(dplyr::matches(vs)))|>
     dplyr::left_join(agencias_bdo|>sf::st_drop_geometry()|>dplyr::select(agencia_codigo, agencia_nome))|>
-    dplyr::mutate(agencia_nome=capitalizar(agencia_nome),
-                  agencia_nome_rec=dplyr::case_when(
-      (perde==0)&(recebe==0) ~ "Agências sem alteração*",
-      dplyr::coalesce(n_otimo,0) ==0 ~ "Agências excluídas**",
+    dplyr::mutate(
+      n_otimo=dplyr::coalesce(n_otimo,0),
+      sem_alteracao=(perde==0)&(recebe==0),
+      agencia_nome=capitalizar(agencia_nome),
+      agencia_nome_rec=dplyr::case_when(
+      sem_alteracao&(sum(sem_alteracao)>1) ~ "Agências sem alteração*",
+      (n_otimo==0)&(sum(n_otimo==0)>1) ~ "Agências excluídas**",
       TRUE ~ agencia_nome
-    ))|>
+    ), sem_alteracao=NULL)|>
     dplyr::group_by(agencia_nome_rec)|>
     dplyr::summarise(dplyr::across(dplyr::where(is.numeric), ~sum(.x, na.rm=TRUE)), agencias_nomes=paste(agencia_nome, collapse=", "))|>
     dplyr::arrange(grepl("\\*", agencia_nome_rec), agencia_nome_rec, desc(n_jurisdicao))|>
