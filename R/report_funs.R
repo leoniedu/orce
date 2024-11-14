@@ -49,7 +49,7 @@ relatorio_municipios <- function(r) {
     dplyr::full_join(r$resultado_ucs_jurisdicao, by=c("uc", "agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
     dplyr::left_join(agencias_bdo, by="agencia_codigo")|>
     dplyr::left_join(agencias_bdo|>select(agencia_codigo, agencia_nome), by=c("agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
-    dplyr::rename(municipio_codigo=uc)|>
+    dplyr::mutate(municipio_codigo=substr(uc,1,7))|>
     dplyr::left_join(municipios_22, by=c("municipio_codigo"))|>
     dplyr::transmute(troca=agencia_codigo!=agencia_codigo_jurisdicao,
                      dplyr::pick(starts_with(vs)))

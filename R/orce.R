@@ -20,7 +20,6 @@
 #' @param custo_litro_combustivel Custo do combustível por litro (em R$). Padrão: 6.
 #' @param custo_hora_viagem Custo de cada hora de viagem (em R$). Padrão: 10.
 #' @param kml Consumo médio de combustível do veículo (em km/l). Padrão: 10.
-#' @param valor_diaria Valor da diária para deslocamentos (em R$). Padrão: 335.
 #' @param diarias_entrevistador_max Total máximo de diárias que um entrevistador pode receber, somando todos os períodos. Padrão: `Inf`.
 #' @param remuneracao_entrevistador Remuneração total por entrevistador para todos os períodos. Padrão: 0.
 #' @param n_entrevistadores_min Número mínimo de entrevistadores por agência. Padrão: 1.
@@ -76,7 +75,6 @@ orce <- function(ucs,
                        custo_litro_combustivel = 6,
                        custo_hora_viagem = 10,
                        kml = 10,
-                       valor_diaria = 335,
                        diarias_entrevistador_max = Inf,
                        remuneracao_entrevistador = 0,
                        n_entrevistadores_min = 1,
@@ -103,7 +101,6 @@ orce <- function(ucs,
     custo_litro_combustivel = custo_litro_combustivel,
     custo_hora_viagem = custo_hora_viagem,
     kml = kml,
-    valor_diaria = valor_diaria,
     diarias_entrevistador_max = diarias_entrevistador_max,
     remuneracao_entrevistador = remuneracao_entrevistador,
     n_entrevistadores_min = n_entrevistadores_min,
@@ -148,7 +145,6 @@ orce <- function(ucs,
                              custo_litro_combustivel,
                              custo_hora_viagem,
                              kml,
-                             valor_diaria,
                              diarias_entrevistador_max,
                              remuneracao_entrevistador,
                              n_entrevistadores_min,
@@ -179,7 +175,6 @@ orce <- function(ucs,
   checkmate::assertTRUE(!anyDuplicated(ucs[['uc']]))
   checkmate::assert_number(custo_litro_combustivel, lower = 0)
   checkmate::assert_number(kml, lower = 0)
-  checkmate::assert_number(valor_diaria, lower = 0)
   checkmate::assert_number(rel_tol, lower = 0, upper = 1)
   checkmate::assert_number(dias_treinamento, lower = 0)
   checkmate::assert_character(agencias_treinamento, null.ok = dias_treinamento == 0)
@@ -189,8 +184,8 @@ orce <- function(ucs,
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
   checkmate::check_string(alocar_por, null.ok = FALSE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite') %in% names(distancias_ucs)))
-  checkmate::assertTRUE(all(c('dias_coleta', 'viagens', 'data') %in% names(ucs)))
-  checkmate::assertTRUE(all(c('n_entrevistadores_agencia_max', 'custo_fixo') %in% names(agencias)))
+  checkmate::assertTRUE(all(c('dias_coleta', 'viagens', 'data', 'diaria_valor') %in% names(ucs)))
+  checkmate::assertTRUE(all(c('n_entrevistadores_agencia_max', 'custo_fixo', 'diaria_valor') %in% names(agencias)))
 
   stopifnot(alocar_por!="agencia_codigo")
   # Pré-processamento dos dados
@@ -264,7 +259,7 @@ orce <- function(ucs,
       dplyr::if_else(treinamento_com_diaria, 2, dias_treinamento) *
         (agencias_t$distancia_km_agencia_treinamento / kml) *
         custo_litro_combustivel
-    ) + {{valor_diaria}} * {{dias_treinamento}} * treinamento_com_diaria
+    ) + agencias_t$diaria_valor * {{dias_treinamento}} * treinamento_com_diaria
     custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
   }
 
@@ -281,7 +276,7 @@ orce <- function(ucs,
   ucs_i <- ucs |>
     dplyr::arrange(uc) |>
     dplyr::transmute(i, data, uc, agencia_codigo_jurisdicao = agencia_codigo,
-                     dias_coleta, viagens) |>
+                     dias_coleta, viagens, diaria_valor) |>
     dplyr::left_join(indice_t, by = "data")
 
   # Criar grid de agências e UCs
@@ -297,7 +292,7 @@ orce <- function(ucs,
     dplyr::select(i, t, uc, agencia_codigo, agencia_codigo_jurisdicao,
                   viagens, dias_coleta, distancia_km, duracao_horas,
                   diaria_municipio,
-                  diaria_pernoite)
+                  diaria_pernoite, diaria_valor)
 
   # Ensure there are no missing values in distances
   stopifnot(sum(is.na(distancias_ucs_1$distancia_km)) == 0)
@@ -322,7 +317,7 @@ orce <- function(ucs,
                                dias_coleta * 2
       ),
       total_diarias = dplyr::if_else(diaria, calcula_diarias(dias_coleta, meia_diaria), 0),
-      custo_diarias = total_diarias * valor_diaria,
+      custo_diarias = total_diarias * diaria_valor,
       distancia_total_km = trechos * distancia_km,
       duracao_total_horas = trechos * duracao_horas,
       custo_combustivel = ((distancia_total_km / kml) * custo_litro_combustivel),
