@@ -33,7 +33,7 @@
 #' )  # Retorna c(500, 450, 400)
 #'
 #' @export
-valor_diaria_get <- function(municipio_codigo, valores_diarias = c(425, 380, 335)) {
+diaria_valor_get <- function(municipio_codigo, valores_diarias = c(425, 380, 335)) {
   # Validação dos parâmetros
   if (!is.numeric(municipio_codigo) && !is.character(municipio_codigo)) {
     stop("municipio_codigo deve ser numérico ou caractere")
