@@ -19,11 +19,11 @@ ucs_municipios <- agencias_bdo_mun |>
   dplyr::ungroup() |>
   ## uma agencia por municipio
   dplyr::distinct(municipio_codigo, .keep_all = TRUE) |>
-  dplyr::transmute(uc = municipio_codigo, municipio_codigo, agencia_codigo, dias_coleta = 10, viagens = 1, data = 1)
+  dplyr::transmute(uc = municipio_codigo, municipio_codigo, agencia_codigo, dias_coleta = 10, viagens = 1, data = 1, diaria_valor=orce::diaria_valor_get(municipio_codigo))
 
 agencias <- agencias_bdo |>
   dplyr::semi_join(ucs_municipios,by = dplyr::join_by(agencia_codigo)) |>
-  dplyr::transmute(agencia_codigo, custo_fixo = 0, n_entrevistadores_agencia_max=Inf) |>
+  dplyr::transmute(agencia_codigo, custo_fixo = 0, n_entrevistadores_agencia_max=Inf, diaria_valor=orce::diaria_valor_get(substr(agencia_codigo,1,7))) |>
   sf::st_drop_geometry()
 
 dists <- distancias_agencias_municipios_osrm |>

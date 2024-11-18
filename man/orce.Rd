@@ -12,7 +12,6 @@ orce(
   custo_litro_combustivel = 6,
   custo_hora_viagem = 10,
   kml = 10,
-  valor_diaria = 335,
   diarias_entrevistador_max = Inf,
   remuneracao_entrevistador = 0,
   n_entrevistadores_min = 1,
@@ -56,8 +55,6 @@ orce(
 \item{custo_hora_viagem}{Custo de cada hora de viagem (em R$). Padrão: 10.}
 
 \item{kml}{Consumo médio de combustível do veículo (em km/l). Padrão: 10.}
-
-\item{valor_diaria}{Valor da diária para deslocamentos (em R$). Padrão: 335.}
 
 \item{diarias_entrevistador_max}{Total máximo de diárias que um entrevistador pode receber, somando todos os períodos. Padrão: \code{Inf}.}
 

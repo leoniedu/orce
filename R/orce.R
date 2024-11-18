@@ -347,8 +347,8 @@ orce <- function(ucs,
   make_i_j <- function(x, col) {
     x |>
       dplyr::ungroup() |>
-      dplyr::select(dplyr::all_of(c("i", "j", col))) |>
-      tidyr::pivot_wider(id_cols = i, names_from = j, values_from = col, names_sort = TRUE) |>
+      dplyr::select(dplyr::all_of(c("i", "j", col)))|>
+      tidyr::pivot_wider(id_cols = i, names_from = j, values_from = dplyr::all_of(col), names_sort = TRUE)|>
       dplyr::arrange(as.numeric(i)) |>
       dplyr::select(-i) |>
       as.matrix()
