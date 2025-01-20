@@ -7,7 +7,7 @@
 orce(
   ucs,
   agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
-    dias_coleta_agencia_max = Inf, custo_fixo = 0),
+    dias_coleta_agencia_max = Inf, custo_fixo = 0, n_entrevistadores_agencia_max = Inf),
   alocar_por = "uc",
   custo_litro_combustivel = 6,
   custo_hora_viagem = 10,
@@ -39,12 +39,15 @@ orce(
 \item \code{dias_coleta}: Número de dias de coleta na UC, por período.
 \item \code{viagens}: Número de viagens necessárias para a coleta na UC, por período.
 \item \code{data}: Um identificador único para o período de coleta (e.g., "2024-01", "2024-02").
+\item \code{diaria_valor}: Valor da diária para a UC.
+\item \code{alocar_por}: Uma coluna adicional para agrupar as UCs antes da alocação (e.g., "setor", "municipio").
 }}
 
 \item{agencias}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
 \itemize{
 \item \code{agencia_codigo}: Código único da agência.
 \item \code{dias_coleta_agencia_max}: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos).
+\item \code{n_entrevistadores_agencia_max}: Número máximo de entrevistadores por agência.
 \item \code{custo_fixo}: Custo fixo associado à agência (soma de todos os períodos).
 }}
 
@@ -118,5 +121,5 @@ Uma lista contendo:
 }
 }
 \description{
-Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento. Quando \code{use_cache = TRUE}, os resultados são armazenados em cache no disco e reutilizados para entradas idênticas, o que pode acelerar significativamente cálculos repetidos. A função \code{limpar_cache_ucs} auxilia na limpeza desse cache em disco.
+Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento. Quando \code{use_cache = TRUE}, os resultados são armazenados em cache no disco e reutilizados para entradas idênticas, o que pode acelerar significativamente cálculos repetidos. A função \code{limpar_cache_ucs} auxilia na limpeza desse cache em disco. A função procede utilizando apenas as colunas requeridas para o processamento.
 }

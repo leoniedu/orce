@@ -23,7 +23,7 @@ ucs_municipios <- agencias_bdo_mun |>
 
 agencias <- agencias_bdo |>
   dplyr::semi_join(ucs_municipios,by = dplyr::join_by(agencia_codigo)) |>
-  dplyr::transmute(agencia_codigo, custo_fixo = 0, n_entrevistadores_agencia_max=Inf, diaria_valor=orce::diaria_valor_get(substr(agencia_codigo,1,7))) |>
+  dplyr::transmute(agencia_codigo, custo_fixo = 0, n_entrevistadores_agencia_max=Inf, diaria_valor=orce::diaria_valor_get(substr(agencia_codigo,1,7)), dias_coleta_agencia_max=Inf) |>
   sf::st_drop_geometry()
 
 dists <- distancias_agencias_municipios_osrm |>
