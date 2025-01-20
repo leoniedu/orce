@@ -116,6 +116,7 @@ Para enfrentar esse desafio, o pacote `orce` utiliza algoritmos avançados de ot
 
 
 ```{r, include = FALSE}
+    
 ufnow <- ufs%>%
   dplyr::filter(uf_sigla==params$uf_sigla_munic)
 agencias_now <- mutate(agencias_bdo%>%filter(uf_codigo==ufnow$uf_codigo), 
@@ -240,10 +241,10 @@ params_munic$distancias_ucs <- distancias_ucs
 params_munic$ucs <- ucs_now
 params_munic$resultado_completo <- TRUE
 params_munic$dias_coleta_entrevistador_max <- params$dias_coleta_entrevistador_max_munic
-
+params_munic$dias_treinamento=0
 print(lapply(params_munic,head,2))
 print(paste("parâmetros sem valor fixado: ", paste(setdiff(x=params_orce, names(params_munic)), collapse=", ")))
-res <- do.call(what = orce_mem, 
+res <- do.call(what = orce, 
               args=params_munic)
 # res_t <- do.call(what = orce, 
 #               args=modifyList(params_munic, list(ucs=params_munic$ucs%>%mutate(data=1))))
