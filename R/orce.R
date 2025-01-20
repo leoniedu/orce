@@ -1,6 +1,6 @@
 #' Alocação Otimizada de Unidades de Coleta (UCs) a Agências
 #'
-#' Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento. Quando `use_cache = TRUE`, os resultados são armazenados em cache no disco e reutilizados para entradas idênticas, o que pode acelerar significativamente cálculos repetidos. A função `limpar_cache_ucs` auxilia na limpeza desse cache em disco.
+#' Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento. Quando `use_cache = TRUE`, os resultados são armazenados em cache no disco e reutilizados para entradas idênticas, o que pode acelerar significativamente cálculos repetidos. A função `limpar_cache_ucs` auxilia na limpeza desse cache em disco. A função procede utilizando apenas as colunas requeridas para o processamento.
 #'
 #' @param ucs Um `tibble` ou `data.frame` contendo informações sobre as UCs, incluindo:
 #' \itemize{
@@ -9,11 +9,14 @@
 #'   \item `dias_coleta`: Número de dias de coleta na UC, por período.
 #'   \item `viagens`: Número de viagens necessárias para a coleta na UC, por período.
 #'   \item `data`: Um identificador único para o período de coleta (e.g., "2024-01", "2024-02").
+#'   \item `diaria_valor`: Valor da diária para a UC.
+#'   \item `alocar_por`: Uma coluna adicional para agrupar as UCs antes da alocação (e.g., "setor", "municipio").
 #' }
 #' @param agencias Um `tibble` ou `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo`: Código único da agência.
 #'   \item `dias_coleta_agencia_max`: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos).
+#'   \item `n_entrevistadores_agencia_max`: Número máximo de entrevistadores por agência.
 #'   \item `custo_fixo`: Custo fixo associado à agência (soma de todos os períodos).
 #' }
 #' @param alocar_por Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em `ucs` para agrupar as UCs antes da alocação (e.g., "setor", "municipio"). Padrão: "uc".
@@ -70,7 +73,8 @@
 orce <- function(ucs,
                        agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
                                              dias_coleta_agencia_max = Inf,
-                                             custo_fixo = 0),
+                                             custo_fixo = 0,
+                                             n_entrevistadores_agencia_max = Inf),
                        alocar_por = "uc",
                        custo_litro_combustivel = 6,
                        custo_hora_viagem = 10,
@@ -189,6 +193,18 @@ orce <- function(ucs,
 
   stopifnot(alocar_por!="agencia_codigo")
   # Pré-processamento dos dados
+  required_cols <- c("uc", "agencia_codigo", "dias_coleta", "viagens", "data", "diaria_valor")
+  if (alocar_por != "uc") {
+    required_cols <- c(required_cols, alocar_por)
+  }
+  ucs <- ucs |> dplyr::select(dplyr::all_of(required_cols))
+
+  distancias_ucs <- distancias_ucs |> dplyr::select(uc, agencia_codigo, distancia_km, duracao_horas, diaria_municipio, diaria_pernoite)
+
+  if (!is.null(distancias_agencias)) {
+    distancias_agencias <- distancias_agencias |> dplyr::select(agencia_codigo_orig, agencia_codigo_dest, distancia_km, duracao_horas)
+  }
+
   ucs <- ucs |>
     dplyr::ungroup() |>
     sf::st_drop_geometry() |>
@@ -197,12 +213,10 @@ orce <- function(ucs,
 
   stopifnot(dplyr::n_distinct(ucs$uc) == n_ucs)
 
-
-
   agencias <- agencias |>
     dplyr::ungroup() |>
     sf::st_drop_geometry()|>
-    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo) |>
+    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo, dias_coleta_agencia_max, n_entrevistadores_agencia_max) |>
     dplyr::mutate(j = 1:dplyr::n())
 
   stopifnot(dplyr::n_distinct(agencias$agencia_codigo) == nrow(agencias))
