@@ -14,9 +14,9 @@ package <- new.env(parent = emptyenv())
   package$name <- "orce"
   # local cache dir
   package$cache_dir <- tools::R_user_dir(package$name, which = 'cache')
-  dir.create(file.path(package$cache_dir, "alocar_ucs"), showWarnings = FALSE, recursive = TRUE)
+  dir.create(file.path(package$cache_dir, "orce"), showWarnings = FALSE, recursive = TRUE)
   dir.create(file.path(package$cache_dir, "get_map"), showWarnings = FALSE, recursive = TRUE)
-  alocar_ucs_mem <<- memoise::memoise(.alocar_ucs_impl, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "alocar_ucs")))
+  orce_mem <<- memoise::memoise(.orce_impl, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "orce")))
   get_map_mem <<- memoise::memoise(ggmap::get_map, cache = cachem::cache_disk(dir = file.path(package$cache_dir, "get_map")))
 }
 

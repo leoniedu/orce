@@ -20,7 +20,6 @@
 #' @param custo_litro_combustivel Custo do combustível por litro (em R$). Padrão: 6.
 #' @param custo_hora_viagem Custo de cada hora de viagem (em R$). Padrão: 10.
 #' @param kml Consumo médio de combustível do veículo (em km/l). Padrão: 10.
-#' @param valor_diaria Valor da diária para deslocamentos (em R$). Padrão: 335.
 #' @param diarias_entrevistador_max Total máximo de diárias que um entrevistador pode receber, somando todos os períodos. Padrão: `Inf`.
 #' @param remuneracao_entrevistador Remuneração total por entrevistador para todos os períodos. Padrão: 0.
 #' @param n_entrevistadores_min Número mínimo de entrevistadores por agência. Padrão: 1.
@@ -67,14 +66,8 @@
 #'   \item `log` (opcional): últimas 100 linhas do log de execução do solver.
 #' }
 #'
-#' @details
-#'  A função `alocar_ucs_mem` é a versão memoizada de `alocar_ucs`, com cache em disco.
-#'  Como `alocar_ucs` pode levar um tempo considerável para executar, a memoização
-#'  evita o recálculo com os mesmos parâmetros, economizando tempo em execuções
-#'  subsequentes com os mesmos dados de entrada.
-#'
 #' @export
-alocar_ucs <- function(ucs,
+orce <- function(ucs,
                        agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
                                              dias_coleta_agencia_max = Inf,
                                              custo_fixo = 0),
@@ -82,7 +75,6 @@ alocar_ucs <- function(ucs,
                        custo_litro_combustivel = 6,
                        custo_hora_viagem = 10,
                        kml = 10,
-                       valor_diaria = 335,
                        diarias_entrevistador_max = Inf,
                        remuneracao_entrevistador = 0,
                        n_entrevistadores_min = 1,
@@ -109,7 +101,6 @@ alocar_ucs <- function(ucs,
     custo_litro_combustivel = custo_litro_combustivel,
     custo_hora_viagem = custo_hora_viagem,
     kml = kml,
-    valor_diaria = valor_diaria,
     diarias_entrevistador_max = diarias_entrevistador_max,
     remuneracao_entrevistador = remuneracao_entrevistador,
     n_entrevistadores_min = n_entrevistadores_min,
@@ -132,29 +123,28 @@ alocar_ucs <- function(ucs,
 
   if (use_cache) {
     # Verifica se existe cache para esses argumentos
-    is_cached <- do.call(memoise::has_cache(alocar_ucs_mem), args)
+    is_cached <- do.call(memoise::has_cache(orce_mem), args)
 
     if (is_cached) {
       cli::cli_alert_success("Usando resultado em cache para estes parâmetros.")
     } else {
       cli::cli_alert_info("Calculando e armazenando resultado em cache.")
     }
-    do.call(alocar_ucs_mem, args)
+    do.call(orce_mem, args)
   } else {
     cli::cli_alert_info("Calculando sem usar cache.")
-    do.call(.alocar_ucs_impl, args)
+    do.call(.orce_impl, args)
   }
 }
 
 
 #' @keywords internal
-.alocar_ucs_impl <- function(ucs,
+.orce_impl <- function(ucs,
                              agencias,
                              alocar_por,
                              custo_litro_combustivel,
                              custo_hora_viagem,
                              kml,
-                             valor_diaria,
                              diarias_entrevistador_max,
                              remuneracao_entrevistador,
                              n_entrevistadores_min,
@@ -171,6 +161,8 @@ alocar_ucs <- function(ucs,
                              rel_tol,
                              max_time,
                              ...) {
+  tictoc::tic.clearlog()
+  tictoc::tic("Tempo total da otimização", log=TRUE)
   cli::cli_progress_step("Preparando os dados")
   # Importar pacotes necessários explicitamente
   requireNamespace("dplyr")
@@ -183,7 +175,6 @@ alocar_ucs <- function(ucs,
   checkmate::assertTRUE(!anyDuplicated(ucs[['uc']]))
   checkmate::assert_number(custo_litro_combustivel, lower = 0)
   checkmate::assert_number(kml, lower = 0)
-  checkmate::assert_number(valor_diaria, lower = 0)
   checkmate::assert_number(rel_tol, lower = 0, upper = 1)
   checkmate::assert_number(dias_treinamento, lower = 0)
   checkmate::assert_character(agencias_treinamento, null.ok = dias_treinamento == 0)
@@ -193,8 +184,8 @@ alocar_ucs <- function(ucs,
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
   checkmate::check_string(alocar_por, null.ok = FALSE)
   checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite') %in% names(distancias_ucs)))
-  checkmate::assertTRUE(all(c('dias_coleta', 'viagens', 'data') %in% names(ucs)))
-  checkmate::assertTRUE(all(c('dias_coleta_agencia_max', 'custo_fixo') %in% names(agencias)))
+  checkmate::assertTRUE(all(c('dias_coleta', 'viagens', 'data', 'diaria_valor') %in% names(ucs)))
+  checkmate::assertTRUE(all(c('n_entrevistadores_agencia_max', 'custo_fixo', 'diaria_valor') %in% names(agencias)))
 
   stopifnot(alocar_por!="agencia_codigo")
   # Pré-processamento dos dados
@@ -206,10 +197,12 @@ alocar_ucs <- function(ucs,
 
   stopifnot(dplyr::n_distinct(ucs$uc) == n_ucs)
 
+
+
   agencias <- agencias |>
     dplyr::ungroup() |>
     sf::st_drop_geometry()|>
-    dplyr::select(agencia_codigo, dias_coleta_agencia_max, custo_fixo) |>
+    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo) |>
     dplyr::mutate(j = 1:dplyr::n())
 
   stopifnot(dplyr::n_distinct(agencias$agencia_codigo) == nrow(agencias))
@@ -266,7 +259,7 @@ alocar_ucs <- function(ucs,
       dplyr::if_else(treinamento_com_diaria, 2, dias_treinamento) *
         (agencias_t$distancia_km_agencia_treinamento / kml) *
         custo_litro_combustivel
-    ) + {{valor_diaria}} * {{dias_treinamento}} * treinamento_com_diaria
+    ) + agencias_t$diaria_valor * {{dias_treinamento}} * treinamento_com_diaria
     custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
   }
 
@@ -283,7 +276,7 @@ alocar_ucs <- function(ucs,
   ucs_i <- ucs |>
     dplyr::arrange(uc) |>
     dplyr::transmute(i, data, uc, agencia_codigo_jurisdicao = agencia_codigo,
-                     dias_coleta, viagens) |>
+                     dias_coleta, viagens, diaria_valor) |>
     dplyr::left_join(indice_t, by = "data")
 
   # Criar grid de agências e UCs
@@ -299,7 +292,7 @@ alocar_ucs <- function(ucs,
     dplyr::select(i, t, uc, agencia_codigo, agencia_codigo_jurisdicao,
                   viagens, dias_coleta, distancia_km, duracao_horas,
                   diaria_municipio,
-                  diaria_pernoite)
+                  diaria_pernoite, diaria_valor)
 
   # Ensure there are no missing values in distances
   stopifnot(sum(is.na(distancias_ucs_1$distancia_km)) == 0)
@@ -324,7 +317,7 @@ alocar_ucs <- function(ucs,
                                dias_coleta * 2
       ),
       total_diarias = dplyr::if_else(diaria, calcula_diarias(dias_coleta, meia_diaria), 0),
-      custo_diarias = total_diarias * valor_diaria,
+      custo_diarias = total_diarias * diaria_valor,
       distancia_total_km = trechos * distancia_km,
       duracao_total_horas = trechos * duracao_horas,
       custo_combustivel = ((distancia_total_km / kml) * custo_litro_combustivel),
@@ -354,13 +347,12 @@ alocar_ucs <- function(ucs,
   make_i_j <- function(x, col) {
     x |>
       dplyr::ungroup() |>
-      dplyr::select(dplyr::all_of(c("i", "j", col))) |>
-      tidyr::pivot_wider(id_cols = i, names_from = j, values_from = col, names_sort = TRUE) |>
+      dplyr::select(dplyr::all_of(c("i", "j", col)))|>
+      tidyr::pivot_wider(id_cols = i, names_from = j, values_from = dplyr::all_of(col), names_sort = TRUE)|>
       dplyr::arrange(as.numeric(i)) |>
       dplyr::select(-i) |>
       as.matrix()
   }
-
   # Criar matrizes de custos
   transport_cost_i_j <- make_i_j(x = dist_i_agencias, col = "custo_deslocamento_com_troca")
   diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias")
@@ -380,14 +372,13 @@ alocar_ucs <- function(ucs,
   p <- max(indice_t$t)
 
   stopifnot((agencias_t$j) == (1:nrow(agencias_t)))
-
   model <- ompr::MIPModel() |>
     # 1 sse uc i vai para a agencia j
     ompr::add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
     # 1 sse agencia j ativada
     ompr::add_variable(y[j], j = 1:m, type = "binary") |>
     # trabalhadores na agencia j
-    ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0) |>
+    ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf) |>
     # minimizar custos
     ompr::set_objective(
       ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
@@ -401,15 +392,14 @@ alocar_ucs <- function(ucs,
     # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
     ompr::add_constraint(x[i, j] <= y[j], i = 1:n, j = 1:m) |>
     # se agencia está ativa, w tem que ser >= n_entrevistadores_min
-    ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], i = 1:n, j = 1:m) |>
+    ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], j = 1:m) |>
     # w tem que ser suficiente para dar conta das ucs para todos os períodos
     ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
-  # Respeitar o máximo de dias de coleta por agencia
-  if (any(is.finite(agencias_t$dias_coleta_agencia_max))) {
+  # Respeitar o máximo de entrevistadores por agencia
+  if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
     model <- model |>
-      ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_i_j[i, j], i = 1:n) <= agencias_t$dias_coleta_agencia_max[j], j = 1:m)
+      ompr::add_constraint(w[j] <= agencias_t$n_entrevistadores_agencia_max[j], j = 1:m)
   }
-
   # Respeitar o máximo de diárias por entrevistador
   if (any(is.finite({diarias_entrevistador_max}))) {
     model <- model |>
@@ -464,7 +454,7 @@ alocar_ucs <- function(ucs,
   # Criar resultados para alocação ótima
   resultado_ucs_otimo <- dist_uc_agencias|>
     dplyr::inner_join(matching, by=c("i", "j"))|>
-    dplyr::left_join(ucs |> dplyr::distinct(uc, dplyr::pick(alocar_por)), by = "uc")|>
+    dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = "uc")|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
 
@@ -472,17 +462,18 @@ alocar_ucs <- function(ucs,
   resultado_ucs_jurisdicao <- dist_uc_agencias |>
     dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo)|>
     dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
-    dplyr::left_join(ucs |> dplyr::distinct(uc, dplyr::pick(alocar_por)), by = c("uc"))|>
+    dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = c("uc"))|>
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-t)
 
-  ags_group_vars <- c(names(agencias_t), 'entrevistadores', "data")
+  ags_group_vars <- c(names(agencias_t), 'entrevistadores')
 
   if (!all(resultado_ucs_jurisdicao$uc %in% (resultado_ucs_otimo$uc))) stop("Solução não encontrada!")
 
   # Criar resultados para agências - alocação ótima
   resultado_agencias_otimo <- agencias_t |>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo')) |>
+    dplyr::select(-data)|>
     dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao), n_ucs=dplyr::n())|>
     dplyr::ungroup() |>
@@ -500,7 +491,7 @@ alocar_ucs <- function(ucs,
   # Criar resultados para agências - jurisdição
   resultado_agencias_jurisdicao <- agencias_t|>
     dplyr::left_join(resultado_ucs_jurisdicao, by="agencia_codigo")|>
-    dplyr::select(-j, -custo_deslocamento_com_troca)|>
+    dplyr::select(-j, -custo_deslocamento_com_troca, -data)|>
     dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs = dplyr::n())|>
     dplyr::left_join(dias_coleta_j, by="agencia_codigo")|>
@@ -525,6 +516,9 @@ alocar_ucs <- function(ucs,
     resultado$ucs_agencias_todas <- dist_uc_agencias
   }
   resultado$log <- tail(log, 100)
-  cli::cli_progress_step("Sucesso")
+  tictoc::toc(log=TRUE, quiet=TRUE)
+  tempo_otimizacao <- tictoc::tic.log(format = FALSE)
+  with(tempo_otimizacao[[1]], cli::cli_alert_success(paste0(msg, ": ", round(toc-tic),  " segundos.")))
+  attr(resultado, "tempo_otimizacao") <- with(tempo_otimizacao[[1]], toc-tic)
   return(resultado)
 }
