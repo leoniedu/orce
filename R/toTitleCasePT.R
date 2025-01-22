@@ -1,1 +1,2 @@
-/Users/eleon/github/toTitleCasePT/toTitleCasePT.R
+#' @export
+ToTitleCasePT <- function(x,...) x
