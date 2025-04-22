@@ -23,7 +23,7 @@ ucs_municipios <- agencias_bdo_mun |>
 
 agencias <- agencias_bdo |>
   dplyr::semi_join(ucs_municipios,by = dplyr::join_by(agencia_codigo)) |>
-  dplyr::transmute(agencia_codigo, custo_fixo = 0, n_entrevistadores_agencia_max=Inf, diaria_valor=orce::diaria_valor_get(substr(agencia_codigo,1,7)), dias_coleta_agencia_max=Inf) |>
+  dplyr::transmute(agencia_codigo, custo_fixo = 0, n_entrevistadores_agencia_max=Inf, diaria_valor=orce::diaria_valor_get(substr(agencia_codigo,1,7))) |>
   sf::st_drop_geometry()
 
 dists <- distancias_agencias_municipios_osrm |>
@@ -115,6 +115,8 @@ test_that("Alocação de UCs com períodos de coleta", {
   expect_gte(min(r_t_min_entrevistadores$resultado_agencias_otimo$entrevistadores), 9)
   expect_gte(min(r_t_min_entrevistadores$resultado_agencias_jurisdicao$entrevistadores), 9)
 
+  ## Teste : sem dados por agência
+  params_9 <- modifyList(params_8, list(agencias=NULL))
 
   # Teste: número de entrevistadores como variável contínua
   params_c <- modifyList(params_5, list(n_entrevistadores_tipo = "continuous"))

@@ -15,8 +15,8 @@
 #' @param agencias Um `tibble` ou `data.frame` contendo informações sobre as agências selecionáveis, incluindo:
 #' \itemize{
 #'   \item `agencia_codigo`: Código único da agência.
-#'   \item `dias_coleta_agencia_max`: Número máximo de dias de coleta que a agência pode realizar (soma de todos os períodos).
-#'   \item `n_entrevistadores_agencia_max`: Número máximo de entrevistadores por agência.
+#'   \item `n_entrevistadores_agencia_max`: Número máximo de entrevistadores por agência. Junto com `dias_coleta_entrevistador_max`,
+#'         determina o número máximo de dias de coleta que a agência pode realizar (n_entrevistadores_agencia_max * dias_coleta_entrevistador_max).
 #'   \item `custo_fixo`: Custo fixo associado à agência (soma de todos os períodos).
 #' }
 #' @param alocar_por Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em `ucs` para agrupar as UCs antes da alocação (e.g., "setor", "municipio"). Padrão: "uc".
@@ -72,9 +72,9 @@
 #' @export
 orce <- function(ucs,
                        agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
-                                             dias_coleta_agencia_max = Inf,
+                                             n_entrevistadores_agencia_max = Inf,
                                              custo_fixo = 0,
-                                             n_entrevistadores_agencia_max = Inf),
+                                             diaria_valor=diaria_valor_get(unique(ucs$agencia_codigo))),
                        alocar_por = "uc",
                        custo_litro_combustivel = 6,
                        custo_hora_viagem = 10,
@@ -216,7 +216,7 @@ orce <- function(ucs,
   agencias <- agencias |>
     dplyr::ungroup() |>
     sf::st_drop_geometry()|>
-    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo, dias_coleta_agencia_max, n_entrevistadores_agencia_max) |>
+    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo) |>
     dplyr::mutate(j = 1:dplyr::n())
 
   stopifnot(dplyr::n_distinct(agencias$agencia_codigo) == nrow(agencias))

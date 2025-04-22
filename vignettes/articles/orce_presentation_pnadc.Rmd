@@ -17,6 +17,7 @@ params:
   dias_coleta_cnefe: 5
   dias_coleta_pnadc: 5
   dias_coleta_entrevistador_max: 20
+  dias_coleta_entrevistador_max_pnadc: 20
   solver: 'cbc'
   max_time: 1800
   rel_tol: .01
@@ -265,9 +266,9 @@ Parâmetros (3):
     # w tem que ser suficiente para dar conta das ucs para todos os períodos
     add_constraint(sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
   # Respeitar o máximo de dias de coleta por agencia
-  if (any(is.finite(agencias_t$dias_coleta_agencia_max))) {
+  if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
     model <- model |>
-      add_constraint(sum_over(x[i, j] * dias_coleta_i_j[i, j], i = 1:n) <= agencias_t$dias_coleta_agencia_max[j], j = 1:m)
+      add_constraint(w[j] <= agencias_t$n_entrevistadores_agencia_max[j], j = 1:m)
   }
 
   # Respeitar o máximo de diárias por entrevistador
@@ -333,10 +334,10 @@ render_tables <- function(uf_sigla_now) {
   agencias_uf <-  carga_pnadc_uf%>%
     group_by(agencia_codigo)%>%
     summarise(n_ucs_jurisdicao=n(), dias_coleta_jurisdicao=sum(dias_coleta))%>%
-    mutate(dias_coleta_agencia_max=Inf, 
+    mutate(n_entrevistadores_agencia_max = Inf,
            custo_fixo=0)%>%
     ## tira Cipó
-    mutate(dias_coleta_agencia_max=if_else(agencia_codigo=="290790500", 0, dias_coleta_agencia_max))
+    mutate(n_entrevistadores_agencia_max = if_else(agencia_codigo=="290790500", 0, n_entrevistadores_agencia_max))
   
   
   
@@ -349,19 +350,20 @@ render_tables <- function(uf_sigla_now) {
                           valor_diaria = params2$valor_diaria,
                           ## em um ano de coleta, um entrevistador consegue
                           ## 48 upas pnadc / 24 upas POF / 18 Municipios
-                          dias_coleta_entrevistador_max=params2$dias_coleta_entrevistador_max,
+                          dias_coleta_entrevistador_max=params2$dias_coleta_entrevistador_max_pnadc,
                           diarias_entrevistador_max=Inf,
                           dias_treinamento = 0,
                           agencias_treinadas = NULL,
                           agencias_treinamento  = NULL,
                           distancias_ucs=distancias_ucs_all,
+                          ## for symphony solver
+                          #gap_limit=5, 
                           adicional_troca_jurisdicao  = params2$adicional_troca_jurisdicao,
                           solver=params2$solver,
                           max_time=params2$max_time,
                           rel_tol=params2$rel_tol,
-                          resultado_completo=FALSE,
-                          alocar_por="municipio_codigo"
-  )
+                          resultado_completo=FALSE 
+                          )
   tmp <- do.call(orce_mem, params_pnadc_0)
   #library(tictoc)
   #tic()
@@ -424,9 +426,7 @@ render_tables <- function(uf_sigla_now) {
     arrange(descricao)%>%
     slice(1)%>%
     select(descricao, n_agencias, custo_total, custo_total_entrevistadores, custo_diarias, custo_combustivel)%>%
-    ungroup%>%
-    #arrange(-custo_total)%>%
-    gt::gt()%>%
+    ungroup%>%gt()%>%
     gt::cols_label(descricao='Modelo')%>%
     gt::tab_caption("Redução de custos promovido pela otimização da rede de coleta")%>%
     print_gt()
