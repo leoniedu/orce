@@ -55,8 +55,9 @@ calcula_distancias <- function(destinos, origens, nmax=2000) {
     mutate(i = v[seq_len(n())]) |>
     dplyr::group_split(i)
   print(length(dest_list))
-  res <- dest_list |>
-    purrr::map(~ get_res(src = origens_1, dst = .x), .progress = TRUE) |>
+  res0 <- dest_list |>
+    purrr::map(~ purrr::possibly(get_res, NULL)(src = origens_1, dst = .x), .progress = TRUE)
+  res <- res0|>
     bind_rows()
   options(OutDec = dec_original)
   # Mesclando os resultados com os dados originais para remover colunas desnecessárias e retornar o dataset final
