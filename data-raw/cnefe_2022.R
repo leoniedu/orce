@@ -72,7 +72,11 @@ stopifnot(nrow(munbr_falta)==0)
 
 
 
-# usethis::use_data(pontos_setores, overwrite = TRUE)
+pontos_setores <- pontos_setores%>%
+  group_by(setor)%>%
+  slice(n())
+
+usethis::use_data(pontos_setores, overwrite = TRUE)
 # usethis::use_data(pontos_municipios, overwrite = TRUE)
 
 

@@ -22,7 +22,9 @@ orce(
   agencias_treinadas = NULL,
   agencias_treinamento = NULL,
   distancias_ucs,
+  distancias_ucs_ucs = NULL,
   distancias_agencias = NULL,
+  peso_tsp = 0,
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
   solver = "cbc",
@@ -84,6 +86,13 @@ determina o número máximo de dias de coleta que a agência pode realizar (n_en
 \item \code{diaria_pernoite}: Indica se é necessária uma diária com pernoite para deslocamento entre a UC e a agência.
 }}
 
+\item{distancias_ucs_ucs}{(Opcional) Um \code{tibble} ou \code{data.frame} com as distâncias diretas entre UCs para otimização de rotas TSP, incluindo:
+\itemize{
+\item \code{uc_orig}: Código da UC de origem.
+\item \code{uc_dest}: Código da UC de destino.
+\item \code{distancia_km}: Distância em quilômetros entre as UCs.
+}}
+
 \item{distancias_agencias}{Um \code{tibble} ou \code{data.frame} com as distâncias entre as agências, incluindo:
 \itemize{
 \item \code{agencia_codigo_orig}: Código da agência de origem.
@@ -91,6 +100,8 @@ determina o número máximo de dias de coleta que a agência pode realizar (n_en
 \item \code{distancia_km}: Distância em quilômetros entre a agência de origem e a de destino.
 \item \code{duracao_horas}: Duração da viagem em horas entre a agência de origem e a de destino.
 }}
+
+\item{peso_tsp}{Peso para balancear custos de roteamento: 0 = apenas round-trips, 1 = apenas TSP. Padrão: 0 (sem TSP).}
 
 \item{adicional_troca_jurisdicao}{Custo adicional quando há troca de agência de coleta. Padrão: 0.}
 
@@ -116,6 +127,7 @@ Uma lista contendo:
 \item \code{resultado_agencias_jurisdicao}: Um \code{tibble} com as agências e suas alocações originais (jurisdição), incluindo custos fixos, custos de deslocamento e número de UCs alocadas.
 \item \code{resultado_ucs_otimo}: Um \code{tibble} com as UCs e suas alocações otimizadas, incluindo custos de deslocamento.
 \item \code{resultado_agencias_otimo}: Um \code{tibble} com as agências e suas alocações otimizadas, incluindo custos fixos, custos de deslocamento, número de UCs alocadas e número de entrevistadores.
+\item \code{rotas_tsp} (opcional): Um \code{tibble} com as rotas TSP otimizadas por agência e período, incluindo UCs de origem/destino, distâncias e durações (retornado apenas se \code{peso_tsp} > 0).
 \item \code{ucs_agencias_todas} (opcional): Um \code{tibble} com todas as combinações de UCs e agências, incluindo distâncias, custos e informações sobre diárias (retornado apenas se \code{resultado_completo} for TRUE).
 \item \code{otimizacao} (opcional): O resultado completo da otimização (retornado apenas se \code{resultado_completo} for TRUE).
 \item \code{log} (opcional): últimas 100 linhas do log de execução do solver.
@@ -123,4 +135,7 @@ Uma lista contendo:
 }
 \description{
 Esta função realiza a alocação otimizada de Unidades de Coleta (UCs) a agências, com o objetivo de minimizar os custos totais de deslocamento e operação, considerando múltiplos períodos de coleta. A alocação leva em consideração restrições de capacidade das agências (em número de dias de coleta por período), custos de deslocamento (combustível, tempo de viagem e diárias), custos fixos das agências e custos de treinamento. Quando \code{use_cache = TRUE}, os resultados são armazenados em cache no disco e reutilizados para entradas idênticas, o que pode acelerar significativamente cálculos repetidos. A função \code{limpar_cache_ucs} auxilia na limpeza desse cache em disco. A função procede utilizando apenas as colunas requeridas para o processamento.
+}
+\details{
+As distâncias são calculadas com idas e voltas separadas até as unidades de coleta. Ou seja, não são avaliados \code{roteiros} de coleta. Essa possibilidade será implementada em uma futura versão.
 }
