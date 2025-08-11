@@ -55,7 +55,6 @@
 #'   \item `duracao_horas`: Duração da viagem em horas entre a agência de origem e a de destino.
 #' }
 #' @param peso_tsp Peso para balancear custos de roteamento: 0 = apenas round-trips, 1 = apenas TSP. Padrão: 0 (sem TSP).
-#' @param distancia_tsp_min Distância mínima (em km) para aplicar TSP. UCs com distancia_km <= distancia_tsp_min usam custos round-trip puros, UCs com distancia_km > distancia_tsp_min usam roteamento TSP. Padrão: 0 (TSP aplicado a todas as UCs).
 #' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão: 0.
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
 #' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).
@@ -102,7 +101,6 @@ orce <- function(ucs,
                        distancias_ucs_ucs = NULL,
                        distancias_agencias = NULL,
                        peso_tsp = 0,
-                       distancia_tsp_min = 0,
                        adicional_troca_jurisdicao = 0,
                        resultado_completo = FALSE,
                        solver = "cbc",
@@ -131,7 +129,6 @@ orce <- function(ucs,
     distancias_ucs_ucs = distancias_ucs_ucs,
     distancias_agencias = distancias_agencias,
     peso_tsp = peso_tsp,
-    distancia_tsp_min = distancia_tsp_min,
     adicional_troca_jurisdicao = adicional_troca_jurisdicao,
     resultado_completo = resultado_completo,
     solver = solver,
@@ -178,7 +175,6 @@ orce <- function(ucs,
                              distancias_ucs_ucs,
                              distancias_agencias,
                              peso_tsp,
-                             distancia_tsp_min,
                              adicional_troca_jurisdicao,
                              resultado_completo,
                              solver,
@@ -346,8 +342,6 @@ orce <- function(ucs,
       j, agencia_codigo,
       agencia_codigo_jurisdicao,
       distancia_km, duracao_horas, dias_coleta,
-      # Classify UCs as close or far based on distance threshold
-      uc_proxima = distancia_km <= distancia_tsp_min,
       diaria = diaria_municipio,
       diaria = dplyr::if_else(diaria_pernoite, TRUE, diaria),
       meia_diaria = (!diaria_pernoite) & diaria,
@@ -374,8 +368,6 @@ orce <- function(ucs,
     dplyr::select(-t) |>
     dplyr::group_by(i, j, agencia_codigo, agencia_codigo_jurisdicao) |>
     dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum),
-                     # Keep track of whether this is a close UC (all UCs in group must be close)
-                     todas_ucs_proximas = all(uc_proxima),
                      n_ucs = dplyr::n()) |>
     dplyr::ungroup()
 
@@ -466,16 +458,6 @@ orce <- function(ucs,
     # trabalhadores na agencia j
     ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf)
 
-  # Create matrix to identify far UCs (eligible for TSP)
-  uc_distante_ij <- matrix(FALSE, nrow = n, ncol = m)
-  for(i in 1:n) {
-    for(j in 1:m) {
-      uc_info <- dist_i_agencias |> dplyr::filter(i == !!i, j == !!j)
-      if(nrow(uc_info) > 0) {
-        uc_distante_ij[i, j] <- !uc_info$todas_ucs_proximas[1]
-      }
-    }
-  }
 
   # Adicionar variáveis TSP somente se peso_tsp > 0
   if (peso_tsp > 0) {
@@ -486,64 +468,20 @@ orce <- function(ucs,
       ompr::add_variable(u[i, j, t], i = 1:n, j = 1:m, t = 1:p, type = "continuous", lb = 1, ub = n)
   }
 
-  # Create cost matrices that properly handle close vs far UCs
-  transport_cost_close_ij <- matrix(0, nrow = n, ncol = m)
-  transport_cost_far_ij <- matrix(0, nrow = n, ncol = m)
-
-  # Fill the matrices properly based on UC proximity
-  for(i in 1:n) {
-    for(j in 1:m) {
-      uc_info <- dist_i_agencias |> dplyr::filter(i == !!i, j == !!j)
-      if(nrow(uc_info) > 0) {
-        cost_value <- uc_info$custo_deslocamento_com_troca[1]
-        if(is.na(cost_value)) cost_value <- 0
-
-        if(uc_info$todas_ucs_proximas[1]) {
-          # Close UC - gets full cost in close matrix
-          transport_cost_close_ij[i, j] <- cost_value
-          transport_cost_far_ij[i, j] <- 0
-        } else {
-          # Far UC - gets full cost in far matrix
-          transport_cost_close_ij[i, j] <- 0
-          transport_cost_far_ij[i, j] <- cost_value
-        }
-      }
-    }
-  }
-
-  # Create TSP cost matrices that are zero for close UCs
-  dist_uc_uc_tsp <- dist_uc_uc
-  custo_combustivel_tsp_ij <- custo_combustivel_i_j
-  custo_horas_viagem_tsp_ij <- custo_horas_viagem_i_j
-
-  # Zero out costs for close UCs in TSP calculations
-  for(i in 1:n) {
-    for(j in 1:m) {
-      if(uc_distante_ij[i, j] == FALSE) {  # UC is close
-        custo_combustivel_tsp_ij[i, j] <- 0
-        custo_horas_viagem_tsp_ij[i, j] <- 0
-        # Zero out UC-UC distances from/to close UCs
-        dist_uc_uc_tsp[i, ] <- 0
-        dist_uc_uc_tsp[, i] <- 0
-      }
-    }
-  }
 
   # Definir objetivo condicionalmente
   if (peso_tsp > 0) {
     model <- model |>
       # minimizar custos com blend de round-trip e TSP
       ompr::set_objective(
-        # Custos para UCs próximas (sempre round-trip completo)
-        ompr::sum_over(transport_cost_close_ij[i, j] * x[i, j], i = 1:n, j = 1:m) +
-        # Custos para UCs distantes com ponderação TSP
-        ompr::sum_over((1 - peso_tsp) * transport_cost_far_ij[i, j] * x[i, j], i = 1:n, j = 1:m) +
-        # Custos de roteamento TSP por período (peso peso_tsp) - apenas para UCs distantes
-        ompr::sum_over(peso_tsp * (dist_uc_uc_tsp[i, k] / kml * custo_litro_combustivel +
+        # Custos de transporte com ponderação TSP
+        ompr::sum_over((1 - peso_tsp) * transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
+        # Custos de roteamento TSP por período (peso peso_tsp)
+        ompr::sum_over(peso_tsp * (dist_uc_uc[i, k] / kml * custo_litro_combustivel +
                                   duracao_uc_uc[i, k] * custo_hora_viagem) *
                        dias_coleta_ijt(i, j, t) * 2 * route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
-        # Custos TSP: agência para UC e UC para agência (uma vez por UC no período) - apenas UCs distantes
-        ompr::sum_over(peso_tsp * (custo_combustivel_tsp_ij[i, j] + custo_horas_viagem_tsp_ij[i, j]) *
+        # Custos TSP: agência para UC e UC para agência (uma vez por UC no período)
+        ompr::sum_over(peso_tsp * (custo_combustivel_i_j[i, j] + custo_horas_viagem_i_j[i, j]) *
                        x[i, j] * ti[i, t], i = 1:n, j = 1:m, t = 1:p) +
         # Custos fixos e entrevistadores
         ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
@@ -555,10 +493,8 @@ orce <- function(ucs,
     model <- model |>
       # minimizar custos sem TSP
       ompr::set_objective(
-        # Custos não-ponderados (diárias e troca de jurisdição) - sempre presentes
-        ompr::sum_over((custo_diarias_i_j[i, j] + custo_troca_jurisdicao_i_j[i, j]) * x[i, j], i = 1:n, j = 1:m) +
-        # Custos de combustível e tempo - round-trip completo
-        ompr::sum_over((custo_combustivel_i_j[i, j] + custo_horas_viagem_i_j[i, j]) * x[i, j], i = 1:n, j = 1:m) +
+        # Custos de transporte completos
+        ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
         # Custos fixos e entrevistadores
         ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
                      w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
@@ -592,20 +528,6 @@ orce <- function(ucs,
                           ompr::sum_over(x[i, j] * ti[i, t], i = 1:n) - 1, j = 1:m, t = 1:p) |>
       # TSP: subtour elimination (Miller-Tucker-Zemlin) por período
       ompr::add_constraint(u[i, j, t] - u[k, j, t] + n * route[i, k, j, t] <= n - 1, i = 1:n, k = 1:n, j = 1:m, t = 1:p)
-
-    # Add explicit constraints to prevent routes involving close UCs
-    for(i in 1:n) {
-      for(j in 1:m) {
-        if(uc_distante_ij[i, j] == FALSE) {  # UC i is close to agency j
-          for(t in 1:p) {
-            model <- model |>
-              # Close UCs cannot be part of any route
-              ompr::add_constraint(ompr::sum_over(route[i, k, j, t], k = 1:n) == 0) |>
-              ompr::add_constraint(ompr::sum_over(route[k, i, j, t], k = 1:n) == 0)
-          }
-        }
-      }
-    }
   }
   # Respeitar o máximo de entrevistadores por agencia
   if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
@@ -831,13 +753,13 @@ orce <- function(ucs,
 #' @param n_agencias Número de agências a criar. Padrão: 10.
 #' @param n_ucs Número de UCs a criar. Padrão: 30.
 #' @param n_periodos Número de períodos de coleta. Padrão: 2.
-#' @param peso_tsp Peso TSP para o teste. Padrão: 0.5.\n#' @param distancia_tsp_min Distância mínima para aplicar TSP no teste. Padrão: 50.
+#' @param peso_tsp Peso TSP para o teste. Padrão: 0.5.
 #' @param solver Solver a usar. Padrão: "cbc".
 #'
 #' @return Resultado da função orce com dados simulados
 #'
 #' @export
-teste_orce_tsp <- function(n_agencias = 10, n_ucs = 30, n_periodos = 2, peso_tsp = 0.5, distancia_tsp_min = 50, solver = "cbc", model="mip") {
+teste_orce_tsp <- function(n_agencias = 10, n_ucs = 30, n_periodos = 2, peso_tsp = 0.5, solver = "cbc", model="mip") {
   requireNamespace("dplyr")
 
   # Gerar agências aleatórias
@@ -911,7 +833,7 @@ teste_orce_tsp <- function(n_agencias = 10, n_ucs = 30, n_periodos = 2, peso_tsp
     dplyr::select(agencia_codigo_orig, agencia_codigo_dest, distancia_km, duracao_horas)
 
   cat("Testando orce com:", n_agencias, "agências,", n_ucs, "UCs,", n_periodos, "períodos\n")
-  cat("peso_tsp =", peso_tsp, ", distancia_tsp_min =", distancia_tsp_min, "km\n")
+  cat("peso_tsp =", peso_tsp, "\n")
 
   # Executar orce
   if (model=="mip") {
@@ -929,7 +851,6 @@ teste_orce_tsp <- function(n_agencias = 10, n_ucs = 30, n_periodos = 2, peso_tsp
     distancias_agencias = distancias_agencias,
     dias_coleta_entrevistador_max = 200,
     peso_tsp = peso_tsp,
-    distancia_tsp_min = distancia_tsp_min,
     solver = solver,
     max_time = 300,
     use_cache = FALSE,
