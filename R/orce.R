@@ -64,7 +64,6 @@
 #'   resultados para entradas idênticas serão recuperados do cache em disco em vez
 #'   de recalcular. Isso pode acelerar cálculos repetidos mas usa espaço em disco.
 #'   O padrão é TRUE.
-#'
 #' @param ... Opções adicionais para o solver.
 #'
 #' @return Uma lista contendo:
@@ -133,8 +132,7 @@ orce <- function(ucs,
     resultado_completo = resultado_completo,
     solver = solver,
     rel_tol = rel_tol,
-    max_time = max_time
-  )
+    max_time = max_time )
 
   # Add any additional arguments
   args <- c(args, list(...))
@@ -181,6 +179,100 @@ orce <- function(ucs,
                              rel_tol,
                              max_time,
                              ...) {
+  model_mip <- function() {
+    model <- ompr::MIPModel() |>
+      # 1 sse uc i vai para a agencia j
+      ompr::add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
+      # 1 sse agencia j ativada
+      ompr::add_variable(y[j], j = 1:m, type = "binary") |>
+      # trabalhadores na agencia j
+      ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf)
+
+
+    # Adicionar variáveis TSP somente se peso_tsp > 0
+    if (peso_tsp > 0) {
+      model <- model |>
+        # TSP routing: 1 sse rota vai de uc i para uc k dentro da agencia j no período t
+        ompr::add_variable(route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p, type = "binary") |>
+        # TSP subtour elimination auxiliar por período
+        ompr::add_variable(u[i, j, t], i = 1:n, j = 1:m, t = 1:p, type = "continuous", lb = 1, ub = n)
+    }
+
+
+    # Definir objetivo condicionalmente
+    if (peso_tsp > 0) {
+      model <- model |>
+        # minimizar custos com blend de round-trip e TSP
+        ompr::set_objective(
+          # Custos de transporte com ponderação TSP
+          ompr::sum_over((1 - peso_tsp) * transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
+            # Custos de roteamento TSP por período (peso peso_tsp)
+            ompr::sum_over(peso_tsp * (dist_uc_uc[i, k] / kml * custo_litro_combustivel +
+                                         duracao_uc_uc[i, k] * custo_hora_viagem) *
+                             (dias_coleta_ijt(i, j, t)>0)  * route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
+            # Custos fixos e entrevistadores
+            ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
+                             w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
+                           j = 1:m),
+          "min"
+        )
+    } else {
+      model <- model |>
+        # minimizar custos sem TSP
+        ompr::set_objective(
+          # Custos de transporte completos
+          ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
+            # Custos fixos e entrevistadores
+            ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
+                             w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
+                           j = 1:m),
+          "min"
+        )
+    }
+
+    model <- model |>
+      # toda UC precisa estar associada a uma agencia
+      ompr::add_constraint(ompr::sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
+      # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
+      ompr::add_constraint(x[i, j] <= y[j], i = 1:n, j = 1:m) |>
+      # se agencia está ativa, w tem que ser >= n_entrevistadores_min
+      ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], j = 1:m) |>
+      # w tem que ser suficiente para dar conta das ucs para todos os períodos
+      ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
+
+    # Adicionar constraints TSP somente se peso_tsp > 0
+    if (peso_tsp > 0) {
+      model <- model |>
+        # TSP constraints: route só existe se ambas UCs estão na mesma agência e mesmo período
+        ompr::add_constraint(route[i, k, j, t] <= (x[i, j] * ti[i, t]), i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
+        ompr::add_constraint(route[i, k, j, t] <= (x[k, j] * ti[k, t]), i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
+        # TSP: cada UC sai para exatamente uma outra UC na mesma agência por período (ciclo fechado)
+        ompr::add_constraint(ompr::sum_over(route[i, k, j, t], k = 1:n) == x[i, j] * ti[i, t], i = 1:n, j = 1:m, t = 1:p) |>
+        # TSP: cada UC recebe de exatamente uma outra UC na mesma agência por período (ciclo fechado)
+        ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n) == x[k, j] * ti[k, t], k = 1:n, j = 1:m, t = 1:p) |>
+        # TSP: se há múltiplas UCs, deve haver exatamente n_ucs conexões por agência/período (ciclo fechado)
+        ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n, k = 1:n) ==
+                               ompr::sum_over(x[i, j] * ti[i, t], i = 1:n), j = 1:m, t = 1:p) |>
+        # TSP: subtour elimination (Miller-Tucker-Zemlin) por período
+        # Primeiro garantimos que u[i,j,t] >= 2 para i >= 2
+        ompr::add_constraint(u[i, j, t] >= 2, i = 2:n, j = 1:m, t = 1:p) |>
+        # Depois aplicamos a restrição MTZ para eliminar subciclos
+        ompr::add_constraint(u[i, j, t] - u[k, j, t] + 1 <= (n - 1) * (1 - route[i, k, j, t]),
+                             i = 2:n, k = 2:n, j = 1:m, t = 1:p, i != k)
+    }
+    # Respeitar o máximo de entrevistadores por agencia
+    if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
+      model <- model |>
+        ompr::add_constraint(w[j] <= agencias_t$n_entrevistadores_agencia_max[j], j = 1:m)
+    }
+    # Respeitar o máximo de diárias por entrevistador
+    if (any(is.finite({diarias_entrevistador_max}))) {
+      model <- model |>
+        ompr::add_constraint(ompr::sum_over(x[i, j] * diarias_i_j[i, j], i = 1:n) <= (diarias_entrevistador_max *
+                                                                                        w[j]), j = 1:m)
+    }
+    model
+  }
   tictoc::tic.clearlog()
   tictoc::tic("Tempo total da otimização", log=TRUE)
   cli::cli_progress_step("Preparando os dados")
@@ -479,10 +571,7 @@ orce <- function(ucs,
         # Custos de roteamento TSP por período (peso peso_tsp)
         ompr::sum_over(peso_tsp * (dist_uc_uc[i, k] / kml * custo_litro_combustivel +
                                   duracao_uc_uc[i, k] * custo_hora_viagem) *
-                       dias_coleta_ijt(i, j, t) * 2 * route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
-        # Custos TSP: agência para UC e UC para agência (uma vez por UC no período)
-        ompr::sum_over(peso_tsp * (custo_combustivel_i_j[i, j] + custo_horas_viagem_i_j[i, j]) *
-                       x[i, j] * ti[i, t], i = 1:n, j = 1:m, t = 1:p) +
+                       (dias_coleta_ijt(i, j, t)>0)  * route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
         # Custos fixos e entrevistadores
         ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
                      w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
@@ -519,15 +608,19 @@ orce <- function(ucs,
       # TSP constraints: route só existe se ambas UCs estão na mesma agência e mesmo período
       ompr::add_constraint(route[i, k, j, t] <= (x[i, j] * ti[i, t]), i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
       ompr::add_constraint(route[i, k, j, t] <= (x[k, j] * ti[k, t]), i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
-      # TSP: cada UC sai para no máximo uma outra UC na mesma agência por período
-      ompr::add_constraint(ompr::sum_over(route[i, k, j, t], k = 1:n) <= x[i, j] * ti[i, t], i = 1:n, j = 1:m, t = 1:p) |>
-      # TSP: cada UC recebe de no máximo uma outra UC na mesma agência por período
-      ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n) <= x[k, j] * ti[k, t], k = 1:n, j = 1:m, t = 1:p) |>
-      # TSP: se há múltiplas UCs, deve haver pelo menos (n_ucs - 1) conexões por agência/período
-      ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n, k = 1:n) >=
-                          ompr::sum_over(x[i, j] * ti[i, t], i = 1:n) - 1, j = 1:m, t = 1:p) |>
+      # TSP: cada UC sai para exatamente uma outra UC na mesma agência por período (ciclo fechado)
+      ompr::add_constraint(ompr::sum_over(route[i, k, j, t], k = 1:n) == x[i, j] * ti[i, t], i = 1:n, j = 1:m, t = 1:p) |>
+      # TSP: cada UC recebe de exatamente uma outra UC na mesma agência por período (ciclo fechado)
+      ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n) == x[k, j] * ti[k, t], k = 1:n, j = 1:m, t = 1:p) |>
+      # TSP: se há múltiplas UCs, deve haver exatamente n_ucs conexões por agência/período (ciclo fechado)
+      ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n, k = 1:n) ==
+                          ompr::sum_over(x[i, j] * ti[i, t], i = 1:n), j = 1:m, t = 1:p) |>
       # TSP: subtour elimination (Miller-Tucker-Zemlin) por período
-      ompr::add_constraint(u[i, j, t] - u[k, j, t] + n * route[i, k, j, t] <= n - 1, i = 1:n, k = 1:n, j = 1:m, t = 1:p)
+      # Primeiro garantimos que u[i,j,t] >= 2 para i >= 2
+      ompr::add_constraint(u[i, j, t] >= 2, i = 2:n, j = 1:m, t = 1:p) |>
+      # Depois aplicamos a restrição MTZ para eliminar subciclos
+      ompr::add_constraint(u[i, j, t] - u[k, j, t] + 1 <= (n - 1) * (1 - route[i, k, j, t]),
+                         i = 2:n, k = 2:n, j = 1:m, t = 1:p, i != k)
   }
   # Respeitar o máximo de entrevistadores por agencia
   if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
@@ -759,7 +852,7 @@ orce <- function(ucs,
 #' @return Resultado da função orce com dados simulados
 #'
 #' @export
-teste_orce_tsp <- function(n_agencias = 10, n_ucs = 30, n_periodos = 2, peso_tsp = 0.5, solver = "cbc", model="mip") {
+teste_orce_tsp <- function(n_agencias = 3, n_ucs = 20, n_periodos = 2, peso_tsp = 0.5, solver = "cbc", orce_function=orce::orce, ...) {
   requireNamespace("dplyr")
 
   # Gerar agências aleatórias
@@ -836,14 +929,7 @@ teste_orce_tsp <- function(n_agencias = 10, n_ucs = 30, n_periodos = 2, peso_tsp
   cat("peso_tsp =", peso_tsp, "\n")
 
   # Executar orce
-  if (model=="mip") {
-    orce_now <- orce
-  } else if (model=="milp") {
-    orce_now <- orce_milp
-  } else {
-    stop("model not known")
-  }
-  resultado <- orce_now(
+  resultado <- orce_function(
     ucs = ucs,
     agencias = agencias,
     distancias_ucs = distancias_ucs,
@@ -853,8 +939,8 @@ teste_orce_tsp <- function(n_agencias = 10, n_ucs = 30, n_periodos = 2, peso_tsp
     peso_tsp = peso_tsp,
     solver = solver,
     max_time = 300,
-    use_cache = FALSE,
-    resultado_completo = TRUE
+    use_cache = TRUE,
+    resultado_completo = TRUE, ...
   )
 
   # Mostrar resumo dos resultados
@@ -871,167 +957,6 @@ teste_orce_tsp <- function(n_agencias = 10, n_ucs = 30, n_periodos = 2, peso_tsp
   return(resultado)
 }
 
-#' Alocação Otimizada com TSP usando MILP
-#'
-#' Versão alternativa usando MILP (Mixed Integer Linear Programming) ao invés de MIPModel
-#'
-#' @param ucs,agencias,distancias_ucs,distancias_ucs_ucs,peso_tsp Mesmos parâmetros da função orce principal
-#' @param ... Outros parâmetros passados para orce
-#'
-#' @return Resultado similar à função orce principal
-#' @export
-orce_milp <- function(ucs, agencias, distancias_ucs, distancias_ucs_ucs = NULL, peso_tsp = 0, ...) {
-  requireNamespace("dplyr")
-  require("ompr")
-  require("ROI")
-  require("ompr.roi")
-
-  # Pré-processamento similar à versão principal
-  ucs <- ucs |>
-    dplyr::ungroup() |>
-    sf::st_drop_geometry() |>
-    dplyr::mutate(i = 1:dplyr::n())
-
-  agencias <- agencias |>
-    dplyr::ungroup() |>
-    sf::st_drop_geometry() |>
-    dplyr::mutate(j = 1:dplyr::n())
-
-  n <- nrow(ucs)
-  m <- nrow(agencias)
-
-  # Criar períodos
-  periodos <- ucs |> dplyr::distinct(data) |> dplyr::mutate(t = 1:dplyr::n())
-  p <- nrow(periodos)
-
-  # Calcular custos de transporte (versão simplificada)
-  custos_transport <- matrix(0, n, m)
-  for(i in 1:n) {
-    for(j in 1:m) {
-      uc_code <- ucs$uc[i]
-      ag_code <- agencias$agencia_codigo[j]
-
-      dist_info <- distancias_ucs |>
-        dplyr::filter(uc == uc_code, agencia_codigo == ag_code)
-
-      if(nrow(dist_info) > 0) {
-        custos_transport[i,j] <- dist_info$distancia_km[1] * 2 * 6/10 * ucs$dias_coleta[i] # custo simplificado
-      } else {
-        custos_transport[i,j] <- 9999
-      }
-    }
-  }
-
-  # Criar modelo MILP
-  model <- MILPModel() |>
-    # Variáveis de alocação UC-agência
-    add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
-    # Variáveis de ativação de agência
-    add_variable(y[j], j = 1:m, type = "binary")
-
-  # Adicionar variáveis TSP se peso_tsp > 0
-  if (peso_tsp > 0 && !is.null(distancias_ucs_ucs)) {
-    # Criar matriz de distâncias UC-UC
-    dist_uc_uc <- matrix(9999, n, n)
-    for(i in 1:n) {
-      for(k in 1:n) {
-        if(i != k) {
-          uc_i <- ucs$uc[i]
-          uc_k <- ucs$uc[k]
-
-          dist_info <- distancias_ucs_ucs |>
-            dplyr::filter(uc_orig == uc_i, uc_dest == uc_k)
-
-          if(nrow(dist_info) > 0) {
-            dist_uc_uc[i,k] <- dist_info$distancia_km[1]
-          }
-        }
-      }
-    }
-
-    model <- model |>
-      # Variáveis de roteamento TSP por período
-      add_variable(route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p, type = "binary") |>
-      # Variáveis auxiliares para eliminação de subtours
-      add_variable(u[i, j, t], i = 1:n, j = 1:m, t = 1:p, type = "continuous", lb = 1, ub = n)
-  }
-
-  # Definir função objetivo
-  if (peso_tsp > 0 && !is.null(distancias_ucs_ucs)) {
-    model <- model |>
-      set_objective(
-        # Custos de alocação ponderados
-        sum_expr((1 - peso_tsp) * custos_transport[i,j] * x[i,j], i = 1:n, j = 1:m) +
-        # Custos TSP ponderados
-        sum_expr(peso_tsp * dist_uc_uc[i,k] * route[i,k,j,t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
-        # Custos fixos das agências
-        sum_expr(agencias$custo_fixo[j] * y[j], j = 1:m),
-        "min"
-      )
-  } else {
-    model <- model |>
-      set_objective(
-        sum_expr(custos_transport[i,j] * x[i,j], i = 1:n, j = 1:m) +
-        sum_expr(agencias$custo_fixo[j] * y[j], j = 1:m),
-        "min"
-      )
-  }
-
-  # Adicionar constraints básicas
-  model <- model |>
-    # Cada UC deve ser alocada a exatamente uma agência
-    add_constraint(sum_expr(x[i,j], j = 1:m) == 1, i = 1:n) |>
-    # UC só pode ser alocada a agência ativa
-    add_constraint(x[i,j] <= y[j], i = 1:n, j = 1:m)
-
-  # Adicionar constraints TSP se necessário
-  if (peso_tsp > 0 && !is.null(distancias_ucs_ucs)) {
-    model <- model |>
-      # Rota só existe se ambas UCs estão na mesma agência
-      add_constraint(route[i,k,j,t] <= x[i,j], i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
-      add_constraint(route[i,k,j,t] <= x[k,j], i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
-      # Cada UC sai para no máximo uma UC por período
-      add_constraint(sum_expr(route[i,k,j,t], k = 1:n) <= 1, i = 1:n, j = 1:m, t = 1:p) |>
-      # Cada UC recebe de no máximo uma UC por período
-      add_constraint(sum_expr(route[i,k,j,t], i = 1:n) <= 1, k = 1:n, j = 1:m, t = 1:p) |>
-      # Eliminação de subtours (MTZ)
-      add_constraint(u[i,j,t] - u[k,j,t] + n * route[i,k,j,t] <= n - 1,
-                     i = 1:n, k = 1:n, j = 1:m, t = 1:p)
-  }
-
-  # Resolver modelo
-  result <- solve_model(model, with_ROI(solver = "glpk", verbose = TRUE))
-
-  # Extrair solução
-  alocacoes <- get_solution(result, x[i,j]) |>
-    dplyr::filter(value > 0.9) |>
-    dplyr::left_join(ucs |> dplyr::select(i, uc), by = "i") |>
-    dplyr::left_join(agencias |> dplyr::select(j, agencia_codigo), by = "j")
-
-  agencias_ativas <- get_solution(result, y[j]) |>
-    dplyr::filter(value > 0.9) |>
-    dplyr::left_join(agencias |> dplyr::select(j, agencia_codigo), by = "j")
-
-  # Extrair rotas TSP se existirem
-  rotas_tsp <- NULL
-  if (peso_tsp > 0 && !is.null(distancias_ucs_ucs)) {
-    rotas_tsp <- get_solution(result, route[i,k,j,t]) |>
-      dplyr::filter(value > 0.9) |>
-      dplyr::left_join(ucs |> dplyr::select(i, uc_orig = uc), by = "i") |>
-      dplyr::left_join(ucs |> dplyr::select(i = k, uc_dest = uc), by = c("k" = "i")) |>
-      dplyr::left_join(agencias |> dplyr::select(j, agencia_codigo), by = "j") |>
-      dplyr::left_join(periodos |> dplyr::select(t, data), by = "t") |>
-      dplyr::select(agencia_codigo, data, uc_orig, uc_dest)
-  }
-
-  return(list(
-    alocacoes = alocacoes,
-    agencias_ativas = agencias_ativas,
-    rotas_tsp = rotas_tsp,
-    valor_objetivo = objective_value(result),
-    status = solver_status(result)
-  ))
-}
 
 
 ## FIX
