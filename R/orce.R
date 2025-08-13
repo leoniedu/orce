@@ -182,20 +182,18 @@ orce <- function(ucs,
   model_mip <- function() {
     model <- ompr::MIPModel() |>
       # 1 sse uc i vai para a agencia j
-      ompr::add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
+      ompr::add_variable(x[i, k], i = 1:n, k = 1:m, type = "binary") |>
       # 1 sse agencia j ativada
-      ompr::add_variable(y[j], j = 1:m, type = "binary") |>
-      # trabalhadores na agencia j
-      ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf)
-
-
+      ompr::add_variable(y[k], k = 1:m, type = "binary") |>
+      # trabalhadores na agencia k
+      ompr::add_variable(w[k], k = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf)
     # Adicionar variáveis TSP somente se peso_tsp > 0
     if (peso_tsp > 0) {
       model <- model |>
         # TSP routing: 1 sse rota vai de uc i para uc k dentro da agencia j no período t
-        ompr::add_variable(route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p, type = "binary") |>
+        ompr::add_variable(route[i, j, k], i = 1:n, j = 1:n, k = 1:m, type = "binary") |>
         # TSP subtour elimination auxiliar por período
-        ompr::add_variable(u[i, j, t], i = 1:n, j = 1:m, t = 1:p, type = "continuous", lb = 1, ub = n)
+        ompr::add_variable(u[i, k], i = 1:n, k = 1:m, type = "continuous", lb = 1, ub = n)
     }
 
 
@@ -204,15 +202,15 @@ orce <- function(ucs,
         # minimizar custos com blend de round-trip e TSP
         ompr::set_objective(
           # Custos de transporte com ponderação TSP
-          ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
-            # Custos de roteamento TSP por período (peso peso_tsp)
-            ompr::sum_over(peso_tsp * (dist_uc_uc[i, k] / kml * custo_litro_combustivel +
-                                         duracao_uc_uc[i, k] * custo_hora_viagem) *
-                             route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
+          ompr::sum_over(transport_cost_i_k[i, k] * x[i, k], i = 1:n, k = 1:m) +
+            # Custos de roteamento TSP
+            ompr::sum_over(peso_tsp * (dist_uc_uc[i, j] / kml * custo_litro_combustivel +
+                                         duracao_uc_uc[i, j] * custo_hora_viagem) *
+                             route[i, j, k], i = 1:n, k = 1:m, j = 1:n) +
             # Custos fixos e entrevistadores
-            ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
-                             w[j] * (remuneracao_entrevistador + agencias_t$custo_treinamento_por_entrevistador[j]),
-                           j = 1:m),
+            ompr::sum_over((agencias_t$custo_fixo[k]) * y[k] +
+                             w[k] * (remuneracao_entrevistador + agencias_t$custo_treinamento_por_entrevistador[k]),
+                           k = 1:m),
           "min"
         )
     } else {
@@ -220,51 +218,52 @@ orce <- function(ucs,
         # minimizar custos sem TSP
         ompr::set_objective(
           # Custos de transporte completos
-          ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
+          ompr::sum_over(transport_cost_i_k[i, k] * x[i, k], i = 1:n, k = 1:m) +
             # Custos fixos e entrevistadores
-            ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
-                             w[j] * (remuneracao_entrevistador + agencias_t$custo_treinamento_por_entrevistador[j]),
-                           j = 1:m),
+            ompr::sum_over((agencias_t$custo_fixo[k]) * y[k] +
+                             w[k] * (remuneracao_entrevistador + agencias_t$custo_treinamento_por_entrevistador[k]),
+                           j = 1:k),
           "min"
         )
     }
 
     model <- model |>
       # toda UC precisa estar associada a uma agencia
-      ompr::add_constraint(ompr::sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
+      ompr::add_constraint(ompr::sum_over(x[i, k], k = 1:m) == 1, i = 1:n) |>
       # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
-      ompr::add_constraint(x[i, j] <= y[j], i = 1:n, j = 1:m) |>
+      ompr::add_constraint(x[i, k] <= y[k], i = 1:n, k = 1:m) |>
       # se agencia está ativa, w tem que ser >= n_entrevistadores_min
-      ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], j = 1:m) |>
+      ompr::add_constraint((y[k] * {n_entrevistadores_min}) <= w[k], k = 1:m) |>
       # w tem que ser suficiente para dar conta das ucs para todos os períodos
-      ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
+      ompr::add_constraint(ompr::sum_over(x[i, k] * dias_coleta_ikt(i, k, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), k = 1:m, t = 1:p)
 
     # Adicionar constraints TSP somente se peso_tsp > 0
     if (peso_tsp > 0) {
       model <- model |>
-        # TSP constraints: route só existe se ambas UCs estão na mesma agência e mesmo período
-        ompr::add_constraint(route[i, k, j, t] <= (x[i, j] * ti[i, t]*ti[k, t]), i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
-        # TSP: cada UC sai para exatamente uma outra UC na mesma agência por período (ciclo fechado)
-        ompr::add_constraint(ompr::sum_over(route[i, k, j, t], k = 1:n) == x[i, j] * ti[i, t], i = 1:n, j = 1:m, t = 1:p) |>
-        # TSP: cada UC recebe de exatamente uma outra UC na mesma agência por período (ciclo fechado)
-        ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n) == x[k, j] * ti[k, t], k = 1:n, j = 1:m, t = 1:p) |>
-        # TSP: subtour elimination (Miller-Tucker-Zemlin) por período
-        # Primeiro garantimos que u[i,j,t] >= 2 para i >= 2
-        ompr::add_constraint(u[i, j, t] >= 2, i = 2:n, j = 1:m, t = 1:p) |>
+        # you cannot go to the same city
+        add_constraint(route[i, i, k] == 0, i = 1:n, k = 1:m) |>
+        # if a salesman comes to a city he has to leave it as well
+        add_constraint(sum_over(route[j, i, k], j = 1:n) == sum_over(x[i, j, k], j = 1:n), i = 1:n, k = 1:m) |>
+        # leave each city with only one salesman
+        add_constraint(sum_over(x[i, j, k], j = 1:n, k = 1:m) == 1, i = 1:n) %>%
+        # arrive at each city with only one salesman
+        add_constraint(sum_over(x[i, j, k], i = 1:n, k = 1:m) == 1, j = 1:n) %>%
+        # TSP: subtour elimination (Miller-Tucker-Zemlin)
+        ompr::add_constraint(u[i, k] >= 2, i = 2:n, k = 1:m) |>
         # Depois aplicamos a restrição MTZ para eliminar subciclos
-        ompr::add_constraint(u[i, j, t] - u[k, j, t] + 1 <= (n - 1) * (1 - route[i, k, j, t]),
-                             i = 2:n, k = 2:n, j = 1:m, t = 1:p)
+        ompr::add_constraint(u[i, k] - u[j, k] + 1 <= (n - 1) * (1 - route[i, j, k]),
+                             i = 2:n, j = 2:n, k = 1:m)
     }
     # Respeitar o máximo de entrevistadores por agencia
     if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
       model <- model |>
-        ompr::add_constraint(w[j] <= agencias_t$n_entrevistadores_agencia_max[j], j = 1:m)
+        ompr::add_constraint(w[k] <= agencias_t$n_entrevistadores_agencia_max[k], k = 1:m)
     }
     # Respeitar o máximo de diárias por entrevistador
     if (any(is.finite({diarias_entrevistador_max}))) {
       model <- model |>
-        ompr::add_constraint(ompr::sum_over(x[i, j] * diarias_i_j[i, j], i = 1:n) <= (diarias_entrevistador_max *
-                                                                                        w[j]), j = 1:m)
+        ompr::add_constraint(ompr::sum_over(x[i, k] * diarias_i_k[i, k], i = 1:n) <= (diarias_entrevistador_max *
+                                                                                        w[k]), k = 1:m)
     }
     model
   }
@@ -468,30 +467,30 @@ orce <- function(ucs,
   stopifnot(all(u_dist_i_agencias$n == 1))
 
   # Função auxiliar para criar matriz de custos
-  make_i_j <- function(x, col) {
+  make_i_k <- function(x, col) {
     x |>
       dplyr::ungroup() |>
-      dplyr::select(dplyr::all_of(c("i", "j", col)))|>
-      tidyr::pivot_wider(id_cols = i, names_from = j, values_from = dplyr::all_of(col), names_sort = TRUE)|>
+      dplyr::select(dplyr::all_of(c("i", "k", col)))|>
+      tidyr::pivot_wider(id_cols = i, names_from = k, values_from = dplyr::all_of(col), names_sort = TRUE)|>
       dplyr::arrange(as.numeric(i)) |>
       dplyr::select(-i) |>
       as.matrix()
   }
   # Criar matrizes de custos separadas
-  transport_cost_i_j <- make_i_j(x = dist_i_agencias, col = "custo_deslocamento_com_troca")
-  diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias")
-  dias_coleta_i_j <- make_i_j(x = dist_i_agencias, col = "dias_coleta")
-  custo_combustivel_i_j <- make_i_j(x = dist_i_agencias, col = "custo_combustivel")
-  custo_horas_viagem_i_j <- make_i_j(x = dist_i_agencias, col = "custo_horas_viagem")
-  custo_diarias_i_j <- make_i_j(x = dist_i_agencias, col = "custo_diarias")
-  custo_troca_jurisdicao_i_j <- make_i_j(x = dist_i_agencias, col = "custo_troca_jurisdicao")
+  transport_cost_i_k <- make_i_k(x = dist_i_agencias, col = "custo_deslocamento_com_troca")
+  diarias_i_k <- make_i_k(x = dist_i_agencias, col = "total_diarias")
+  dias_coleta_i_k <- make_i_k(x = dist_i_agencias, col = "dias_coleta")
+  custo_combustivel_i_k <- make_i_k(x = dist_i_agencias, col = "custo_combustivel")
+  custo_horas_viagem_i_k <- make_i_k(x = dist_i_agencias, col = "custo_horas_viagem")
+  custo_diarias_i_k <- make_i_k(x = dist_i_agencias, col = "custo_diarias")
+  custo_troca_jurisdicao_i_k <- make_i_k(x = dist_i_agencias, col = "custo_troca_jurisdicao")
 
-  dias_coleta_ijt_df <- dist_uc_agencias|>
+  dias_coleta_ikt_df <- dist_uc_agencias|>
     dplyr::group_by(i,j,t)|>
     dplyr::summarise(dias_coleta=sum(dias_coleta, na.rm=TRUE))
-  dias_coleta_ijt <- function(i,j,t) {
-    x <- dias_coleta_ijt_df
-    sum(x[(x$i==i)& (x$j==j) &(x$t==t),"dias_coleta"], na.rm=TRUE)
+  dias_coleta_ikt <- function(i,k,t) {
+    x <- dias_coleta_ikt_df
+    sum(x[(x$i==i)& (x$k==k) &(x$t==t),"dias_coleta"], na.rm=TRUE)
   }
   cli::cli_progress_step("Preparando a otimização")
   # Criar modelo de otimização
@@ -589,12 +588,11 @@ orce <- function(ucs,
   if (peso_tsp > 0) {
     # Obter segmentos de rota ativos
     segmentos_rota <- result |>
-      ompr::get_solution(route[i, k, j, t]) |>
+      ompr::get_solution(route[i, k, j]) |>
       dplyr::filter(value > .9) |>
       dplyr::left_join(ucs_i |> dplyr::select(i, uc_orig = uc), by = "i") |>
       dplyr::left_join(ucs_i |> dplyr::select(i , uc_dest = uc), by = c("k" = "i")) |>
       dplyr::left_join(agencias_t |> dplyr::select(j, agencia_codigo), by = "j") |>
-      dplyr::left_join(indice_t |> dplyr::select(t, data), by = "t") |>
       dplyr::rowwise() |>
       dplyr::mutate(
         distancia_km = dist_uc_uc[i, k],
@@ -603,7 +601,7 @@ orce <- function(ucs,
 
     # Reconstruir tours completos por agência/período
     rotas_tsp <- segmentos_rota |>
-      dplyr::group_by(agencia_codigo, data) |>
+      dplyr::group_by(agencia_codigo) |>
       dplyr::summarise(
         n_segmentos = dplyr::n(),
         distancia_total_km = sum(distancia_km, na.rm = TRUE),
@@ -611,13 +609,13 @@ orce <- function(ucs,
         ucs_rota = paste(uc_orig, collapse = " -> "),
         .groups = "drop"
       ) |>
-      dplyr::arrange(agencia_codigo, data)
+      dplyr::arrange(agencia_codigo)
 
     # Manter também segmentos individuais se resultado_completo
     if (resultado_completo) {
       resultado$segmentos_tsp <- segmentos_rota |>
-        dplyr::select(agencia_codigo, data, uc_orig, uc_dest, distancia_km, duracao_horas) |>
-        dplyr::arrange(agencia_codigo, data, uc_orig)
+        dplyr::select(agencia_codigo, uc_orig, uc_dest, distancia_km, duracao_horas) |>
+        dplyr::arrange(agencia_codigo, uc_orig)
     }
   } else {
     rotas_tsp <- NULL
@@ -639,15 +637,15 @@ orce <- function(ucs,
         custo_horas_tsp = duracao_total_horas * custo_hora_viagem,
         custo_rota_tsp_total = custo_combustivel_tsp + custo_horas_tsp
       ) |>
-      dplyr::select(agencia_codigo, data, custo_rota_tsp_total)
+      dplyr::select(agencia_codigo, custo_rota_tsp_total)
 
     # Alocar custos TSP proporcionalmente aos custos round-trip
     resultado_ucs_otimo <- resultado_ucs_otimo |>
-      dplyr::left_join(custos_tsp_agencia_periodo, by = c("agencia_codigo", "data")) |>
+      dplyr::left_join(custos_tsp_agencia_periodo, by = c("agencia_codigo")) |>
       dplyr::mutate(
         custo_roundtrip_transporte = custo_combustivel + custo_horas_viagem
       ) |>
-      dplyr::group_by(agencia_codigo, data) |>
+      dplyr::group_by(agencia_codigo) |>
       dplyr::mutate(
         total_roundtrip_agencia_periodo = sum(custo_roundtrip_transporte, na.rm = TRUE),
         proporcao_roundtrip = custo_roundtrip_transporte / total_roundtrip_agencia_periodo,
@@ -690,7 +688,6 @@ orce <- function(ucs,
   # Criar resultados para agências - alocação ótima
   resultado_agencias_otimo <- agencias_t |>
     dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo')) |>
-    dplyr::select(-data)|>
     dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao), n_ucs=dplyr::n())|>
     dplyr::ungroup() |>
@@ -699,7 +696,7 @@ orce <- function(ucs,
     dplyr::mutate(custo_total_entrevistadores = entrevistadores * {remuneracao_entrevistador} + entrevistadores * custo_treinamento_por_entrevistador)
   ## dias de coleta por período máximo  por agencia de jurisdicao
   dias_coleta_j <- ucs_i|>
-    dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao,data)|>
+    dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao)|>
     dplyr::summarise(dias_coleta=sum(dias_coleta))|>
     dplyr::group_by(agencia_codigo)|>
     dplyr::arrange(desc(dias_coleta))|>
@@ -708,7 +705,7 @@ orce <- function(ucs,
   # Criar resultados para agências - jurisdição
   resultado_agencias_jurisdicao <- agencias_t|>
     dplyr::left_join(resultado_ucs_jurisdicao, by="agencia_codigo")|>
-    dplyr::select(-j, -custo_deslocamento_com_troca, -data)|>
+    dplyr::select(-j, -custo_deslocamento_com_troca)|>
     dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs = dplyr::n())|>
     dplyr::left_join(dias_coleta_j, by="agencia_codigo")|>
