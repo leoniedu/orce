@@ -8,7 +8,7 @@
 #' @param n Integer. Number of collection units (UCs)
 #' @param m Integer. Number of agencies
 #' @param p Integer. Number of time periods
-#' @param peso_tsp Numeric. TSP weight factor between 0 and 1. When 0, uses 
+#' @param peso_tsp Numeric. TSP weight factor between 0 and 1. When 0, uses
 #'   simple round-trip costs. When > 0, enables TSP routing optimization
 #' @param n_entrevistadores_tipo Character. Variable type for number of interviewers:
 #'   "continuous", "binary", or "integer"
@@ -19,7 +19,7 @@
 #' @param custo_litro_combustivel Numeric. Cost per liter of fuel
 #' @param custo_hora_viagem Numeric. Cost per hour of travel time
 #' @param dias_coleta_ijt Function. Returns collection days for UC i at agency j in period t
-#' @param agencias_t Data.frame. Agency data with columns: custo_fixo, 
+#' @param agencias_t Data.frame. Agency data with columns: custo_fixo,
 #'   custo_treinamento_por_entrevistador, n_entrevistadores_agencia_max
 #' @param remuneracao_entrevistador Numeric. Base salary per interviewer
 #' @param n_entrevistadores_min Integer. Minimum number of interviewers per active agency
@@ -64,58 +64,27 @@ model_milp <- function(n, m, p, peso_tsp, n_entrevistadores_tipo, transport_cost
                        remuneracao_entrevistador, n_entrevistadores_min,
                        dias_coleta_entrevistador_max, ti, diarias_entrevistador_max,
                        diarias_i_j, ...) {
-  # Helper functions for colwise usage with error checking
   transport_cost_fun <- function(i, j) {
     result <- vapply(seq_along(i), function(k) {
-      value <- (1 - peso_tsp) * transport_cost_i_j[i[k], j[k]]
-      if (is.na(value)) {
-        stop(sprintf(paste("transport_cost_fun: NA value at i=%d, j=%d (k=%d).",
-                           "Check transport_cost_i_j dimensions (%d x %d) and peso_tsp value (%s)"),
-                     i[k], j[k], k, nrow(transport_cost_i_j), ncol(transport_cost_i_j), peso_tsp))
-      }
+      value <-  transport_cost_i_j[i[k], j[k]]
       value
     }, numeric(1L))
-    if (any(is.na(result))) {
-      na_indices <- which(is.na(result))
-      stop(sprintf("transport_cost_fun: NA values found at positions %s",
-                   paste(na_indices, collapse = ", ")))
-    }
     result
   }
 
   transport_cost_simple_fun <- function(i, j) {
     result <- vapply(seq_along(i), function(k) {
       value <- transport_cost_i_j[i[k], j[k]]
-      if (is.na(value)) {
-        stop(sprintf(paste("transport_cost_simple_fun: NA value at i=%d, j=%d (k=%d).",
-                           "Check transport_cost_i_j[%d,%d]"),
-                     i[k], j[k], k, i[k], j[k]))
-      }
       value
     }, numeric(1L))
-    if (any(is.na(result))) {
-      na_indices <- which(is.na(result))
-      stop(sprintf("transport_cost_simple_fun: NA values found at positions %s",
-                   paste(na_indices, collapse = ", ")))
-    }
     result
   }
 
   fixed_cost_fun <- function(j) {
     result <- vapply(seq_along(j), function(k) {
       value <- agencias_t$custo_fixo[j[k]]
-      if (is.na(value)) {
-        stop(sprintf(paste("fixed_cost_fun: NA value at j=%d (k=%d).",
-                           "Check agencias_t$custo_fixo[%d], length=%d"),
-                     j[k], k, j[k], length(agencias_t$custo_fixo)))
-      }
       value
     }, numeric(1L))
-    if (any(is.na(result))) {
-      na_indices <- which(is.na(result))
-      stop(sprintf("fixed_cost_fun: NA values found at positions %s",
-                   paste(na_indices, collapse = ", ")))
-    }
     result
   }
 
@@ -124,19 +93,8 @@ model_milp <- function(n, m, p, peso_tsp, n_entrevistadores_tipo, transport_cost
       base_cost <- remuneracao_entrevistador
       training_cost <- agencias_t$custo_treinamento_por_entrevistador[j[k]]
       value <- base_cost + training_cost
-      if (is.na(value)) {
-        stop(sprintf(paste("training_cost_fun: NA value at j=%d (k=%d).",
-                           "base_cost=%s, training_cost=%s, agencias_t length=%d"),
-                     j[k], k, base_cost, training_cost,
-                     length(agencias_t$custo_treinamento_por_entrevistador)))
-      }
       value
     }, numeric(1L))
-    if (any(is.na(result))) {
-      na_indices <- which(is.na(result))
-      stop(sprintf("training_cost_fun: NA values found at positions %s",
-                   paste(na_indices, collapse = ", ")))
-    }
     result
   }
 
@@ -145,92 +103,41 @@ model_milp <- function(n, m, p, peso_tsp, n_entrevistadores_tipo, transport_cost
       dist_cost <- dist_uc_uc[i[idx], k[idx]] / kml * custo_litro_combustivel
       time_cost <- duracao_uc_uc[i[idx], k[idx]] * custo_hora_viagem
       collection_indicator <- dias_coleta_ijt(i[idx], j[idx], t[idx]) > 0
-      value <- peso_tsp * (dist_cost + time_cost) * collection_indicator
-      if (is.na(value)) {
-        stop(sprintf(paste("tsp_cost_fun: NA value at i=%d, k=%d, j=%d, t=%d (idx=%d).",
-                           "dist_cost=%s, time_cost=%s, collection_indicator=%s, peso_tsp=%s"),
-                     i[idx], k[idx], j[idx], t[idx], idx, dist_cost, time_cost,
-                     collection_indicator, peso_tsp))
-      }
+      value <-  (dist_cost + time_cost) * collection_indicator
       value
     }, numeric(1L))
-    if (any(is.na(result))) {
-      na_indices <- which(is.na(result))
-      stop(sprintf("tsp_cost_fun: NA values found at positions %s",
-                   paste(na_indices, collapse = ", ")))
-    }
     result
   }
 
   dias_coleta_fun <- function(i, j, t) {
     result <- vapply(seq_along(i), function(k) {
       value <- dias_coleta_ijt(i[k], j[k], t[k])
-      if (is.na(value)) {
-        stop(sprintf(paste("dias_coleta_fun: NA value at i=%d, j=%d, t=%d (k=%d).",
-                           "Check dias_coleta_ijt function"),
-                     i[k], j[k], t[k], k))
-      }
       value
     }, numeric(1L))
-    if (any(is.na(result))) {
-      na_indices <- which(is.na(result))
-      stop(sprintf("dias_coleta_fun: NA values found at positions %s",
-                   paste(na_indices, collapse = ", ")))
-    }
     result
   }
 
   ti_fun <- function(i, t) {
     result <- vapply(seq_along(i), function(k) {
       value <- ti[i[k], t[k]]
-      if (is.na(value)) {
-        stop(sprintf(paste("ti_fun: NA value at i=%d, t=%d (k=%d).",
-                           "Check ti matrix dimensions (%d x %d)"),
-                     i[k], t[k], k, nrow(ti), ncol(ti)))
-      }
       value
     }, numeric(1L))
-    if (any(is.na(result))) {
-      na_indices <- which(is.na(result))
-      stop(sprintf("ti_fun: NA values found at positions %s",
-                   paste(na_indices, collapse = ", ")))
-    }
     result
   }
 
   max_entrevistadores_fun <- function(j) {
     result <- vapply(seq_along(j), function(k) {
       value <- agencias_t$n_entrevistadores_agencia_max[j[k]]
-      if (is.na(value)) {
-        stop(sprintf(paste("max_entrevistadores_fun: NA value at j=%d (k=%d).",
-                           "Check agencias_t$n_entrevistadores_agencia_max[%d], length=%d"),
-                     j[k], k, j[k], length(agencias_t$n_entrevistadores_agencia_max)))
-      }
       value
     }, numeric(1L))
-    if (any(is.na(result))) {
-      na_indices <- which(is.na(result))
-      stop(sprintf("max_entrevistadores_fun: NA values found at positions %s",
-                   paste(na_indices, collapse = ", ")))
-    }
     result
   }
 
   diarias_fun <- function(i, j) {
     result <- vapply(seq_along(i), function(k) {
       value <- diarias_i_j[i[k], j[k]]
-      if (is.na(value)) {
-        stop(sprintf(paste("diarias_fun: NA value at i=%d, j=%d (k=%d).",
-                           "Check diarias_i_j[%d,%d], dimensions (%d x %d)"),
-                     i[k], j[k], k, i[k], j[k], nrow(diarias_i_j), ncol(diarias_i_j)))
-      }
       value
     }, numeric(1L))
-    if (any(is.na(result))) {
-      na_indices <- which(is.na(result))
-      stop(sprintf("diarias_fun: NA values found at positions %s",
-                   paste(na_indices, collapse = ", ")))
-    }
     result
   }
 
@@ -261,10 +168,10 @@ model_milp <- function(n, m, p, peso_tsp, n_entrevistadores_tipo, transport_cost
         # Custos de transporte com ponderação TSP
         sum_expr(colwise(transport_cost_fun(i, j)) * x[i, j], i = 1:n, j = 1:m) +
           # Custos de roteamento TSP por período (peso peso_tsp)
-          sum_expr(colwise(tsp_cost_fun(i, k, j, t)) * route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
+          sum_expr(peso_tsp*colwise(tsp_cost_fun(i, k, j, t)) * route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
           # Custos fixos e entrevistadores
-          sum_expr(colwise(fixed_cost_fun(j)) * y[j] +
-                     colwise(training_cost_fun(j)) * w[j],
+          sum_expr(agencias_t$custo_fixo[j] * y[j] +
+                     (remuneracao_entrevistador + agencias_t$custo_treinamento_por_entrevistador[j]) * w[j],
                    j = 1:m),
         "min"
       )
@@ -275,8 +182,8 @@ model_milp <- function(n, m, p, peso_tsp, n_entrevistadores_tipo, transport_cost
         # Custos de transporte completos
         sum_expr(colwise(transport_cost_simple_fun(i, j)) * x[i, j], i = 1:n, j = 1:m) +
           # Custos fixos e entrevistadores
-          sum_expr(colwise(fixed_cost_fun(j)) * y[j] +
-                     colwise(training_cost_fun(j)) * w[j],
+          sum_expr(agencias_t$custo_fixo[j] * y[j] +
+                     (remuneracao_entrevistador + agencias_t$custo_treinamento_por_entrevistador[j]) * w[j],
                    j = 1:m),
         "min"
       )
@@ -307,12 +214,14 @@ model_milp <- function(n, m, p, peso_tsp, n_entrevistadores_tipo, transport_cost
       # TSP: cada UC recebe de exatamente uma outra UC na mesma agência por período (ciclo fechado)
       ompr::add_constraint(sum_expr(route[i, k, j, t], i = 1:n) == x[k, j] * colwise(ti_fun(k, t)),
                            k = 1:n, j = 1:m, t = 1:p) |>
+      # you cannot go to the same city
+      set_bounds(route[i, i,j,t], ub = 0, i = 1:n,j=1:m, t=1:p) |>
       # TSP: subtour elimination (Miller-Tucker-Zemlin) por período
       # Primeiro garantimos que u[i,j,t] >= 2 para i >= 2
       ompr::add_constraint(u[i, j, t] >= 2, i = 2:n, j = 1:m, t = 1:p) |>
       # Depois aplicamos a restrição MTZ para eliminar subciclos
-      ompr::add_constraint(u[i, j, t] - u[k, j, t] + 1 <= (n - 1) * (1 - route[i, k, j, t]),
-                           i = 2:n, k = 2:n, j = 1:m, t = 1:p, i != k)
+      ompr::add_constraint(u[i, j, t] - u[k, j, t] + 1 <= ((n - 1) * (1 - route[i, k, j, t])),
+                           i = 2:n, k = 2:n, j = 1:m, t = 1:p)
   }
   # Respeitar o máximo de entrevistadores por agencia
   if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {

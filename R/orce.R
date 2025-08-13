@@ -519,6 +519,7 @@ orce <- function(ucs,
         duracao_horas = duracao_uc_uc[i, k]
       )
 
+
     # Reconstruir tours completos por agência/período
     rotas_tsp <- segmentos_rota |>
       dplyr::group_by(agencia_codigo, data) |>
