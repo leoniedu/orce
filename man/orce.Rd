@@ -31,6 +31,7 @@ orce(
   rel_tol = 0.005,
   max_time = 30 * 60,
   use_cache = TRUE,
+  orce_model = model_mip,
   ...
 )
 }
