@@ -106,6 +106,7 @@ orce <- function(ucs,
                        rel_tol = .005,
                        max_time = 30 * 60,
                        use_cache = TRUE,
+                 orce_model=model_mip,
                        ...) {
 
   # List of all arguments to pass
@@ -132,7 +133,7 @@ orce <- function(ucs,
     resultado_completo = resultado_completo,
     solver = solver,
     rel_tol = rel_tol,
-    max_time = max_time )
+    max_time = max_time, orce_model=orce_model )
 
   # Add any additional arguments
   args <- c(args, list(...))
@@ -178,101 +179,8 @@ orce <- function(ucs,
                              solver,
                              rel_tol,
                              max_time,
+                       orce_model,
                              ...) {
-  model_mip <- function() {
-    model <- ompr::MIPModel() |>
-      # 1 sse uc i vai para a agencia j
-      ompr::add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
-      # 1 sse agencia j ativada
-      ompr::add_variable(y[j], j = 1:m, type = "binary") |>
-      # trabalhadores na agencia j
-      ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf)
-
-
-    # Adicionar variáveis TSP somente se peso_tsp > 0
-    if (peso_tsp > 0) {
-      model <- model |>
-        # TSP routing: 1 sse rota vai de uc i para uc k dentro da agencia j no período t
-        ompr::add_variable(route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p, type = "binary") |>
-        # TSP subtour elimination auxiliar por período
-        ompr::add_variable(u[i, j, t], i = 1:n, j = 1:m, t = 1:p, type = "continuous", lb = 1, ub = n)
-    }
-
-
-    # Definir objetivo condicionalmente
-    if (peso_tsp > 0) {
-      model <- model |>
-        # minimizar custos com blend de round-trip e TSP
-        ompr::set_objective(
-          # Custos de transporte com ponderação TSP
-          ompr::sum_over((1 - peso_tsp) * transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
-            # Custos de roteamento TSP por período (peso peso_tsp)
-            ompr::sum_over(peso_tsp * (dist_uc_uc[i, k] / kml * custo_litro_combustivel +
-                                         duracao_uc_uc[i, k] * custo_hora_viagem) *
-                             (dias_coleta_ijt(i, j, t)>0)  * route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
-            # Custos fixos e entrevistadores
-            ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
-                             w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
-                           j = 1:m),
-          "min"
-        )
-    } else {
-      model <- model |>
-        # minimizar custos sem TSP
-        ompr::set_objective(
-          # Custos de transporte completos
-          ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
-            # Custos fixos e entrevistadores
-            ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
-                             w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
-                           j = 1:m),
-          "min"
-        )
-    }
-
-    model <- model |>
-      # toda UC precisa estar associada a uma agencia
-      ompr::add_constraint(ompr::sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
-      # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
-      ompr::add_constraint(x[i, j] <= y[j], i = 1:n, j = 1:m) |>
-      # se agencia está ativa, w tem que ser >= n_entrevistadores_min
-      ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], j = 1:m) |>
-      # w tem que ser suficiente para dar conta das ucs para todos os períodos
-      ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
-
-    # Adicionar constraints TSP somente se peso_tsp > 0
-    if (peso_tsp > 0) {
-      model <- model |>
-        # TSP constraints: route só existe se ambas UCs estão na mesma agência e mesmo período
-        ompr::add_constraint(route[i, k, j, t] <= (x[i, j] * ti[i, t]), i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
-        ompr::add_constraint(route[i, k, j, t] <= (x[k, j] * ti[k, t]), i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
-        # TSP: cada UC sai para exatamente uma outra UC na mesma agência por período (ciclo fechado)
-        ompr::add_constraint(ompr::sum_over(route[i, k, j, t], k = 1:n) == x[i, j] * ti[i, t], i = 1:n, j = 1:m, t = 1:p) |>
-        # TSP: cada UC recebe de exatamente uma outra UC na mesma agência por período (ciclo fechado)
-        ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n) == x[k, j] * ti[k, t], k = 1:n, j = 1:m, t = 1:p) |>
-        # TSP: se há múltiplas UCs, deve haver exatamente n_ucs conexões por agência/período (ciclo fechado)
-        ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n, k = 1:n) ==
-                               ompr::sum_over(x[i, j] * ti[i, t], i = 1:n), j = 1:m, t = 1:p) |>
-        # TSP: subtour elimination (Miller-Tucker-Zemlin) por período
-        # Primeiro garantimos que u[i,j,t] >= 2 para i >= 2
-        ompr::add_constraint(u[i, j, t] >= 2, i = 2:n, j = 1:m, t = 1:p) |>
-        # Depois aplicamos a restrição MTZ para eliminar subciclos
-        ompr::add_constraint(u[i, j, t] - u[k, j, t] + 1 <= (n - 1) * (1 - route[i, k, j, t]),
-                             i = 2:n, k = 2:n, j = 1:m, t = 1:p, i != k)
-    }
-    # Respeitar o máximo de entrevistadores por agencia
-    if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
-      model <- model |>
-        ompr::add_constraint(w[j] <= agencias_t$n_entrevistadores_agencia_max[j], j = 1:m)
-    }
-    # Respeitar o máximo de diárias por entrevistador
-    if (any(is.finite({diarias_entrevistador_max}))) {
-      model <- model |>
-        ompr::add_constraint(ompr::sum_over(x[i, j] * diarias_i_j[i, j], i = 1:n) <= (diarias_entrevistador_max *
-                                                                                        w[j]), j = 1:m)
-    }
-    model
-  }
   tictoc::tic.clearlog()
   tictoc::tic("Tempo total da otimização", log=TRUE)
   cli::cli_progress_step("Preparando os dados")
@@ -542,97 +450,12 @@ orce <- function(ucs,
     duracao_uc_uc <- matrix(0, nrow = n, ncol = n)
   }
 
-  model <- ompr::MIPModel() |>
-    # 1 sse uc i vai para a agencia j
-    ompr::add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
-    # 1 sse agencia j ativada
-    ompr::add_variable(y[j], j = 1:m, type = "binary") |>
-    # trabalhadores na agencia j
-    ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf)
-
-
-  # Adicionar variáveis TSP somente se peso_tsp > 0
-  if (peso_tsp > 0) {
-    model <- model |>
-      # TSP routing: 1 sse rota vai de uc i para uc k dentro da agencia j no período t
-      ompr::add_variable(route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p, type = "binary") |>
-      # TSP subtour elimination auxiliar por período
-      ompr::add_variable(u[i, j, t], i = 1:n, j = 1:m, t = 1:p, type = "continuous", lb = 1, ub = n)
-  }
-
-
-  # Definir objetivo condicionalmente
-  if (peso_tsp > 0) {
-    model <- model |>
-      # minimizar custos com blend de round-trip e TSP
-      ompr::set_objective(
-        # Custos de transporte com ponderação TSP
-        ompr::sum_over((1 - peso_tsp) * transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
-        # Custos de roteamento TSP por período (peso peso_tsp)
-        ompr::sum_over(peso_tsp * (dist_uc_uc[i, k] / kml * custo_litro_combustivel +
-                                  duracao_uc_uc[i, k] * custo_hora_viagem) *
-                       (dias_coleta_ijt(i, j, t)>0)  * route[i, k, j, t], i = 1:n, k = 1:n, j = 1:m, t = 1:p) +
-        # Custos fixos e entrevistadores
-        ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
-                     w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
-                   j = 1:m),
-        "min"
-      )
-  } else {
-    model <- model |>
-      # minimizar custos sem TSP
-      ompr::set_objective(
-        # Custos de transporte completos
-        ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
-        # Custos fixos e entrevistadores
-        ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
-                     w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
-                   j = 1:m),
-        "min"
-      )
-  }
-
-  model <- model |>
-    # toda UC precisa estar associada a uma agencia
-    ompr::add_constraint(ompr::sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
-    # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
-    ompr::add_constraint(x[i, j] <= y[j], i = 1:n, j = 1:m) |>
-    # se agencia está ativa, w tem que ser >= n_entrevistadores_min
-    ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], j = 1:m) |>
-    # w tem que ser suficiente para dar conta das ucs para todos os períodos
-    ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
-
-  # Adicionar constraints TSP somente se peso_tsp > 0
-  if (peso_tsp > 0) {
-    model <- model |>
-      # TSP constraints: route só existe se ambas UCs estão na mesma agência e mesmo período
-      ompr::add_constraint(route[i, k, j, t] <= (x[i, j] * ti[i, t]), i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
-      ompr::add_constraint(route[i, k, j, t] <= (x[k, j] * ti[k, t]), i = 1:n, k = 1:n, j = 1:m, t = 1:p) |>
-      # TSP: cada UC sai para exatamente uma outra UC na mesma agência por período (ciclo fechado)
-      ompr::add_constraint(ompr::sum_over(route[i, k, j, t], k = 1:n) == x[i, j] * ti[i, t], i = 1:n, j = 1:m, t = 1:p) |>
-      # TSP: cada UC recebe de exatamente uma outra UC na mesma agência por período (ciclo fechado)
-      ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n) == x[k, j] * ti[k, t], k = 1:n, j = 1:m, t = 1:p) |>
-      # TSP: se há múltiplas UCs, deve haver exatamente n_ucs conexões por agência/período (ciclo fechado)
-      ompr::add_constraint(ompr::sum_over(route[i, k, j, t], i = 1:n, k = 1:n) ==
-                          ompr::sum_over(x[i, j] * ti[i, t], i = 1:n), j = 1:m, t = 1:p) |>
-      # TSP: subtour elimination (Miller-Tucker-Zemlin) por período
-      # Primeiro garantimos que u[i,j,t] >= 2 para i >= 2
-      ompr::add_constraint(u[i, j, t] >= 2, i = 2:n, j = 1:m, t = 1:p) |>
-      # Depois aplicamos a restrição MTZ para eliminar subciclos
-      ompr::add_constraint(u[i, j, t] - u[k, j, t] + 1 <= (n - 1) * (1 - route[i, k, j, t]),
-                         i = 2:n, k = 2:n, j = 1:m, t = 1:p, i != k)
-  }
-  # Respeitar o máximo de entrevistadores por agencia
-  if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
-    model <- model |>
-      ompr::add_constraint(w[j] <= agencias_t$n_entrevistadores_agencia_max[j], j = 1:m)
-  }
-  # Respeitar o máximo de diárias por entrevistador
-  if (any(is.finite({diarias_entrevistador_max}))) {
-    model <- model |>
-      ompr::add_constraint(ompr::sum_over(x[i, j] * diarias_i_j[i, j], i = 1:n) <= (diarias_entrevistador_max *
-                                                                          w[j]), j = 1:m)
-  }
+  model <- orce_model(n, m, p, peso_tsp, n_entrevistadores_tipo, transport_cost_i_j,
+                      dist_uc_uc, duracao_uc_uc, kml, custo_litro_combustivel,
+                      custo_hora_viagem, dias_coleta_ijt, agencias_t,
+                      remuneracao_entrevistador, n_entrevistadores_min,
+                      dias_coleta_entrevistador_max, ti, diarias_entrevistador_max,
+                      diarias_i_j)
 
   cli::cli_progress_step("Otimizando...")
 

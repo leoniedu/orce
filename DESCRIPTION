@@ -21,9 +21,11 @@ URL: https://leoniedu.github.io/orce/
 Imports: 
     checkmate,
     cli,
+    data.table,
     dplyr,
     ompr,
     ompr.roi,
+    utils,
     rlang,
     tibble,
     tidyr,
