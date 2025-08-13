@@ -95,6 +95,8 @@ orce <- function(ucs,
                        rel_tol = .005,
                        max_time = 30 * 60,
                        use_cache = TRUE,
+                 distancias_ucs_ucs=NULL,
+                 peso_tsp=.5,
                        ...) {
 
   # List of all arguments to pass
@@ -119,7 +121,9 @@ orce <- function(ucs,
     resultado_completo = resultado_completo,
     solver = solver,
     rel_tol = rel_tol,
-    max_time = max_time
+    max_time = max_time,
+    distancias_ucs_ucs=distancias_ucs_ucs,
+    peso_tsp=peso_tsp
   )
 
   # Add any additional arguments
@@ -164,6 +168,8 @@ orce <- function(ucs,
                              solver,
                              rel_tol,
                              max_time,
+                       distancias_ucs_ucs,
+                       peso_tsp,
                              ...) {
   tictoc::tic.clearlog()
   tictoc::tic("Tempo total da otimização", log=TRUE)
@@ -384,6 +390,10 @@ orce <- function(ucs,
   n <- max(ucs$i)
   m <- max(agencias_t$j)
   p <- max(indice_t$t)
+  # Índices para TSP multi-depósitos: primeiros m nós são as agências (bases),
+  # nós m+1..m+n são as UCs.
+  n_uc <- n
+  N <- m + n_uc
 
   stopifnot((agencias_t$j) == (1:nrow(agencias_t)))
   model <- ompr::MIPModel() |>
@@ -392,15 +402,62 @@ orce <- function(ucs,
     # 1 sse agencia j ativada
     ompr::add_variable(y[j], j = 1:m, type = "binary") |>
     # trabalhadores na agencia j
-    ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf) |>
-    # minimizar custos
-    ompr::set_objective(
-      ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
-        ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
-                   w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
-                 j = 1:m),
-      "min"
-    ) |>
+    ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf)
+  tsp <- peso_tsp>0
+  if (tsp) {
+    # sanity checks for distancias_ucs_ucs dimensions
+    stopifnot(!is.null(distancias_ucs_ucs))
+    stopifnot(nrow(distancias_ucs_ucs) == N && ncol(distancias_ucs_ucs) == N)
+
+    model <- model |>
+      # route[i,k,j] = 1 se o vendedor j percorre o arco i->k (multi-depósito)
+      add_variable(route[i, k, j], i = 1:N, k = 1:N, j = 1:m, type = "binary") %>%
+
+      # variável auxiliar MTZ apenas para nós de UCs (indexadas 1..n_uc)
+      add_variable(u[q, j], q = 1:n_uc, j = 1:m, lb = 1, ub = n_uc) %>%
+      # proibir auto-loop em qualquer nó
+      add_constraint(route[i, i, j] == 0, i = 1:N, j = 1:m) %>%
+      # conservação de fluxo apenas nos nós de UCs
+      add_constraint(sum_over(route[f, m + q, j], f = 1:N) == sum_over(route[m + q, t, j], t = 1:N), q = 1:n_uc, j = 1:m) %>%
+      # acoplamento com a atribuição x: uma saída e uma entrada por UC e vendedor se x[i,j]==1
+      add_constraint(sum_over(route[m + i, t, j], t = 1:N) == x[i, j], i = 1:n, j = 1:m) %>%
+      add_constraint(sum_over(route[f, m + i, j], f = 1:N) == x[i, j], i = 1:n, j = 1:m) %>%
+
+      # cada vendedor j sai de sua própria base j exatamente uma vez se ativo
+      add_constraint(sum_over(route[j, t, j], t = (m + 1):N) == y[j], j = 1:m) %>%
+      # e retorna para sua base j exatamente uma vez se ativo
+      add_constraint(sum_over(route[f, j, j], f = (m + 1):N) == y[j], j = 1:m) %>%
+
+      # proibir arcos base->base e uso de base por vendedor diferente
+      add_constraint(route[a, b, j] == 0, a = 1:m, b = 1:m, j = 1:m) %>%
+      add_constraint(sum_over(route[j, t, r], t = 1:N) == 0, j = 1:m, r = 1:m, r != j) %>%
+      add_constraint(sum_over(route[t, j, r], t = 1:N) == 0, j = 1:m, r = 1:m, r != j) %>%
+
+      # MTZ apenas sobre nós de UCs
+      add_constraint(u[q, j] >= 1, q = 1:n_uc, j = 1:m) %>%
+      add_constraint(u[q, j] - u[r, j] + 1 <= (n_uc) * (1 - route[m + q, m + r, j]), q = 1:n_uc, r = 1:n_uc, j = 1:m) %>%
+
+      # minimizar distância de rota + custos de alocação/ativação
+      set_objective(
+        custo_litro_combustivel * peso_tsp *
+          (sum_over(distancias_ucs_ucs[i, k] * route[i, k, j], i = 1:N, k = 1:N, j = 1:m))/kml +
+          ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
+          ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
+                           w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
+                         j = 1:m)
+                    , "min")
+  } else {
+    model <- model  |>
+      # minimizar custos
+      ompr::set_objective(
+        ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
+          ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
+                           w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
+                         j = 1:m),
+        "min"
+      )
+  }
+  model <- model |>
     # toda UC precisa estar associada a uma agencia
     ompr::add_constraint(ompr::sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
     # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
@@ -451,8 +508,27 @@ orce <- function(ucs,
   }
 
   stopifnot(result$status != "error")
-
   # Extrair a solução
+  resultado <- list()
+  if (tsp) {
+  segmentos_rota <- result |>
+    ompr::get_solution(route[i, k, j]) |>
+    dplyr::mutate(im=i-m, km=k-m)|>
+    dplyr::filter(value > .9) |>
+    dplyr::left_join(ucs_i |> dplyr::select(im=i, orig = uc), by = "im") |>
+    dplyr::left_join(ucs_i |> dplyr::select(km=i, dest = uc), by = c("km")) |>
+    dplyr::left_join(agencias_t |> dplyr::select(j, agencia_codigo), by = "j") |>
+    dplyr::left_join(agencias_t |> dplyr::select(i=j, orig_=agencia_codigo), by = "i") |>
+    dplyr::left_join(agencias_t |> dplyr::select(k=j, dest_=agencia_codigo), by = "k") |>
+    dplyr::mutate(orig=dplyr::coalesce(orig, orig_), orig_=NULL,
+                  dest=dplyr::coalesce(dest, dest_), orig_=NULL
+                  )%>%
+    dplyr::rowwise() |>
+    dplyr::mutate(
+      distancia_km = distancias_ucs_ucs[i, k]
+    )
+  resultado$segmentos_rota <- segmentos_rota
+  }
   dist_i_agencias <- dist_i_agencias |> dplyr::select(-custo_deslocamento_com_troca)
 
   matching <- result |>
@@ -494,6 +570,15 @@ orce <- function(ucs,
     dplyr::left_join(workers, by = c('j')) |>
     dplyr::select(-j) |>
     dplyr::mutate(custo_total_entrevistadores = entrevistadores * {remuneracao_entrevistador} + entrevistadores * custo_treinamento_por_entrevistador)
+
+  if (tsp) {
+    resultado_agencias_otimo <- resultado_agencias_otimo%>%
+      dplyr::left_join(
+    segmentos_rota%>%
+      dplyr::group_by(agencia_codigo)%>%
+      dplyr::summarise(distancia_km_tsp=sum(distancia_km)))
+  }
+
   ## dias de coleta por período máximo  por agencia de jurisdicao
   dias_coleta_j <- ucs_i|>
     dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao,data)|>
@@ -519,7 +604,6 @@ orce <- function(ucs,
     ) |>
     dplyr::ungroup()
   # Preparar resultados finais
-  resultado <- list()
   resultado$resultado_ucs_otimo <- resultado_ucs_otimo
   resultado$resultado_ucs_jurisdicao <- resultado_ucs_jurisdicao
   resultado$resultado_agencias_otimo <- resultado_agencias_otimo
