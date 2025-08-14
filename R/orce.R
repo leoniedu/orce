@@ -404,6 +404,14 @@ orce <- function(ucs,
   N <- m + n_uc
   tsp <- peso_tsp > 0
 
+  # Preprocessar matriz de distâncias UC-UC/bases se TSP estiver ativo
+  if (tsp) {
+    distancias_ucs_ucs <- .ensure_ucs_ucs_matrix(
+      agencias_t = agencias_t,
+      ucs_i = ucs_i,
+      distancias_ucs_ucs = distancias_ucs_ucs
+    )
+  }
   # Construir modelo via função injetável
   model <- orce_function(environment())
 

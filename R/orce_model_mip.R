@@ -24,38 +24,6 @@ orce_model_mip <- function(env) {
 
     tsp <- peso_tsp > 0
     if (tsp) {
-      # aceitar distancias_ucs_ucs em formato matriz (N x N) OU longo e converter aqui
-      stopifnot(!is.null(distancias_ucs_ucs))
-      if (!is.matrix(distancias_ucs_ucs)) {
-        df_duu <- distancias_ucs_ucs
-        if (!all(c("orig", "dest") %in% names(df_duu))) {
-          stop("distancias_ucs_ucs deve ter colunas 'orig' e 'dest'")
-        }
-        if (!("distancia_km" %in% names(df_duu))) {
-          stop("distancias_ucs_ucs (longo) deve conter a coluna 'distancia_km'")
-        }
-        # ordem de nós: bases (agencias) seguidas pelas UCs
-        nodes_order <- c(agencias_t$agencia_codigo, ucs_i$uc)
-        stopifnot(sum(duplicated(nodes_order)) == 0)
-        nodes_order_df <- data.frame(id_nodes = nodes_order, id_nodes_n = seq_along(nodes_order))
-        df_duu <- df_duu |>
-          dplyr::ungroup() |>
-          dplyr::left_join(nodes_order_df |> dplyr::select(id_nodes, id_nodes_orig = id_nodes_n), by = c("orig" = "id_nodes")) |>
-          dplyr::left_join(nodes_order_df |> dplyr::select(id_nodes, id_nodes_dest = id_nodes_n), by = c("dest" = "id_nodes")) |>
-          dplyr::arrange(id_nodes_orig, id_nodes_dest) |>
-          dplyr::select(id_nodes_orig, id_nodes_dest, distancia_km) |>
-          tidyr::pivot_wider(names_from = id_nodes_dest, values_from = distancia_km, names_sort = TRUE) |>
-          dplyr::arrange(id_nodes_orig) |>
-          dplyr::select(-id_nodes_orig)
-        mat_duu <- df_duu |>
-          dplyr::as.matrix()
-        diag(mat_duu) <- 0
-        if (any(is.na(mat_duu))) {
-          stop("distancias_ucs_ucs (longo) não cobre todos os pares necessários (base↔base, base↔UC, UC↔UC)")
-        }
-        distancias_ucs_ucs <- mat_duu
-      }
-      stopifnot(nrow(distancias_ucs_ucs) == N && ncol(distancias_ucs_ucs) == N)
 
       model <- model |>
         # route[i,k,j] = 1 se o vendedor j percorre o arco i->k (multi-depósito)

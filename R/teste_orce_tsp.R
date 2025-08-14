@@ -10,7 +10,7 @@
 #' @return Resultado da função orce com dados simulados
 #'
 #' @export
-teste_orce_tsp <- function(n_agencias = 3, n_ucs = 20, n_periodos = 2, peso_tsp = 0.5, solver = "cbc", orce_function=orce::orce, ...) {
+teste_orce_tsp <- function(n_agencias = 3, n_ucs = 20, n_periodos = 2, peso_tsp = 0.5, solver = "cbc", run_orce = orce::orce, ...) {
   requireNamespace("dplyr")
 
   # Gerar agências aleatórias
@@ -96,7 +96,7 @@ teste_orce_tsp <- function(n_agencias = 3, n_ucs = 20, n_periodos = 2, peso_tsp 
   cat("peso_tsp =", peso_tsp, "\n")
 
   # Executar orce
-  resultado <- orce_function(
+  resultado <- run_orce(
     ucs = ucs,
     agencias = agencias,
     distancias_ucs = distancias_ucs,
