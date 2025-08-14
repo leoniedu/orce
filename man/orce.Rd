@@ -29,6 +29,9 @@ orce(
   rel_tol = 0.005,
   max_time = 30 * 60,
   use_cache = TRUE,
+  distancias_ucs_ucs = NULL,
+  peso_tsp = 0.5,
+  orce_function = orce_model_mip,
   ...
 )
 }
@@ -106,6 +109,10 @@ determina o número máximo de dias de coleta que a agência pode realizar (n_en
 resultados para entradas idênticas serão recuperados do cache em disco em vez
 de recalcular. Isso pode acelerar cálculos repetidos mas usa espaço em disco.
 O padrão é TRUE.}
+
+\item{orce_function}{Função construtora do modelo OMPR a ser usada. Recebe um único
+argumento \code{env} (um ambiente) com todos os objetos já preparados dentro de \code{.orce_impl}
+e deve retornar um objeto \code{ompr::MIPModel}. O padrão é \code{orce_model_default}.}
 
 \item{...}{Opções adicionais para o solver.}
 }

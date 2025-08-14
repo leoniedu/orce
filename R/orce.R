@@ -55,6 +55,9 @@
 #'   resultados para entradas idênticas serão recuperados do cache em disco em vez
 #'   de recalcular. Isso pode acelerar cálculos repetidos mas usa espaço em disco.
 #'   O padrão é TRUE.
+#' @param orce_function Função construtora do modelo OMPR a ser usada. Recebe um único
+#'   argumento `env` (um ambiente) com todos os objetos já preparados dentro de `.orce_impl`
+#'   e deve retornar um objeto `ompr::MIPModel`. O padrão é `orce_model_default`.
 #'
 #' @param ... Opções adicionais para o solver.
 #'
@@ -71,33 +74,36 @@
 #'
 #' @export
 orce <- function(ucs,
-                       agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
-                                             n_entrevistadores_agencia_max = Inf,
-                                             custo_fixo = 0,
-                                             diaria_valor=diaria_valor_get(unique(ucs$agencia_codigo))),
-                       alocar_por = "uc",
-                       custo_litro_combustivel = 6,
-                       custo_hora_viagem = 10,
-                       kml = 10,
-                       diarias_entrevistador_max = Inf,
-                       remuneracao_entrevistador = 0,
-                       n_entrevistadores_min = 1,
-                       n_entrevistadores_tipo = "integer",
-                       dias_coleta_entrevistador_max,
-                       dias_treinamento = 0,
-                       agencias_treinadas = NULL,
-                       agencias_treinamento = NULL,
-                       distancias_ucs,
-                       distancias_agencias = NULL,
-                       adicional_troca_jurisdicao = 0,
-                       resultado_completo = FALSE,
-                       solver = "cbc",
-                       rel_tol = .005,
-                       max_time = 30 * 60,
-                       use_cache = TRUE,
-                 distancias_ucs_ucs=NULL,
-                 peso_tsp=.5,
-                       ...) {
+                        agencias = data.frame(agencia_codigo = unique(ucs$agencia_codigo),
+                                              n_entrevistadores_agencia_max = Inf,
+                                              custo_fixo = 0,
+                                              diaria_valor=diaria_valor_get(unique(ucs$agencia_codigo))),
+                        alocar_por = "uc",
+                        custo_litro_combustivel = 6,
+                        custo_hora_viagem = 10,
+                        kml = 10,
+                        diarias_entrevistador_max = Inf,
+                        remuneracao_entrevistador = 0,
+                        n_entrevistadores_min = 1,
+                        n_entrevistadores_tipo = "integer",
+                        dias_coleta_entrevistador_max,
+                        dias_treinamento = 0,
+                        agencias_treinadas = NULL,
+                        agencias_treinamento = NULL,
+                        distancias_ucs,
+                        distancias_agencias = NULL,
+                        adicional_troca_jurisdicao = 0,
+                        resultado_completo = FALSE,
+                        solver = "cbc",
+                        rel_tol = .005,
+                        max_time = 30 * 60,
+                        use_cache = TRUE,
+                  distancias_ucs_ucs=NULL,
+                  peso_tsp=.5,
+                  # Função construtora do modelo OMPR (padrão: orce_model_default)
+                  orce_function = orce_model_mip,
+                         ...) {
+  # `orce_function` deve ser uma função que recebe `env` e retorna `ompr::MIPModel`
 
   # List of all arguments to pass
   args <- list(
@@ -123,7 +129,8 @@ orce <- function(ucs,
     rel_tol = rel_tol,
     max_time = max_time,
     distancias_ucs_ucs=distancias_ucs_ucs,
-    peso_tsp=peso_tsp
+    peso_tsp=peso_tsp,
+    orce_function = orce_function
   )
 
   # Add any additional arguments
@@ -144,7 +151,6 @@ orce <- function(ucs,
     do.call(.orce_impl, args)
   }
 }
-
 
 #' @keywords internal
 .orce_impl <- function(ucs,
@@ -170,6 +176,7 @@ orce <- function(ucs,
                              max_time,
                        distancias_ucs_ucs,
                        peso_tsp,
+                             orce_function,
                              ...) {
   tictoc::tic.clearlog()
   tictoc::tic("Tempo total da otimização", log=TRUE)
@@ -266,7 +273,7 @@ orce <- function(ucs,
   } else {
     agencias_t <- agencias |>
       dplyr::mutate(distancia_km_agencia_treinamento = NA_real_,
-                    duracao_horas_agencia_treinamento_km = NA_real_)
+                     duracao_horas_agencia_treinamento_km = NA_real_)
   }
 
   # Calcular custo de treinamento
@@ -279,12 +286,13 @@ orce <- function(ucs,
       dplyr::if_else(treinamento_com_diaria, 2, dias_treinamento) *
         (agencias_t$distancia_km_agencia_treinamento / kml) *
         custo_litro_combustivel
-    ) + agencias_t$diaria_valor * {{dias_treinamento}} * treinamento_com_diaria
+    ) + agencias_t$diaria_valor * dias_treinamento * treinamento_com_diaria
     custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
   }
 
   agencias_t$custo_treinamento_por_entrevistador <- custo_treinamento
 
+  # ... (rest of the code remains the same)
   # Criar índice para datas
   indice_t <- ucs |>
     dplyr::ungroup() |>
@@ -394,114 +402,35 @@ orce <- function(ucs,
   # nós m+1..m+n são as UCs.
   n_uc <- n
   N <- m + n_uc
+  tsp <- peso_tsp > 0
 
-  stopifnot((agencias_t$j) == (1:nrow(agencias_t)))
-  model <- ompr::MIPModel() |>
-    # 1 sse uc i vai para a agencia j
-    ompr::add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
-    # 1 sse agencia j ativada
-    ompr::add_variable(y[j], j = 1:m, type = "binary") |>
-    # trabalhadores na agencia j
-    ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub=Inf)
-  tsp <- peso_tsp>0
-  if (tsp) {
-    # sanity checks for distancias_ucs_ucs dimensions
-    stopifnot(!is.null(distancias_ucs_ucs))
-    stopifnot(nrow(distancias_ucs_ucs) == N && ncol(distancias_ucs_ucs) == N)
-
-    model <- model |>
-      # route[i,k,j] = 1 se o vendedor j percorre o arco i->k (multi-depósito)
-      add_variable(route[i, k, j], i = 1:N, k = 1:N, j = 1:m, type = "binary") %>%
-
-      # variável auxiliar MTZ apenas para nós de UCs (indexadas 1..n_uc)
-      add_variable(u[q, j], q = 1:n_uc, j = 1:m, lb = 1, ub = n_uc) %>%
-      # proibir auto-loop em qualquer nó
-      add_constraint(route[i, i, j] == 0, i = 1:N, j = 1:m) %>%
-      # conservação de fluxo apenas nos nós de UCs
-      add_constraint(sum_over(route[f, m + q, j], f = 1:N) == sum_over(route[m + q, t, j], t = 1:N), q = 1:n_uc, j = 1:m) %>%
-      # acoplamento com a atribuição x: uma saída e uma entrada por UC e vendedor se x[i,j]==1
-      add_constraint(sum_over(route[m + i, t, j], t = 1:N) == x[i, j], i = 1:n, j = 1:m) %>%
-      add_constraint(sum_over(route[f, m + i, j], f = 1:N) == x[i, j], i = 1:n, j = 1:m) %>%
-
-      # cada vendedor j sai de sua própria base j exatamente uma vez se ativo
-      add_constraint(sum_over(route[j, t, j], t = (m + 1):N) == y[j], j = 1:m) %>%
-      # e retorna para sua base j exatamente uma vez se ativo
-      add_constraint(sum_over(route[f, j, j], f = (m + 1):N) == y[j], j = 1:m) %>%
-
-      # proibir arcos base->base e uso de base por vendedor diferente
-      add_constraint(route[a, b, j] == 0, a = 1:m, b = 1:m, j = 1:m) %>%
-      add_constraint(sum_over(route[j, t, r], t = 1:N) == 0, j = 1:m, r = 1:m, r != j) %>%
-      add_constraint(sum_over(route[t, j, r], t = 1:N) == 0, j = 1:m, r = 1:m, r != j) %>%
-
-      # MTZ apenas sobre nós de UCs
-      add_constraint(u[q, j] >= 1, q = 1:n_uc, j = 1:m) %>%
-      add_constraint(u[q, j] - u[r, j] + 1 <= (n_uc) * (1 - route[m + q, m + r, j]), q = 1:n_uc, r = 1:n_uc, j = 1:m) %>%
-
-      # minimizar distância de rota + custos de alocação/ativação
-      set_objective(
-        custo_litro_combustivel * peso_tsp *
-          (sum_over(distancias_ucs_ucs[i, k] * route[i, k, j], i = 1:N, k = 1:N, j = 1:m))/kml +
-          ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
-          ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
-                           w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
-                         j = 1:m)
-                    , "min")
-  } else {
-    model <- model  |>
-      # minimizar custos
-      ompr::set_objective(
-        ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
-          ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
-                           w[j] * ({remuneracao_entrevistador} + agencias_t$custo_treinamento_por_entrevistador[j]),
-                         j = 1:m),
-        "min"
-      )
-  }
-  model <- model |>
-    # toda UC precisa estar associada a uma agencia
-    ompr::add_constraint(ompr::sum_over(x[i, j], j = 1:m) == 1, i = 1:n) |>
-    # se uma UC está designada a uma agencia, a agencia tem que ficar ativa
-    ompr::add_constraint(x[i, j] <= y[j], i = 1:n, j = 1:m) |>
-    # se agencia está ativa, w tem que ser >= n_entrevistadores_min
-    ompr::add_constraint((y[j] * {n_entrevistadores_min}) <= w[j], j = 1:m) |>
-    # w tem que ser suficiente para dar conta das ucs para todos os períodos
-    ompr::add_constraint(ompr::sum_over(x[i, j] * dias_coleta_ijt(i, j, t), i = 1:n) <= (w[j]*dias_coleta_entrevistador_max), j = 1:m, t = 1:p)
-  # Respeitar o máximo de entrevistadores por agencia
-  if (any(is.finite(agencias_t$n_entrevistadores_agencia_max))) {
-    model <- model |>
-      ompr::add_constraint(w[j] <= agencias_t$n_entrevistadores_agencia_max[j], j = 1:m)
-  }
-  # Respeitar o máximo de diárias por entrevistador
-  if (any(is.finite({diarias_entrevistador_max}))) {
-    model <- model |>
-      ompr::add_constraint(ompr::sum_over(x[i, j] * diarias_i_j[i, j], i = 1:n) <= (diarias_entrevistador_max *
-                                                                          w[j]), j = 1:m)
-  }
+  # Construir modelo via função injetável
+  model <- orce_function(environment())
 
   cli::cli_progress_step("Otimizando...")
 
   # Resolver o modelo de otimização
-  if ({solver} == "symphony") {
+  if (solver == "symphony") {
     log <- utils::capture.output(
       result <- ompr::solve_model(
         model,
-        ompr.roi::with_ROI(solver = {solver},
-                           max_time = as.numeric({max_time}),
-                           gap_limit = {rel_tol} * 100, ...)
+        ompr.roi::with_ROI(solver = solver,
+                           max_time = as.numeric(max_time),
+                           gap_limit = rel_tol * 100, ...)
       )
     )
   } else {
     log <- utils::capture.output(
       result <- ompr::solve_model(
         model,
-        ompr.roi::with_ROI(solver = {solver},
-                           max_time = as.numeric({max_time}),
-                           rel_tol = {rel_tol}, ...)
+        ompr.roi::with_ROI(solver = solver,
+                           max_time = as.numeric(max_time),
+                           rel_tol = rel_tol, ...)
       )
     )
   }
 
-  if ({solver} == "symphony") {
+  if (solver == "symphony") {
     if (result$additional_solver_output$ROI$status$msg$code %in% c(231L, 232L)) {
       result$status <- result$additional_solver_output$ROI$status$msg$message
     }
@@ -569,7 +498,7 @@ orce <- function(ucs,
     dplyr::ungroup() |>
     dplyr::left_join(workers, by = c('j')) |>
     dplyr::select(-j) |>
-    dplyr::mutate(custo_total_entrevistadores = entrevistadores * {remuneracao_entrevistador} + entrevistadores * custo_treinamento_por_entrevistador)
+    dplyr::mutate(custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador)
 
   if (tsp) {
     resultado_agencias_otimo <- resultado_agencias_otimo%>%
@@ -600,7 +529,7 @@ orce <- function(ucs,
         ceiling(total_diarias / diarias_entrevistador_max),
         n_entrevistadores_min
       ),
-      custo_total_entrevistadores = entrevistadores * {remuneracao_entrevistador} + entrevistadores * custo_treinamento_por_entrevistador
+      custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador
     ) |>
     dplyr::ungroup()
   # Preparar resultados finais
