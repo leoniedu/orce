@@ -109,7 +109,6 @@ teste_orce_tsp <- function(n_agencias = 3, n_ucs = 20, n_periodos = 2, peso_tsp 
     distancias_ucs_ucs=m_ucs_ucs,
     ...
   )
-
   # Mostrar resumo dos resultados
   cat("\n=== RESUMO DOS RESULTADOS ===\n")
   cat("Agências ativas:", nrow(resultado$resultado_agencias_otimo), "\n")

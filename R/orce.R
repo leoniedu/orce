@@ -94,12 +94,12 @@ orce <- function(ucs,
                         distancias_agencias = NULL,
                         adicional_troca_jurisdicao = 0,
                         resultado_completo = FALSE,
-                        solver = "cbc",
+                        solver = "highs",
                         rel_tol = .005,
                         max_time = 30 * 60,
                         use_cache = TRUE,
                   distancias_ucs_ucs=NULL,
-                  peso_tsp=.5,
+                  peso_tsp=0,
                   # Função construtora do modelo OMPR (padrão: orce_model_default)
                   orce_function = orce_model_mip,
                          ...) {
@@ -211,7 +211,10 @@ orce <- function(ucs,
     required_cols <- c(required_cols, alocar_por)
   }
   ucs <- ucs |> dplyr::select(dplyr::all_of(required_cols))
-
+  if (peso_tsp>0) {
+    stopifnot(alocar_por=="uc")
+    stopifnot(length(unique(ucs$data))==1)
+  }
   distancias_ucs <- distancias_ucs |> dplyr::select(uc, agencia_codigo, distancia_km, duracao_horas, diaria_municipio, diaria_pernoite)
 
   if (!is.null(distancias_agencias)) {
@@ -444,7 +447,10 @@ orce <- function(ucs,
     }
   }
 
-  stopifnot(result$status != "error")
+  if (result$status == "error") {
+    warning("Error! Returning the solution object for inspection")
+    return(result)
+  }
   # Extrair a solução
   resultado <- list()
   if (tsp) {
@@ -459,7 +465,7 @@ orce <- function(ucs,
     dplyr::left_join(agencias_t |> dplyr::select(k=j, dest_=agencia_codigo), by = "k") |>
     dplyr::mutate(orig=dplyr::coalesce(orig, orig_), orig_=NULL,
                   dest=dplyr::coalesce(dest, dest_), orig_=NULL
-                  )%>%
+                  ) |>
     dplyr::rowwise() |>
     dplyr::mutate(
       distancia_km = distancias_ucs_ucs[i, k]
@@ -509,10 +515,10 @@ orce <- function(ucs,
     dplyr::mutate(custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador)
 
   if (tsp) {
-    resultado_agencias_otimo <- resultado_agencias_otimo%>%
+    resultado_agencias_otimo <- resultado_agencias_otimo|>
       dplyr::left_join(
-    segmentos_rota%>%
-      dplyr::group_by(agencia_codigo)%>%
+    segmentos_rota|>
+      dplyr::group_by(agencia_codigo)|>
       dplyr::summarise(distancia_km_tsp=sum(distancia_km)))
   }
 

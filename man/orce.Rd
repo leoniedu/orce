@@ -25,12 +25,12 @@ orce(
   distancias_agencias = NULL,
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
-  solver = "cbc",
+  solver = "highs",
   rel_tol = 0.005,
   max_time = 30 * 60,
   use_cache = TRUE,
   distancias_ucs_ucs = NULL,
-  peso_tsp = 0.5,
+  peso_tsp = 0,
   orce_function = orce_model_mip,
   ...
 )
