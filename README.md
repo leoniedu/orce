@@ -1,4 +1,4 @@
-# orce:  <span style="color:red">O</span>timização da <span style="color:red">R</span>ede de <span style="color:red">C</span>oleta <span style="color:red">E</span>statística (Optimizing statistical data collection networks)
+# orce:  <span style="color:red">O</span>timização de <span style="color:red">R</span>edes de <span style="color:red">C</span>oleta <span style="color:red">E</span>statística (Optimizing statistical data collection networks)
 
 ## English 
 
