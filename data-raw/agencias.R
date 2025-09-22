@@ -3,16 +3,28 @@ library(readxl)
 library(dplyr)
 sapply(dir(here::here("R"), full.names = TRUE), source)
 
+load("data/municipios_22.rda")
+
 # bdo ---------------------------------------------------------------------
 # agencia.csv from BDO: CSV de Agências (versão 2 - UTF8)
-agencias_bdo_0 <- readr::read_csv2(here::here("data-raw/bdo_agencias/agencia.csv"), col_types = "cccccc")%>%
+agencias_bdo_0 <- readr::read_csv2(here::here("data-raw/bdo_agencias/agencia20250918.csv"), col_types = "cccccc")%>%
   rename_ibge()%>%
-  mutate(agencia_lat=as.numeric(lat), agencia_lon=as.numeric(lon), lat=NULL, lon=NULL)
+  mutate(agencia_lat=as.numeric(lat), agencia_lon=as.numeric(lon), lat=NULL, lon=NULL,
+         municipio_codigo=substr(agencia_codigo,1,7))%>%
+  left_join(municipios_22%>%sf::st_drop_geometry()%>%select(municipio_codigo, municipio_sede_lat, municipio_sede_lon), by = "municipio_codigo")%>%
+  select(-municipio_codigo)%>%
+  transmute(agencia_codigo, agencia_nome,
+            agencia_lon=coalesce(agencia_lon, municipio_sede_lon),
+            agencia_lat=coalesce(agencia_lat, municipio_sede_lat)
+            )
+
+
+
 
 library(geobr)
 municipios_agencias <- sort(unique(substr(agencias_bdo_0$agencia_codigo,1,7)))
 mmaps <- geobr::read_municipality(code_muni = "all", year = 2022)
-agencias_bdo_sp <- sf::st_as_sf(agencias_bdo_0, coords=c("agencia_lon", "agencia_lat"), remove=FALSE, crs=sf::st_crs("EPSG:4674"))
+agencias_bdo_sp <- sf::st_as_sf(agencias_bdo_0%>%filter(!is.na(agencia_lat)), coords=c("agencia_lon", "agencia_lat"), remove=FALSE, crs=sf::st_crs("EPSG:4674"))
 check_m <- agencias_bdo_sp%>%sf::st_join(mmaps, suffix=c(".x", ".y"))%>%
   filter(code_muni!=substr(agencia_codigo,1,7))%>%
   transmute(espacial=code_muni, bdo=substr(agencia_codigo,1,7), agencia_codigo, agencia_nome, municipio_espacial=name_muni)
@@ -23,7 +35,7 @@ agencias_bdo <- agencias_bdo_0%>%
 usethis::use_data(agencias_bdo, overwrite = TRUE)
 
 # grid-export.csv from BDO: Relação de Municípios (opção TODAS AS UFS)
-agencias_bdo_mun <- readr::read_csv(here::here("data-raw/bdo_agencias/grid-export.csv"), col_types = "c")%>%
+agencias_bdo_mun <- readr::read_csv(here::here("data-raw/bdo_agencias/grid-export_20250918.csv"), col_types = "c")%>%
   rename_ibge()%>%
   mutate(agencia_codigo=format(as.numeric(agencia_codigo), scientific=FALSE))%>%
   rename(uf_sigla=uf, agencia_nome_bdo=agencia_nome)%>%
@@ -37,7 +49,7 @@ stopifnot(0==nrow(pontos_municipios%>%anti_join(agencias_bdo_mun, by='municipio_
 #quando o deslocamento ocorrer dentro da mesma região metropolitana, aglomeração urbana ou microrregião, constituídas por Municípios limítrofes e regularmente instituídas, ou em áreas de controle integrado mantidas com países limítrofes, cuja jurisdição e competência dos órgãos, entidades e servidores brasileiros considera-se estendida, salvo se houver pernoite fora da sede, hipóteses em que as diárias pagas serão sempre as fixadas para os afastamentos dentro do território nacional.
 
 ## Regiões Metropolitanas https://www.ibge.gov.br/geociencias/organizacao-do-territorio/divisao-regional/18354-regioes-metropolitanas-aglomeracoes-urbanas-e-regioes-integradas-de-desenvolvimento.html
-hlink <- 'https://geoftp.ibge.gov.br/organizacao_do_territorio/estrutura_territorial/municipios_por_regioes_metropolitanas/Situacao_2020a2029/Composicao_RM_2023.xlsx'
+hlink <- 'https://geoftp.ibge.gov.br/organizacao_do_territorio/estrutura_territorial/municipios_por_regioes_metropolitanas/Situacao_2020a2029/Composicao_RM_2024.xlsx'
 fname <- file.path(here::here("data-raw/"), basename(hlink))
 download.file(hlink, fname)
 
