@@ -371,7 +371,6 @@ orce <- function(ucs,
   u_dist_i_agencias <- dist_i_agencias |>
     dplyr::ungroup() |>
     dplyr::count(i, j)
-
   stopifnot(all(u_dist_i_agencias$n == 1))
 
   # Função auxiliar para criar matriz de custos
@@ -396,8 +395,7 @@ orce <- function(ucs,
     x <- dias_coleta_ijt_df
     sum(x[(x$i==i)& (x$j==j) &(x$t==t),"dias_coleta"], na.rm=TRUE)
   }
-  cli::cli_progress_step("Preparando a otimização")
-  # Criar modelo de otimização
+   # Criar modelo de otimização
   n <- max(ucs$i)
   m <- max(agencias_t$j)
   p <- max(indice_t$t)
@@ -419,7 +417,6 @@ orce <- function(ucs,
   model <- orce_function(environment())
 
   cli::cli_progress_step("Otimizando...")
-
   # Resolver o modelo de otimização
   if (solver == "symphony") {
     log <- utils::capture.output(

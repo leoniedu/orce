@@ -13,7 +13,6 @@ orce_model_mip <- function(env) {
   with(env, {
     # Índices básicos já devem estar definidos em env
     stopifnot((agencias_t$j) == (1:nrow(agencias_t)))
-
     model <- ompr::MIPModel() |>
       # 1 sse uc i vai para a agencia j
       ompr::add_variable(x[i, j], i = 1:n, j = 1:m, type = "binary") |>
