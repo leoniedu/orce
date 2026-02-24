@@ -55,6 +55,18 @@
 #'   resultados para entradas idênticas serão recuperados do cache em disco em vez
 #'   de recalcular. Isso pode acelerar cálculos repetidos mas usa espaço em disco.
 #'   O padrão é TRUE.
+#' @param distancias_nos Matriz N × N de distâncias (em km) entre todos os nós do
+#'   grafo de roteamento, onde N = m agências + n UCs. As primeiras m linhas/colunas
+#'   correspondem às agências (bases) e as n seguintes às UCs. Obrigatório quando
+#'   `peso_tsp > 0`. Pode ser fornecida como matriz numérica já indexada ou como
+#'   `data.frame` longo com colunas `orig`, `dest` e `distancia_km`.
+#' @param peso_tsp Peso para a penalidade de coerência geográfica baseada em TSP.
+#'   Quando `> 0`, o modelo adiciona ao objetivo um termo proporcional ao
+#'   comprimento da rota de cada agência, desincentivando atribuições territorialmente
+#'   fragmentadas. UCs geograficamente próximas tendem a ser agrupadas na mesma agência
+#'   porque a rota conjunta é mais curta. Não substitui o custo real de deslocamento
+#'   (`transport_cost_i_j`); atua como ajuste de coerência geográfica. Padrão: 0
+#'   (sem penalidade TSP).
 #' @param orce_function Função construtora do modelo OMPR a ser usada. Recebe um único
 #'   argumento `env` (um ambiente) com todos os objetos já preparados dentro de `.orce_impl`
 #'   e deve retornar um objeto `ompr::MIPModel`. O padrão é `orce_model_default`.
@@ -98,7 +110,7 @@ orce <- function(ucs,
                         rel_tol = .005,
                         max_time = 30 * 60,
                         use_cache = TRUE,
-                  distancias_ucs_ucs=NULL,
+                  distancias_nos=NULL,
                   peso_tsp=0,
                   # Função construtora do modelo OMPR (padrão: orce_model_default)
                   orce_function = orce_model_mip,
@@ -128,7 +140,7 @@ orce <- function(ucs,
     solver = solver,
     rel_tol = rel_tol,
     max_time = max_time,
-    distancias_ucs_ucs=distancias_ucs_ucs,
+    distancias_nos=distancias_nos,
     peso_tsp=peso_tsp,
     orce_function = orce_function
   )
@@ -174,18 +186,15 @@ orce <- function(ucs,
                              solver,
                              rel_tol,
                              max_time,
-                       distancias_ucs_ucs,
+                       distancias_nos,
                        peso_tsp,
                              orce_function,
                              ...) {
   tictoc::tic.clearlog()
   tictoc::tic("Tempo total da otimização", log=TRUE)
   cli::cli_progress_step("Preparando os dados")
-  # Importar pacotes necessários explicitamente
-  requireNamespace("dplyr")
-  require("ompr")
-  require("ompr.roi")
-  require(paste0("ROI.plugin.", solver), character.only = TRUE)
+  rlang::check_installed(paste0("ROI.plugin.", solver),
+                         reason = "para usar o solver solicitado")
 
   # Verificação dos Argumentos
   checkmate::assertTRUE(!anyDuplicated(agencias[['agencia_codigo']]))
@@ -232,7 +241,7 @@ orce <- function(ucs,
   agencias <- agencias |>
     dplyr::ungroup() |>
     sf::st_drop_geometry()|>
-    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo) |>
+    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo, diaria_valor) |>
     dplyr::mutate(j = 1:dplyr::n())
 
   stopifnot(dplyr::n_distinct(agencias$agencia_codigo) == nrow(agencias))
@@ -388,17 +397,18 @@ orce <- function(ucs,
   diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias")
   dias_coleta_i_j <- make_i_j(x = dist_i_agencias, col = "dias_coleta")
 
-  dias_coleta_ijt_df <- dist_uc_agencias|>
-    dplyr::group_by(i,j,t)|>
-    dplyr::summarise(dias_coleta=sum(dias_coleta, na.rm=TRUE))
-  dias_coleta_ijt <- function(i,j,t) {
-    x <- dias_coleta_ijt_df
-    sum(x[(x$i==i)& (x$j==j) &(x$t==t),"dias_coleta"], na.rm=TRUE)
-  }
-   # Criar modelo de otimização
+  dias_coleta_ijt_df <- dist_uc_agencias |>
+    dplyr::group_by(i, j, t) |>
+    dplyr::summarise(dias_coleta = sum(dias_coleta, na.rm = TRUE), .groups = "drop")
+
+  # Criar modelo de otimização
   n <- max(ucs$i)
   m <- max(agencias_t$j)
   p <- max(indice_t$t)
+  # 3D array for O(1) lookup in model constraints
+  dias_coleta_arr <- array(0, dim = c(n, m, p))
+  dias_coleta_arr[as.matrix(dplyr::select(dias_coleta_ijt_df, i, j, t))] <- dias_coleta_ijt_df$dias_coleta
+  dias_coleta_ijt <- function(ii, jj, tt) dias_coleta_arr[ii, jj, tt]
   # Índices para TSP multi-depósitos: primeiros m nós são as agências (bases),
   # nós m+1..m+n são as UCs.
   n_uc <- n
@@ -407,10 +417,10 @@ orce <- function(ucs,
 
   # Preprocessar matriz de distâncias UC-UC/bases se TSP estiver ativo
   if (tsp) {
-    distancias_ucs_ucs <- .ensure_ucs_ucs_matrix(
+    distancias_nos <- .ensure_nos_matrix(
       agencias_t = agencias_t,
       ucs_i = ucs_i,
-      distancias_ucs_ucs = distancias_ucs_ucs
+      distancias_nos = distancias_nos
     )
   }
   # Construir modelo via função injetável
@@ -465,7 +475,7 @@ orce <- function(ucs,
                   ) |>
     dplyr::rowwise() |>
     dplyr::mutate(
-      distancia_km = distancias_ucs_ucs[i, k]
+      distancia_km = distancias_nos[i, k]
     )
   resultado$segmentos_rota <- segmentos_rota
   }
@@ -549,7 +559,7 @@ orce <- function(ucs,
   resultado$resultado_agencias_otimo <- resultado_agencias_otimo
   resultado$resultado_agencias_jurisdicao <- resultado_agencias_jurisdicao
   attr(resultado, "solucao_status") <- result$additional_solver_output$ROI$status$msg$message
-  attr(resultado, "valor") <- objective_value(result)
+  attr(resultado, "valor") <- ompr::objective_value(result)
   if (resultado_completo) {
     resultado$ucs_agencias_todas <- dist_uc_agencias
   }

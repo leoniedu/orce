@@ -23,10 +23,7 @@ map_uc_agencias <- function(data, f = 0.05, source = "google", maptype = "roadma
   lons <- c(data$uc_lon, data$agencia_lon)
   bb <- ggmap::make_bbox(lat = lats, lon = lons, f = {{f}})
   if (zoom == "auto") {
-    zoom <- min(
-      ggmap::calc_zoom(lon = range(lons), lat = range(lons)),
-      ggmap::calc_zoom(lon = range(lats), lat = range(lats))
-    ) - 1
+    zoom <- ggmap::calc_zoom(lon = range(lons), lat = range(lats)) - 1
   }
   p <- get_map_mem(location = bb, source = {source}, maptype = {maptype}, zoom = {zoom})
   ggmap::ggmap(p)

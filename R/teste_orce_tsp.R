@@ -106,7 +106,7 @@ teste_orce_tsp <- function(n_agencias = 3, n_ucs = 20, n_periodos = 2, peso_tsp 
     solver = solver,
     max_time = 300,
     resultado_completo = TRUE,
-    distancias_ucs_ucs=m_ucs_ucs,
+    distancias_nos=m_ucs_ucs,
     ...
   )
   # Mostrar resumo dos resultados

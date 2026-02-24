@@ -5,25 +5,70 @@
 #'
 #' Ela recebe um ambiente com todos os objetos preparados por `.orce_impl`
 #' (por exemplo: `n`, `m`, `p`, `n_uc`, `N`, `agencias_t`, `ucs_i`,
-#' `transport_cost_i_j`, `diarias_i_j`, `dias_coleta_ijt`, `distancias_ucs_ucs`,
+#' `transport_cost_i_j`, `diarias_i_j`, `dias_coleta_ijt`, `distancias_nos`,
 #' `peso_tsp`, `kml`, `custo_litro_combustivel`, `remuneracao_entrevistador`,
 #' `n_entrevistadores_min`, `dias_coleta_entrevistador_max`, etc.) e retorna um
 #' `ompr::MILPModel` pronto para ser resolvido.
 #'
+#' ## Papel do TSP (`peso_tsp`)
+#'
+#' Quando `peso_tsp > 0`, o modelo adiciona variáveis de roteamento
+#' (`route[i, k, j]`) e restrições MTZ para eliminar sub-rotas. O objetivo
+#' inclui, além dos custos operacionais habituais (`transport_cost_i_j`), uma
+#' penalidade proporcional ao comprimento da rota TSP de cada agência:
+#'
+#' ```
+#' (custo_litro_combustivel * peso_tsp / kml) * Σ distancias_nos[i,k] * route[i,k,j]
+#' ```
+#'
+#' O propósito **não** é substituir o custo real de deslocamento, mas sim
+#' desincentivar atribuições geograficamente dispersas: UCs próximas entre si
+#' tendem a ser agrupadas na mesma agência porque a rota conjunta é mais curta.
+#' O parâmetro `peso_tsp` funciona como peso de coerência geográfica — valores
+#' maiores penalizam mais fortemente a fragmentação territorial.
+#'
+#' A matriz `distancias_nos` é N × N (N = m agências + n UCs), cobrindo todos
+#' os pares nó↔nó necessários para a rota: base→UC, UC→UC e UC→base.
+#'
+#' ## Distância máxima entre UCs na rota (`route_max_km`)
+#'
+#' O TSP modela um entrevistador saindo da base, visitando UCs em sequência e
+#' retornando — uma única saída de campo. Quando duas UCs estão muito distantes
+#' entre si, esse modelo não é realista: o entrevistador voltaria à base entre
+#' as visitas (custo já capturado por `transport_cost_i_j`), em vez de ir
+#' diretamente de uma à outra.
+#'
+#' `route_max_km` reflete essa lógica operacional: arcos UC↔UC com distância
+#' acima do limite recebem upper bound = 0, impedindo que o modelo conecte UCs
+#' distantes em uma mesma rota. Arcos base↔UC nunca são limitados.
+#' Como efeito colateral, isso também reduz o número de variáveis e acelera
+#' o solver. Um valor de 200–400 km é uma boa faixa de partida.
+#'
 #' @param env Ambiente contendo todos os objetos necessários ao modelo.
+#' @param route_max_km Distância máxima (km) entre UCs consecutivas na rota.
+#'   UCs mais distantes que esse valor não serão conectadas diretamente —
+#'   o entrevistador retorna à base entre as visitas. Padrão: `Inf`
+#'   (sem restrição). Ignorado quando `peso_tsp == 0`.
 #' @return Um objeto `ompr::MILPModel` com variáveis, restrições e objetivo definidos.
 #' @export
-orce_model_milp <- function(env) {
+orce_model_milp <- function(env, route_max_km = Inf) {
+  env$route_max_km <- route_max_km
   with(env, {
-    stopifnot((agencias_t$j) == (seq_len(nrow(agencias_t))))
+    if (!identical(agencias_t$j, seq_len(nrow(agencias_t)))) {
+      cli::cli_abort(
+        c("{.arg agencias_t$j} must equal {.code seq_len(nrow(agencias_t))}",
+          "i" = "Mismatches at rows: {which(agencias_t$j != seq_len(nrow(agencias_t)))}"),
+        call = NULL
+      )
+    }
 
-    # pressupõe que distancias_ucs_ucs já está em formato matriz N x N (preprocessado em .orce_impl)
+    checkmate::assert_choice(n_entrevistadores_tipo, c("continuous", "integer"))
+
+    # pressupõe que distancias_nos já está em formato matriz N x N (preprocessado em .orce_impl)
     tsp <- peso_tsp > 0
 
-    # função vetorizada para dias_coleta_ijt(i,j,t) usada em sum_expr(colwise(...))
-    dct <- function(i, j, t) {
-      vapply(seq_along(i), function(k) dias_coleta_ijt(i[k], j[k], t[k]), numeric(1))
-    }
+    # função vetorizada para dias_coleta(i,j,t) usada em sum_expr(colwise(...))
+    dct <- function(i, j, t) dias_coleta_arr[cbind(i, j, t)]
 
     # Modelo MILP
     model <- ompr::MILPModel() |>
@@ -35,31 +80,42 @@ orce_model_milp <- function(env) {
       ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub = Inf)
 
     if (tsp) {
+      # Calcular upper bounds por arco:
+      #   - auto-loops: 0
+      #   - base->base: 0
+      #   - arco envolvendo depot de outra agencia: 0
+      #   - UC->UC com distância > route_max_km: 0
+      #   - demais: 1
+      grid_route  <- expand.grid(i = 1:N, k = 1:N, j = 1:m)
+      is_base_i   <- grid_route$i <= m
+      is_base_k   <- grid_route$k <= m
+      no_self     <- grid_route$i != grid_route$k
+      own_depot_i <- !is_base_i | (grid_route$i == grid_route$j)
+      own_depot_k <- !is_base_k | (grid_route$k == grid_route$j)
+      d_ik        <- distancias_nos[cbind(grid_route$i, grid_route$k)]
+      allow_uc_uc   <- !is_base_i & !is_base_k & (d_ik <= route_max_km)
+      allow_base_uc <- xor(is_base_i, is_base_k)
+      ub_vec <- as.integer(no_self & own_depot_i & own_depot_k & (allow_base_uc | allow_uc_uc))
+
       model <- model |>
         # route[i,k,j] = 1 se o vendedor j percorre o arco i->k (multi-depósito)
-        ompr::add_variable(route[i, k, j], i = 1:N, k = 1:N, j = 1:m, type = "binary") |>
+        ompr::add_variable(route[grid_route$i, grid_route$k, grid_route$j],
+                           type = "binary", lb = 0, ub = ub_vec) |>
         # variável auxiliar MTZ apenas para nós de UCs (indexadas 1..n_uc)
         ompr::add_variable(u[q, j], q = 1:n_uc, j = 1:m, lb = 1, ub = n_uc) |>
-        # proibir auto-loop em qualquer nó (ub = 0 em route[i,i,j])
-        ompr::set_bounds(route[i, i, j], ub = 0, i = 1:N, j = 1:m) |>
         # conservação de fluxo apenas nos nós de UCs: sum_in == sum_out
         ompr::add_constraint(
           ompr::sum_expr(route[f, m + q, j], f = 1:N) -
-            ompr::sum_expr(route[m + q, t, j], t = 1:N) == 0,
+            ompr::sum_expr(route[m + q, node, j], node = 1:N) == 0,
           q = 1:n_uc, j = 1:m
         ) |>
         # acoplamento com a atribuição x: uma saída e uma entrada por UC
-        ompr::add_constraint(ompr::sum_expr(route[m + i, t, j], t = 1:N) == x[i, j], i = 1:n, j = 1:m) |>
+        ompr::add_constraint(ompr::sum_expr(route[m + i, node, j], node = 1:N) == x[i, j], i = 1:n, j = 1:m) |>
         ompr::add_constraint(ompr::sum_expr(route[f, m + i, j], f = 1:N) == x[i, j], i = 1:n, j = 1:m) |>
         # cada vendedor j sai de sua própria base j exatamente uma vez se ativo
-        ompr::add_constraint(ompr::sum_expr(route[j, t, j], t = (m + 1):N) == y[j], j = 1:m) |>
+        ompr::add_constraint(ompr::sum_expr(route[j, node, j], node = (m + 1):N) == y[j], j = 1:m) |>
         # e retorna para sua base j exatamente uma vez se ativo
         ompr::add_constraint(ompr::sum_expr(route[f, j, j], f = (m + 1):N) == y[j], j = 1:m) |>
-        # proibir arcos base->base
-        ompr::add_constraint(route[a, b, j] == 0, a = 1:m, b = 1:m, j = 1:m) |>
-        # proibir uso de base j por vendedor r != j
-        ompr::add_constraint(ompr::sum_expr(route[j, t, r], t = 1:N) == 0, j = 1:m, r = 1:m, r != j) |>
-        ompr::add_constraint(ompr::sum_expr(route[t, j, r], t = 1:N) == 0, j = 1:m, r = 1:m, r != j) |>
         # MTZ apenas sobre nós de UCs (evita subtours) para q != r
         ompr::add_constraint(
           u[q, j] - u[r, j] + 1 <= (n_uc) * (1 - route[m + q, m + r, j]),
@@ -67,30 +123,25 @@ orce_model_milp <- function(env) {
         )
     }
 
+    # Termos de custo comuns (transporte, fixo, entrevistadores)
+    base_obj <-
+      ompr::sum_expr(ompr::colwise(transport_cost_i_j[i, j]) * x[i, j], i = 1:n, j = 1:m) +
+      ompr::sum_expr(ompr::colwise(agencias_t$custo_fixo[j]) * y[j], j = 1:m) +
+      remuneracao_entrevistador * ompr::sum_expr(w[j], j = 1:m) +
+      ompr::sum_expr(ompr::colwise(agencias_t$custo_treinamento_por_entrevistador[j]) * w[j], j = 1:m)
+
     # Objetivo
     if (tsp) {
       model <- model |>
         ompr::set_objective(
-          # custo de rota TSP ponderado
           (custo_litro_combustivel * peso_tsp / kml) *
-            ompr::sum_expr(ompr::colwise(distancias_ucs_ucs[i, k]) * route[i, k, j], i = 1:N, k = 1:N, j = 1:m) +
-            # custos de transporte (alocação)
-            ompr::sum_expr(ompr::colwise(transport_cost_i_j[i, j]) * x[i, j], i = 1:n, j = 1:m) +
-            # custos fixos e de entrevistadores
-            ompr::sum_expr(ompr::colwise(agencias_t$custo_fixo[j]) * y[j], j = 1:m) +
-            remuneracao_entrevistador * ompr::sum_expr(w[j], j = 1:m) +
-            ompr::sum_expr(ompr::colwise(agencias_t$custo_treinamento_por_entrevistador[j]) * w[j], j = 1:m),
+            ompr::sum_expr(ompr::colwise(distancias_nos[i, k]) * route[i, k, j], i = 1:N, k = 1:N, j = 1:m) +
+            base_obj,
           sense = "min"
         )
     } else {
       model <- model |>
-        ompr::set_objective(
-          ompr::sum_expr(ompr::colwise(transport_cost_i_j[i, j]) * x[i, j], i = 1:n, j = 1:m) +
-            ompr::sum_expr(ompr::colwise(agencias_t$custo_fixo[j]) * y[j], j = 1:m) +
-            remuneracao_entrevistador * ompr::sum_expr(w[j], j = 1:m) +
-            ompr::sum_expr(ompr::colwise(agencias_t$custo_treinamento_por_entrevistador[j]) * w[j], j = 1:m),
-          sense = "min"
-        )
+        ompr::set_objective(base_obj, sense = "min")
     }
 
     # Restrições gerais

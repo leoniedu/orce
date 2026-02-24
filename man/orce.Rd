@@ -29,7 +29,7 @@ orce(
   rel_tol = 0.005,
   max_time = 30 * 60,
   use_cache = TRUE,
-  distancias_ucs_ucs = NULL,
+  distancias_nos = NULL,
   peso_tsp = 0,
   orce_function = orce_model_mip,
   ...
@@ -109,6 +109,20 @@ determina o número máximo de dias de coleta que a agência pode realizar (n_en
 resultados para entradas idênticas serão recuperados do cache em disco em vez
 de recalcular. Isso pode acelerar cálculos repetidos mas usa espaço em disco.
 O padrão é TRUE.}
+
+\item{distancias_nos}{Matriz N × N de distâncias (em km) entre todos os nós do
+grafo de roteamento, onde N = m agências + n UCs. As primeiras m linhas/colunas
+correspondem às agências (bases) e as n seguintes às UCs. Obrigatório quando
+\code{peso_tsp > 0}. Pode ser fornecida como matriz numérica já indexada ou como
+\code{data.frame} longo com colunas \code{orig}, \code{dest} e \code{distancia_km}.}
+
+\item{peso_tsp}{Peso para a penalidade de coerência geográfica baseada em TSP.
+Quando \verb{> 0}, o modelo adiciona ao objetivo um termo proporcional ao
+comprimento da rota de cada agência, desincentivando atribuições territorialmente
+fragmentadas. UCs geograficamente próximas tendem a ser agrupadas na mesma agência
+porque a rota conjunta é mais curta. Não substitui o custo real de deslocamento
+(\code{transport_cost_i_j}); atua como ajuste de coerência geográfica. Padrão: 0
+(sem penalidade TSP).}
 
 \item{orce_function}{Função construtora do modelo OMPR a ser usada. Recebe um único
 argumento \code{env} (um ambiente) com todos os objetos já preparados dentro de \code{.orce_impl}

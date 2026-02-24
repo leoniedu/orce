@@ -44,6 +44,9 @@ gt1 <- function(..., decimal_pct=1, decimal_currency=0, decimal_num=2) gt::gt(..
 
 #' @export
 relatorio_municipios <- function(r) {
+  rlang::check_installed("orcedata", reason = "para usar relatorio_municipios()")
+  agencias_bdo <- orcedata::agencias_bdo
+  municipios_22 <- orcedata::municipios_22
   vs <- c("municipio_nome", 'agencia_nome','custo_total', 'n_ucs', 'total_diarias', 'custo_diarias', 'custo_combustivel', 'distancia_total_km', 'custo_deslocamento',  'custo_fixo', 'entrevistadores', "agencia_codigo", "municipio_codigo")
   r1 <- r$resultado_ucs_otimo|>
     dplyr::full_join(r$resultado_ucs_jurisdicao, by=c("uc", "agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
@@ -59,6 +62,8 @@ relatorio_municipios <- function(r) {
 
 #' @export
 relatorio_planos <- function(r, level="uc") {
+  rlang::check_installed("orcedata", reason = "para usar relatorio_planos()")
+  agencias_bdo <- orcedata::agencias_bdo
   levels <- dplyr::if_else(level=="uc", "ucs", "municipios")
   nlevels <- paste0("n_", levels)
   vs <- c('agencia_codigo', 'agencia_nome', 'custo_total',

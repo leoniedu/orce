@@ -54,7 +54,6 @@ calcula_distancias <- function(destinos, origens, nmax=2000) {
   dest_list <- destinos_1 |>
     mutate(i = v[seq_len(n())]) |>
     dplyr::group_split(i)
-  print(length(dest_list))
   res0 <- dest_list |>
     purrr::map(~ purrr::possibly(get_res, NULL)(src = origens_1, dst = .x), .progress = TRUE)
   res <- res0|>

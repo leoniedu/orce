@@ -15,7 +15,7 @@ Um objeto \code{ompr::MIPModel} com variáveis, restrições e objetivo definido
 \description{
 Esta função recebe um ambiente com todos os objetos preparados por \code{.orce_impl}
 (por exemplo: \code{n}, \code{m}, \code{p}, \code{n_uc}, \code{N}, \code{agencias_t}, \code{ucs_i}, \code{transport_cost_i_j},
-\code{diarias_i_j}, \code{dias_coleta_ijt}, \code{distancias_ucs_ucs}, \code{peso_tsp}, \code{kml},
+\code{diarias_i_j}, \code{dias_coleta_ijt}, \code{distancias_nos}, \code{peso_tsp}, \code{kml},
 \code{custo_litro_combustivel}, \code{remuneracao_entrevistador}, \code{n_entrevistadores_min}, etc.)
 e retorna um \code{ompr::MIPModel} pronto para ser resolvido.
 }

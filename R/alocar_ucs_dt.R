@@ -123,7 +123,6 @@ orce_dt <- function(ucs,
   if (!is.null(distancias_agencias)) setDT(distancias_agencias)
 
   # Pré-processamento dos dados
-  browser()
   ucs[, i := .GRP, by = alocar_por]
   n_ucs <- nrow(ucs)
 

@@ -13,18 +13,35 @@ Depends:
     R (>= 3.5),
     sf
 Suggests:
+    data.table,
+    ggmap,
+    glue,
+    gt,
+    htmltools,
+    janitor,
+    knitr,
     orcedata,
-    testthat (>= 3.0.0)
+    osrm,
+    spatstat.explore,
+    spatstat.geom,
+    testthat (>= 3.0.0),
+    tictoc,
+    xml2
 Config/testthat/edition: 3
 Config/Needs/website: rmarkdown
 URL: https://leoniedu.github.io/orce/
-Imports: 
+Imports:
+    cachem,
     checkmate,
     cli,
     dplyr,
+    memoise,
     ompr,
     ompr.roi,
+    purrr,
     rlang,
+    snakecase,
+    stringr,
     tibble,
     tidyr,
     vctrs

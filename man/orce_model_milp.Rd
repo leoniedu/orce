@@ -4,10 +4,15 @@
 \alias{orce_model_milp}
 \title{Construtor do modelo OMPR usando MILPModel (vetorizado)}
 \usage{
-orce_model_milp(env)
+orce_model_milp(env, route_max_km = Inf)
 }
 \arguments{
 \item{env}{Ambiente contendo todos os objetos necessários ao modelo.}
+
+\item{route_max_km}{Distância máxima (km) entre UCs consecutivas na rota.
+UCs mais distantes que esse valor não serão conectadas diretamente —
+o entrevistador retorna à base entre as visitas. Padrão: \code{Inf}
+(sem restrição). Ignorado quando \code{peso_tsp == 0}.}
 }
 \value{
 Um objeto \code{ompr::MILPModel} com variáveis, restrições e objetivo definidos.
@@ -19,8 +24,42 @@ utilizando a backend vetorizada \code{MILPModel}, com \code{sum_expr()} e \code{
 \details{
 Ela recebe um ambiente com todos os objetos preparados por \code{.orce_impl}
 (por exemplo: \code{n}, \code{m}, \code{p}, \code{n_uc}, \code{N}, \code{agencias_t}, \code{ucs_i},
-\code{transport_cost_i_j}, \code{diarias_i_j}, \code{dias_coleta_ijt}, \code{distancias_ucs_ucs},
+\code{transport_cost_i_j}, \code{diarias_i_j}, \code{dias_coleta_ijt}, \code{distancias_nos},
 \code{peso_tsp}, \code{kml}, \code{custo_litro_combustivel}, \code{remuneracao_entrevistador},
 \code{n_entrevistadores_min}, \code{dias_coleta_entrevistador_max}, etc.) e retorna um
 \code{ompr::MILPModel} pronto para ser resolvido.
+\subsection{Papel do TSP (\code{peso_tsp})}{
+
+Quando \code{peso_tsp > 0}, o modelo adiciona variáveis de roteamento
+(\code{route[i, k, j]}) e restrições MTZ para eliminar sub-rotas. O objetivo
+inclui, além dos custos operacionais habituais (\code{transport_cost_i_j}), uma
+penalidade proporcional ao comprimento da rota TSP de cada agência:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{(custo_litro_combustivel * peso_tsp / kml) * Σ distancias_nos[i,k] * route[i,k,j]
+}\if{html}{\out{</div>}}
+
+O propósito \strong{não} é substituir o custo real de deslocamento, mas sim
+desincentivar atribuições geograficamente dispersas: UCs próximas entre si
+tendem a ser agrupadas na mesma agência porque a rota conjunta é mais curta.
+O parâmetro \code{peso_tsp} funciona como peso de coerência geográfica — valores
+maiores penalizam mais fortemente a fragmentação territorial.
+
+A matriz \code{distancias_nos} é N × N (N = m agências + n UCs), cobrindo todos
+os pares nó↔nó necessários para a rota: base→UC, UC→UC e UC→base.
+}
+
+\subsection{Distância máxima entre UCs na rota (\code{route_max_km})}{
+
+O TSP modela um entrevistador saindo da base, visitando UCs em sequência e
+retornando — uma única saída de campo. Quando duas UCs estão muito distantes
+entre si, esse modelo não é realista: o entrevistador voltaria à base entre
+as visitas (custo já capturado por \code{transport_cost_i_j}), em vez de ir
+diretamente de uma à outra.
+
+\code{route_max_km} reflete essa lógica operacional: arcos UC↔UC com distância
+acima do limite recebem upper bound = 0, impedindo que o modelo conecte UCs
+distantes em uma mesma rota. Arcos base↔UC nunca são limitados.
+Como efeito colateral, isso também reduz o número de variáveis e acelera
+o solver. Um valor de 200–400 km é uma boa faixa de partida.
+}
 }

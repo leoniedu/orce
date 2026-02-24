@@ -2,7 +2,7 @@
 #'
 #' Esta função recebe um ambiente com todos os objetos preparados por `.orce_impl`
 #' (por exemplo: `n`, `m`, `p`, `n_uc`, `N`, `agencias_t`, `ucs_i`, `transport_cost_i_j`,
-#' `diarias_i_j`, `dias_coleta_ijt`, `distancias_ucs_ucs`, `peso_tsp`, `kml`,
+#' `diarias_i_j`, `dias_coleta_ijt`, `distancias_nos`, `peso_tsp`, `kml`,
 #' `custo_litro_combustivel`, `remuneracao_entrevistador`, `n_entrevistadores_min`, etc.)
 #' e retorna um `ompr::MIPModel` pronto para ser resolvido.
 #'
@@ -55,7 +55,7 @@ orce_model_mip <- function(env) {
         # minimizar distância de rota + custos de alocação/ativação
         ompr::set_objective(
           custo_litro_combustivel * peso_tsp *
-            (ompr::sum_over(distancias_ucs_ucs[i, k] * route[i, k, j], i = 1:N, k = 1:N, j = 1:m)) / kml +
+            (ompr::sum_over(distancias_nos[i, k] * route[i, k, j], i = 1:N, k = 1:N, j = 1:m)) / kml +
             ompr::sum_over(transport_cost_i_j[i, j] * x[i, j], i = 1:n, j = 1:m) +
             ompr::sum_over((agencias_t$custo_fixo[j]) * y[j] +
                              w[j] * (remuneracao_entrevistador + agencias_t$custo_treinamento_por_entrevistador[j]),
