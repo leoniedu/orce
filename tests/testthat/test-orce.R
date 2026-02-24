@@ -2,11 +2,13 @@ library(testthat)
 library(orce)
 options(warn = 2)
 
+skip_if_not_installed("orcedata")
+
 # Carregar dados de teste
-data(agencias_bdo_mun)
-data(agencias_bdo)
-data(distancias_agencias_municipios_osrm)
-data(agencias_municipios_diaria)
+data(agencias_bdo_mun, package = "orcedata")
+data(agencias_bdo, package = "orcedata")
+data(distancias_agencias_municipios_osrm, package = "orcedata")
+data(agencias_municipios_diaria, package = "orcedata")
 
 
 

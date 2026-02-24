@@ -26,6 +26,7 @@ params:
 
 ```{r}
 library(orce)
+library(orcedata)
 library(dplyr)
 library(sf)
 
@@ -58,6 +59,7 @@ knitr::opts_chunk$set(
 library(ggplot2)
 library(gt)
 library(orce)
+library(orcedata)
 library(dplyr)
 library(sf)
 
