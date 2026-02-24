@@ -7,7 +7,7 @@ load("data/municipios_22.rda")
 
 # bdo ---------------------------------------------------------------------
 # agencia.csv from BDO: CSV de Agências (versão 2 - UTF8)
-agencias_bdo_0 <- readr::read_csv2(here::here("data-raw/bdo_agencias/agencia20250918.csv"), col_types = "cccccc")%>%
+agencias_bdo_0 <- readr::read_csv2(here::here("data-raw/bdo_agencias/agencia20260210.csv"), col_types = "cccccc")%>%
   rename_ibge()%>%
   mutate(agencia_lat=as.numeric(lat), agencia_lon=as.numeric(lon), lat=NULL, lon=NULL,
          municipio_codigo=substr(agencia_codigo,1,7))%>%
@@ -35,13 +35,20 @@ agencias_bdo <- agencias_bdo_0%>%
 usethis::use_data(agencias_bdo, overwrite = TRUE)
 
 # grid-export.csv from BDO: Relação de Municípios (opção TODAS AS UFS)
-agencias_bdo_mun <- readr::read_csv(here::here("data-raw/bdo_agencias/grid-export_20250918.csv"), col_types = "c")%>%
+agencias_bdo_mun <- readr::read_csv(here::here("data-raw/bdo_agencias/grid-export_20260210.csv"), col_types = "c")%>%
   rename_ibge()%>%
   mutate(agencia_codigo=format(as.numeric(agencia_codigo), scientific=FALSE))%>%
   rename(uf_sigla=uf, agencia_nome_bdo=agencia_nome)%>%
   full_join(agencias_bdo%>%sf::st_drop_geometry()%>%select(-agencia_lat, -agencia_lon), by="agencia_codigo")
 
 load("data/pontos_municipios.rda")
+# A tibble: 2 × 6
+# uf_sigla agencia_codigo agencia_nome_bdo municipio_codigo municipio_nome     agencia_nome
+# <chr>    <chr>          <chr>            <chr>            <chr>              <chr>
+#   1 MT       510792500      SORRISO          5101837          BOA ESPERANÇA DO … SORRISO
+# 2 NA       290790500      NA               NA               NA                 CIPÓ
+agencias_bdo_mun <- agencias_bdo_mun%>%filter(agencia_codigo!="290790500")
+
 stopifnot(0==nrow(agencias_bdo_mun%>%anti_join(pontos_municipios)))
 stopifnot(0==nrow(pontos_municipios%>%anti_join(agencias_bdo_mun, by='municipio_codigo')))
 
