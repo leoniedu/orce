@@ -120,7 +120,7 @@ Para enfrentar esse desafio, o pacote `orce` utiliza algoritmos avançados de ot
     
 ufnow <- ufs%>%
   dplyr::filter(uf_sigla==params$uf_sigla_munic)
-agencias_now <- mutate(agencias_bdo%>%filter(uf_codigo==ufnow$uf_codigo), 
+agencias_now <- mutate(agencias_bdo%>%filter(substr(agencia_codigo, 1, 2)==ufnow$uf_codigo),
                        agencia_nome=capitalizar(agencia_nome), custo_fixo=0, n_entrevistadores_agencia_max=Inf, diaria_valor=diaria_valor_get(substr(agencia_codigo,1,7)))
 ufs <- ufs%>%mutate(uf_nome=capitalizar(uf_nome))
 
@@ -131,15 +131,13 @@ mnow <- municipios_22%>%
 
 
 
-assistencias <- if(ufnow$uf_codigo==29) {
+assistencias <- if(ufnow$uf_codigo=="29") {
   assistencias_ba
 } else {
   agencias_now%>%
     transmute(agencia_codigo, assistencia_nome="")
 }
 
-agencias_now <- agencias_now%>%
-  filter(uf_codigo==ufnow$uf_codigo)
 agencias_municipios_diaria_now <- agencias_municipios_diaria
 
 
@@ -557,13 +555,18 @@ res_ufs_df%>%
 Vamos agora considerar a coleta da Pesquisa de Orçamentos Familiares (POF) na Bahia, planejada para ocorrer entre 2024 e 2025. 
 
 ```{r}
-
-
 uf_codigo_now <- 29
 ufnow <- ufs%>%filter(uf_codigo==uf_codigo_now)
 ## amostra_pof
 pof2024ba::data_cache()
+has_pof_data <- exists("amostra_preliminar")
+if (!has_pof_data) {
+  message("Dados da POF 2024 BA não disponíveis. Casos 2 e 3 serão ignorados.")
+  knitr::opts_chunk$set(eval = FALSE)
+}
+```
 
+```{r}
 amostra_uf <- amostra_preliminar%>%
   filter(substr(upa,1,2)==ufnow$uf_codigo)%>%
   filter(!grepl("^2927408" ,agencia_codigo))%>%
@@ -576,14 +579,12 @@ amostra_uf <- amostra_preliminar%>%
     viagens = params$viagens_pof)#%>%ungroup()%>%slice_sample(n=100)
 
 ## distancias upas
-distancias_upas <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
+distancias_upas <- readRDS(here::here("data-raw/distancias_agencias_setores_pof_ba.rds"))%>%
   rename(uc=setor)%>%
   mutate(municipio_codigo=substr(uc,1,7))%>%
   left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
   semi_join(amostra_uf, by="uc")%>%
   mutate(diaria_pernoite=duracao_horas>params$horas_viagem_pernoite)
-
-
 ```
 
 
@@ -596,7 +597,6 @@ params_pof_0  <- list(ucs=amostra_uf,
            custo_litro_combustivel = params$custo_litro_combustivel,
            custo_hora_viagem = params$custo_hora_viagem,
            kml = params$kml,
-           valor_diaria = params$valor_diaria,
            ## em um ano de coleta, um entrevistador consegue
            ## 48 upas pnadc / 24 upas POF / 18 Municipios
            dias_coleta_entrevistador_max=params$dias_coleta_entrevistador_max_pof,
@@ -653,7 +653,7 @@ estrategias_pof_sum <-
   mutate(custo_total=custo_deslocamento+custo_fixo+custo_total_entrevistadores)%>%
   select(descricao, modelo, n_agencias, custo_total, everything())
 
-report_plans(estrategias_pof$resultado[[4]])
+relatorio_planos(estrategias_pof$resultado[[4]])
 # 
 estrategias_pof_sum%>%
   group_by(descricao)%>%
@@ -691,8 +691,17 @@ A lista de pesquisas incluídas é incompleta, mas já nos possibilita ter algum
 
 
 ```{r}
+amostra_br_path <- here::here("../orcedata/data-raw/amostra_br_2024_01_2025_06.rds")
+has_amostra_br <- file.exists(amostra_br_path)
+if (!has_amostra_br) {
+  message("Dados da amostra mestra não disponíveis. Caso 3 será ignorado.")
+  knitr::opts_chunk$set(eval = FALSE)
+}
+```
+
+```{r}
 ## amostra mestra/pnadc
-amostra_mestra <- readr::read_rds(here::here("data-raw/amostra_br_2024_01_2025_06.rds"))%>%
+amostra_mestra <- readr::read_rds(amostra_br_path)%>%
   filter(ano_mes>=as.Date("2024-07-01"), ano_mes<=as.Date("2025-06-01"))
 
 amostra_pnadc <- amostra_mestra%>%
@@ -705,7 +714,7 @@ amostra_cnefe <- amostra_mestra%>%
   distinct(uc=upa, pesquisa=paste("cnefe", substr(ano_mes,1,7)), agencia_codigo, dias_coleta=params$dias_coleta_cnefe, viagens=params$viagens_cnefe)
 
 ## amostra pof
-load(file.path(pof2024ba:::package$cache_dir, "amostra_preliminar.rda"))
+if (!exists("amostra_preliminar")) pof2024ba::data_cache()
 amostra_pof <- amostra_preliminar%>%
   distinct(uc=upa, pesquisa=paste("pof", if_else(trimestre==1, 2024, 2025), if_else(trimestre==1, 4, trimestre-1)), agencia_codigo=as.character(agencia_codigo), dias_coleta=params$dias_coleta_pof, viagens=params$viagens_pof)
 
@@ -724,8 +733,10 @@ municipais <- municipios_22%>%
 
 
 carga_br <- bind_rows(amostra_cnefe, amostra_pnadc, amostra_pof, municipais)%>%
+  filter(!is.na(uc), !is.na(agencia_codigo))%>%
   group_by(uc, agencia_codigo, municipio_codigo=substr(uc,1,7))%>%
-  summarise(dias_coleta=sum(dias_coleta), viagens=sum(viagens))
+  summarise(dias_coleta=sum(dias_coleta), viagens=sum(viagens))%>%
+  mutate(data=1, diaria_valor=orce::diaria_valor_get(municipio_codigo))
 
 
 uf_codigo_now <- 29
@@ -736,11 +747,11 @@ carga_uf <- carga_br%>%
   ## Importante: Sem as agências de Salvador
   filter(!grepl("2927408", agencia_codigo))%>%
   #ungroup#%>%filter(agencia_codigo%in%c("291360600", "291480200", "292870300", "293290300", "290490200", "292740800", "292740801", "291640100"))
-  ungroup#%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:20])
+  ungroup()%>%filter(agencia_codigo%in%unique(agencia_codigo)[1:10])
 
 ## distancias uc
-distancias_ucs_all <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agencias_setores_osrm.rds")%>%
-  rename(uc=setor)%>%
+distancias_ucs_all <- readRDS(here::here("../orcedata/data-raw/distancias_agencias_upas_osrm_29.rds"))%>%
+  rename(uc=upa)%>%
   bind_rows(distancias_agencias_municipios_osrm%>%rename(uc=municipio_codigo))%>%
   transmute(uc, agencia_codigo, distancia_km, duracao_horas, municipio_codigo=substr(uc,1,7))%>%
   left_join(agencias_municipios_diaria, by=c("agencia_codigo", "municipio_codigo"))%>%
@@ -751,7 +762,8 @@ distancias_ucs_all <- readRDS("/Users/eleon/gitlab/orce/data-raw/distancias_agen
 agencias_uf <-  carga_uf%>%
   group_by(agencia_codigo)%>%
   summarise(n_ucs_jurisdicao=n(), dias_coleta_jurisdicao=sum(dias_coleta))%>%
-  mutate(n_entrevistadores_agencia_max=Inf, custo_fixo=0)
+  mutate(n_entrevistadores_agencia_max=Inf, custo_fixo=0,
+         diaria_valor=orce::diaria_valor_get(substr(agencia_codigo,1,7)))
 
 
 ## sem custo fixo nem custo de treinamento
@@ -760,7 +772,6 @@ params_carga_0  <- list(ucs=carga_uf,
                         custo_litro_combustivel = params$custo_litro_combustivel,
                         custo_hora_viagem = params$custo_hora_viagem,
                         kml = params$kml,
-                        valor_diaria = params$valor_diaria,
                         ## em um ano de coleta, um entrevistador consegue
                         ## 48 upas pnadc / 24 upas POF / 18 Municipios
                         dias_coleta_entrevistador_max=params$dias_coleta_entrevistador_max_carga,
@@ -817,9 +828,8 @@ estrategias_carga <- bind_rows(
                                         #max_time=
                                       ))), 
          descricao='mínimo de 2 entrevistadores /2 Técnicos 10000 p/ mes (custo fixo)'),
-  tibble(params_carga=list(modifyList(params_carga_0, 
+  tibble(params_carga=list(modifyList(params_carga_0,
                                 list(
-                                  valor_diaria=params$valor_diaria*2,
                                   distancias_ucs=params_carga_0$distancias_ucs,
                                   agencias=agencias_uf%>%
                                   mutate(
@@ -830,7 +840,7 @@ estrategias_carga <- bind_rows(
          descricao='mínimo de 2 entrevistadores/2 Técnicos 10000 p/ mes (custo fixo)/ custo diaria 2x')
 )%>%
   #ungroup%>%slice(-1)%>%
-  mutate(resultado=purrr::map(params_carga, ~do.call(alocar_municipios, .x)))
+  mutate(resultado=purrr::map(params_carga, ~do.call(orce, .x)))
 #toc()
 
 estrategias_carga_sum <- 

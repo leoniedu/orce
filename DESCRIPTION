@@ -22,8 +22,7 @@ Suggests:
     knitr,
     orcedata,
     osrm,
-    spatstat.explore,
-    spatstat.geom,
+    purrr,
     testthat (>= 3.0.0),
     tictoc,
     xml2
@@ -38,7 +37,7 @@ Imports:
     memoise,
     ompr,
     ompr.roi,
-    purrr,
+    pns.zonas,
     rlang,
     snakecase,
     stringr,

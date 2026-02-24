@@ -48,7 +48,7 @@
 #' }
 #' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão: 0.
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
-#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).
+#' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "highs". Outras opções: "glpk", "symphony" (instalação manual).
 #' @param rel_tol Tolerância relativa para a otimização. Valores menores levam a soluções mais precisas, mas podem aumentar o tempo de execução. Padrão: 0.005.
 #' @param max_time Tempo máximo de execução (em segundos) permitido para o solver. Padrão: 30*60 (30 minutos).
 #' @param use_cache Lógico indicando se deve usar resultados em cache. Quando TRUE,
@@ -69,7 +69,8 @@
 #'   (sem penalidade TSP).
 #' @param orce_function Função construtora do modelo OMPR a ser usada. Recebe um único
 #'   argumento `env` (um ambiente) com todos os objetos já preparados dentro de `.orce_impl`
-#'   e deve retornar um objeto `ompr::MIPModel`. O padrão é `orce_model_default`.
+#'   e deve retornar um objeto `ompr::MILPModel`. O padrão é [orce_model_milp()]
+#'   (backend vetorizado). Use [orce_model_mip()] para o backend escalar legado.
 #'
 #' @param ... Opções adicionais para o solver.
 #'
@@ -112,10 +113,10 @@ orce <- function(ucs,
                         use_cache = TRUE,
                   distancias_nos=NULL,
                   peso_tsp=0,
-                  # Função construtora do modelo OMPR (padrão: orce_model_default)
-                  orce_function = orce_model_mip,
+                  # Função construtora do modelo OMPR (padrão: orce_model_milp)
+                  orce_function = orce_model_milp,
                          ...) {
-  # `orce_function` deve ser uma função que recebe `env` e retorna `ompr::MIPModel`
+  # `orce_function` deve ser uma função que recebe `env` e retorna `ompr::MILPModel`
 
   # List of all arguments to pass
   args <- list(
@@ -191,7 +192,16 @@ orce <- function(ucs,
                              orce_function,
                              ...) {
   tictoc::tic.clearlog()
-  tictoc::tic("Tempo total da otimização", log=TRUE)
+  tictoc::tic("Tempo total da otimização", log = TRUE)
+  on.exit({
+    tictoc::toc(log = TRUE, quiet = TRUE)
+    .tempo <- tictoc::tic.log(format = FALSE)
+    if (length(.tempo) > 0) {
+      with(.tempo[[1]], cli::cli_alert_success(
+        paste0(msg, ": ", round(toc - tic), " segundos.")
+      ))
+    }
+  }, add = TRUE)
   cli::cli_progress_step("Preparando os dados")
   rlang::check_installed(paste0("ROI.plugin.", solver),
                          reason = "para usar o solver solicitado")
@@ -208,21 +218,41 @@ orce <- function(ucs,
   checkmate::assert_number(dias_coleta_entrevistador_max, lower = 1)
   checkmate::assert_number(remuneracao_entrevistador, lower = 0)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
-  checkmate::check_string(alocar_por, null.ok = FALSE)
-  checkmate::assertTRUE(all(c('diaria_municipio', 'uc', 'diaria_pernoite') %in% names(distancias_ucs)))
-  checkmate::assertTRUE(all(c('dias_coleta', 'viagens', 'data', 'diaria_valor') %in% names(ucs)))
-  checkmate::assertTRUE(all(c('n_entrevistadores_agencia_max', 'custo_fixo', 'diaria_valor') %in% names(agencias)))
+  checkmate::assert_string(alocar_por, null.ok = FALSE)
 
-  stopifnot(alocar_por!="agencia_codigo")
+  missing_dist_ucs <- setdiff(c('diaria_municipio', 'uc', 'diaria_pernoite'), names(distancias_ucs))
+  if (length(missing_dist_ucs) > 0) {
+    cli::cli_abort("{.arg distancias_ucs} est\u00e1 faltando a coluna{?s}: {.val {missing_dist_ucs}}.")
+  }
+  missing_ucs <- setdiff(c('dias_coleta', 'viagens', 'data', 'diaria_valor'), names(ucs))
+  if (length(missing_ucs) > 0) {
+    cli::cli_abort("{.arg ucs} est\u00e1 faltando a coluna{?s}: {.val {missing_ucs}}.")
+  }
+  missing_agencias <- setdiff(c('n_entrevistadores_agencia_max', 'custo_fixo', 'diaria_valor'), names(agencias))
+  if (length(missing_agencias) > 0) {
+    cli::cli_abort("{.arg agencias} est\u00e1 faltando a coluna{?s}: {.val {missing_agencias}}.")
+  }
+
+  if (alocar_por == "agencia_codigo") {
+    cli::cli_abort("{.arg alocar_por} n\u00e3o pode ser {.val \"agencia_codigo\"}.")
+  }
+
   # Pré-processamento dos dados
   required_cols <- c("uc", "agencia_codigo", "dias_coleta", "viagens", "data", "diaria_valor")
   if (alocar_por != "uc") {
+    if (!alocar_por %in% names(ucs)) {
+      cli::cli_abort("{.arg alocar_por} = {.val {alocar_por}} n\u00e3o \u00e9 uma coluna de {.arg ucs}.")
+    }
     required_cols <- c(required_cols, alocar_por)
   }
   ucs <- ucs |> dplyr::select(dplyr::all_of(required_cols))
-  if (peso_tsp>0) {
-    stopifnot(alocar_por=="uc")
-    stopifnot(length(unique(ucs$data))==1)
+  if (peso_tsp > 0) {
+    if (alocar_por != "uc") {
+      cli::cli_abort("{.arg peso_tsp} > 0 requer {.arg alocar_por} = {.val \"uc\"}.")
+    }
+    if (dplyr::n_distinct(ucs$data) != 1) {
+      cli::cli_abort("{.arg peso_tsp} > 0 requer exatamente um per\u00edodo em {.field data}.")
+    }
   }
   distancias_ucs <- distancias_ucs |> dplyr::select(uc, agencia_codigo, distancia_km, duracao_horas, diaria_municipio, diaria_pernoite)
 
@@ -255,9 +285,6 @@ orce <- function(ucs,
   stopifnot(all(dcount$n == 1))
 
   if (alocar_por != "uc") {
-    if (!alocar_por %in% names(ucs)) {
-      stop(paste("alocar_por:", alocar_por, "não encontrado nos dados: ucs"))
-    }
     # Ajustar distancias_ucs para a nova agregação
     distancias_ucs <- distancias_ucs |>
       dplyr::left_join(ucs |> dplyr::select(dplyr::all_of(c("uc", alocar_por))), by = "uc")
@@ -294,6 +321,8 @@ orce <- function(ucs,
   } else {
     # Custos de treinamento com base na distância e se a agência já foi treinada
     treinamento_com_diaria <- !substr(agencias_t$agencia_codigo, 1, 7) %in% substr(agencias_treinamento, 1, 7)
+    # Com diária (pernoite): apenas 1 ida + 1 volta (fator 2) para todo o treinamento.
+    # Sem diária (mesmo município): vai-e-volta a cada dia de treinamento (fator dias_treinamento).
     custo_treinamento <- round(
       dplyr::if_else(treinamento_com_diaria, 2, dias_treinamento) *
         (agencias_t$distancia_km_agencia_treinamento / kml) *
@@ -340,7 +369,7 @@ orce <- function(ucs,
 
   # Compute transport costs
   dist_uc_agencias <- distancias_ucs_1 |>
-    dplyr::left_join(agencias_t, by = "agencia_codigo") |>
+    dplyr::left_join(agencias_t |> dplyr::select(-diaria_valor), by = "agencia_codigo") |>
     dplyr::transmute(
       i, t, uc,
       j, agencia_codigo,
@@ -370,8 +399,12 @@ orce <- function(ucs,
   # Agregar custos por i e j
   dist_i_agencias <- dist_uc_agencias |>
     dplyr::select(-t) |>
-    dplyr::group_by(i, j, agencia_codigo, agencia_codigo_jurisdicao) |>
-    dplyr::summarise(dplyr::across(dplyr::where(is.numeric), sum), n_ucs = dplyr::n()) |>
+    dplyr::group_by(i, j, agencia_codigo) |>
+    dplyr::summarise(
+      agencia_codigo_jurisdicao = names(which.max(table(agencia_codigo_jurisdicao))),
+      dplyr::across(dplyr::where(is.numeric), sum),
+      n_ucs = dplyr::n()
+    ) |>
     dplyr::ungroup()
 
   stopifnot(all(!is.na(dist_i_agencias$distancia_km)))
@@ -455,8 +488,7 @@ orce <- function(ucs,
   }
 
   if (result$status == "error") {
-    warning("Error! Returning the solution object for inspection")
-    return(result)
+    cli::cli_abort("O solver retornou um erro. Verifique os par\u00e2metros do modelo.")
   }
   # Extrair a solução
   resultado <- list()
@@ -471,7 +503,7 @@ orce <- function(ucs,
     dplyr::left_join(agencias_t |> dplyr::select(i=j, orig_=agencia_codigo), by = "i") |>
     dplyr::left_join(agencias_t |> dplyr::select(k=j, dest_=agencia_codigo), by = "k") |>
     dplyr::mutate(orig=dplyr::coalesce(orig, orig_), orig_=NULL,
-                  dest=dplyr::coalesce(dest, dest_), orig_=NULL
+                  dest=dplyr::coalesce(dest, dest_), dest_=NULL
                   ) |>
     dplyr::rowwise() |>
     dplyr::mutate(
@@ -539,7 +571,7 @@ orce <- function(ucs,
     dplyr::transmute(agencia_codigo, dias_coleta_max_data=dias_coleta)
   # Criar resultados para agências - jurisdição
   resultado_agencias_jurisdicao <- agencias_t|>
-    dplyr::left_join(resultado_ucs_jurisdicao, by="agencia_codigo")|>
+    dplyr::inner_join(resultado_ucs_jurisdicao, by="agencia_codigo")|>
     dplyr::select(-j, -custo_deslocamento_com_troca, -data)|>
     dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars)))|>
     dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs = dplyr::n())|>
@@ -564,9 +596,5 @@ orce <- function(ucs,
     resultado$ucs_agencias_todas <- dist_uc_agencias
   }
   resultado$log <- tail(log, 100)
-  tictoc::toc(log=TRUE, quiet=TRUE)
-  tempo_otimizacao <- tictoc::tic.log(format = FALSE)
-  with(tempo_otimizacao[[1]], cli::cli_alert_success(paste0(msg, ": ", round(toc-tic),  " segundos.")))
-  attr(resultado, "tempo_otimizacao") <- with(tempo_otimizacao[[1]], toc-tic)
   return(resultado)
 }

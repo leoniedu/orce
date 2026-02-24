@@ -80,12 +80,8 @@ orce_model_milp <- function(env, route_max_km = Inf) {
       ompr::add_variable(w[j], j = 1:m, type = n_entrevistadores_tipo, lb = 0, ub = Inf)
 
     if (tsp) {
-      # Calcular upper bounds por arco:
-      #   - auto-loops: 0
-      #   - base->base: 0
-      #   - arco envolvendo depot de outra agencia: 0
-      #   - UC->UC com distância > route_max_km: 0
-      #   - demais: 1
+      # Identificar arcos proibidos (serão fixados em 0 via restrição):
+      #   - auto-loops, base->base, uso de base por agência errada, UC->UC > route_max_km
       grid_route  <- expand.grid(i = 1:N, k = 1:N, j = 1:m)
       is_base_i   <- grid_route$i <= m
       is_base_k   <- grid_route$k <= m
@@ -95,12 +91,17 @@ orce_model_milp <- function(env, route_max_km = Inf) {
       d_ik        <- distancias_nos[cbind(grid_route$i, grid_route$k)]
       allow_uc_uc   <- !is_base_i & !is_base_k & (d_ik <= route_max_km)
       allow_base_uc <- xor(is_base_i, is_base_k)
-      ub_vec <- as.integer(no_self & own_depot_i & own_depot_k & (allow_base_uc | allow_uc_uc))
+      allowed     <- no_self & own_depot_i & own_depot_k & (allow_base_uc | allow_uc_uc)
+      forbidden   <- grid_route[!allowed, ]
 
       model <- model |>
         # route[i,k,j] = 1 se o vendedor j percorre o arco i->k (multi-depósito)
         ompr::add_variable(route[grid_route$i, grid_route$k, grid_route$j],
-                           type = "binary", lb = 0, ub = ub_vec) |>
+                           type = "binary", lb = 0, ub = 1L) |>
+        # fixar arcos proibidos em 0
+        ompr::add_constraint(
+          route[forbidden$i, forbidden$k, forbidden$j] == 0
+        ) |>
         # variável auxiliar MTZ apenas para nós de UCs (indexadas 1..n_uc)
         ompr::add_variable(u[q, j], q = 1:n_uc, j = 1:m, lb = 1, ub = n_uc) |>
         # conservação de fluxo apenas nos nós de UCs: sum_in == sum_out
@@ -123,25 +124,28 @@ orce_model_milp <- function(env, route_max_km = Inf) {
         )
     }
 
-    # Termos de custo comuns (transporte, fixo, entrevistadores)
-    base_obj <-
-      ompr::sum_expr(ompr::colwise(transport_cost_i_j[i, j]) * x[i, j], i = 1:n, j = 1:m) +
-      ompr::sum_expr(ompr::colwise(agencias_t$custo_fixo[j]) * y[j], j = 1:m) +
-      remuneracao_entrevistador * ompr::sum_expr(w[j], j = 1:m) +
-      ompr::sum_expr(ompr::colwise(agencias_t$custo_treinamento_por_entrevistador[j]) * w[j], j = 1:m)
-
-    # Objetivo
+    # Objetivo: sum_expr must be inlined into set_objective (not pre-computed),
+    # because MILPModel resolves model variables lazily inside the pipe.
     if (tsp) {
       model <- model |>
         ompr::set_objective(
           (custo_litro_combustivel * peso_tsp / kml) *
-            ompr::sum_expr(ompr::colwise(distancias_nos[i, k]) * route[i, k, j], i = 1:N, k = 1:N, j = 1:m) +
-            base_obj,
+            ompr::sum_expr(ompr::colwise(distancias_nos[cbind(i, k)]) * route[i, k, j], i = 1:N, k = 1:N, j = 1:m) +
+            ompr::sum_expr(ompr::colwise(transport_cost_i_j[cbind(i, j)]) * x[i, j], i = 1:n, j = 1:m) +
+            ompr::sum_expr(ompr::colwise(agencias_t$custo_fixo[j]) * y[j], j = 1:m) +
+            remuneracao_entrevistador * ompr::sum_expr(w[j], j = 1:m) +
+            ompr::sum_expr(ompr::colwise(agencias_t$custo_treinamento_por_entrevistador[j]) * w[j], j = 1:m),
           sense = "min"
         )
     } else {
       model <- model |>
-        ompr::set_objective(base_obj, sense = "min")
+        ompr::set_objective(
+          ompr::sum_expr(ompr::colwise(transport_cost_i_j[cbind(i, j)]) * x[i, j], i = 1:n, j = 1:m) +
+            ompr::sum_expr(ompr::colwise(agencias_t$custo_fixo[j]) * y[j], j = 1:m) +
+            remuneracao_entrevistador * ompr::sum_expr(w[j], j = 1:m) +
+            ompr::sum_expr(ompr::colwise(agencias_t$custo_treinamento_por_entrevistador[j]) * w[j], j = 1:m),
+          sense = "min"
+        )
     }
 
     # Restrições gerais
@@ -167,7 +171,7 @@ orce_model_milp <- function(env, route_max_km = Inf) {
     if (any(is.finite(diarias_entrevistador_max))) {
       model <- model |>
         ompr::add_constraint(
-          ompr::sum_expr(ompr::colwise(diarias_i_j[i, j]) * x[i, j], i = 1:n) <= diarias_entrevistador_max * w[j],
+          ompr::sum_expr(ompr::colwise(diarias_i_j[cbind(i, j)]) * x[i, j], i = 1:n) <= diarias_entrevistador_max * w[j],
           j = 1:m
         )
     }
