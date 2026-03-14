@@ -13,16 +13,20 @@ Depends:
     R (>= 3.5),
     sf
 Suggests:
+    bslib,
     data.table,
+    DT,
     ggmap,
     glue,
     gt,
     htmltools,
     janitor,
     knitr,
+    mapgl,
     orcedata,
     osrm,
     purrr,
+    shiny,
     testthat (>= 3.0.0),
     tictoc,
     xml2

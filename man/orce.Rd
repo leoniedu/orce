@@ -31,7 +31,7 @@ orce(
   use_cache = TRUE,
   distancias_nos = NULL,
   peso_tsp = 0,
-  orce_function = orce_model_mip,
+  orce_function = orce_model_milp,
   ...
 )
 }
@@ -99,7 +99,7 @@ determina o número máximo de dias de coleta que a agência pode realizar (n_en
 
 \item{resultado_completo}{(Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.}
 
-\item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "cbc". Outras opções: "glpk", "symphony" (instalação manual).}
+\item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "highs". Outras opções: "glpk", "symphony" (instalação manual).}
 
 \item{rel_tol}{Tolerância relativa para a otimização. Valores menores levam a soluções mais precisas, mas podem aumentar o tempo de execução. Padrão: 0.005.}
 
@@ -126,7 +126,8 @@ porque a rota conjunta é mais curta. Não substitui o custo real de deslocament
 
 \item{orce_function}{Função construtora do modelo OMPR a ser usada. Recebe um único
 argumento \code{env} (um ambiente) com todos os objetos já preparados dentro de \code{.orce_impl}
-e deve retornar um objeto \code{ompr::MIPModel}. O padrão é \code{orce_model_default}.}
+e deve retornar um objeto \code{ompr::MILPModel}. O padrão é \code{\link[=orce_model_milp]{orce_model_milp()}}
+(backend vetorizado). Use \code{\link[=orce_model_mip]{orce_model_mip()}} para o backend escalar legado.}
 
 \item{...}{Opções adicionais para o solver.}
 }

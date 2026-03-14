@@ -4,26 +4,30 @@
 \alias{calcula_distancias}
 \title{Calcula Distâncias Entre Origens e Destinos}
 \usage{
-calcula_distancias(destinos, origens, nmax = 2000)
+calcula_distancias(destinos, origens, chunk_size = 100L, nmax = NULL)
 }
 \arguments{
 \item{destinos}{Um objeto \code{sf} representando os pontos de destino.}
 
 \item{origens}{Um objeto \code{sf} representando os pontos de origem.}
 
-\item{nmax}{Número máximo de pares origem-destino para cada requisição ao serviço OSRM.
-Utilizado para evitar o limite de número de pares por requisição. Padrão: 2000.}
+\item{chunk_size}{Número de origens por lote enviado ao OSRM. Padrão: 100L.}
+
+\item{nmax}{Descontinuado. Número máximo de pares origem-destino por
+requisição. Use \code{chunk_size} no lugar.}
 }
 \value{
-Um \code{data.frame} com as distâncias (em quilômetros) e durações (em horas) entre cada par
-de origem e destino, além dos atributos originais de \code{origens} e \code{destinos}.
+Um \code{data.frame} com as distâncias (em quilômetros) e durações (em
+horas) entre cada par de origem e destino, além dos atributos originais de
+\code{origens} e \code{destinos}.
 }
 \description{
-Esta função calcula a distância e duração entre conjuntos de pontos de origem e destino usando o serviço OSRM.
+Calcula a distância e duração entre conjuntos de pontos de origem e destino
+usando o serviço OSRM. As requisições são enviadas em lotes para evitar o
+limite de pares por requisição.
 }
 \details{
-A função utiliza o pacote \code{osrm} para calcular as distâncias e durações entre os pontos de origem e
-destino. O parâmetro \code{nmax} permite dividir as requisições ao serviço OSRM em lotes menores,
-evitando o erro "Too many table coordinates" que ocorre quando o número de pares origem-destino é
-muito grande.
+A função utiliza o pacote \code{osrm} para calcular distâncias e durações. O
+parâmetro \code{chunk_size} controla quantas origens são enviadas por requisição,
+evitando o erro "Too many table coordinates".
 }

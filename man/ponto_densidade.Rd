@@ -7,27 +7,25 @@
 ponto_densidade(cnefe, geoid)
 }
 \arguments{
-\item{cnefe}{Um objeto \code{sf} contendo a geometria das unidades espaciais e o número de
-estabelecimentos em cada unidade. Deve conter uma coluna chamada \code{n} com o número
-de estabelecimentos e uma coluna com o código da unidade espacial, cujo nome é
-especificado no argumento \code{geoid}.}
+\item{cnefe}{Um objeto \code{sf} com geometria POINT. Deve conter uma coluna \code{n}
+com o número de estabelecimentos (ou outro peso) e uma coluna com o código
+da unidade espacial, cujo nome é especificado em \code{geoid}.}
 
-\item{geoid}{O nome da coluna em \code{cnefe} que contém o código único da unidade espacial
-(e.g., "cod_setor", "cod_municipio").}
+\item{geoid}{Nome da coluna em \code{cnefe} com o código único da unidade espacial
+(e.g., \code{cod_setor}, \code{cod_municipio}).}
 }
 \value{
-Um \code{data.frame} com o código da unidade espacial (\code{geoid}) e as coordenadas
-do ponto de maior densidade (latitude e longitude) para cada unidade.
+Um \code{data.frame} com o código da unidade espacial e as coordenadas
+(\code{lon}, \code{lat}) do ponto de maior densidade para cada unidade.
 }
 \description{
-Esta função calcula a unidade com maior densidade populacional para cada unidade espacial
-(e.g., setor censitário, município) em um objeto \code{sf}, com base no número de
-estabelecimentos (ou outro tipo de ponto) em cada unidade.
+Calcula o ponto de maior densidade populacional para cada unidade espacial
+(e.g., setor censitário, município) em um objeto \code{sf}, com base na coluna
+de pesos \code{n} (e.g., número de estabelecimentos).
 }
 \details{
-A função utiliza o pacote \code{spatstat} para calcular a densidade de pontos em cada
-unidade espacial. O ponto de densidade é definido como o ponto com a maior
-densidade de pontos dentro da unidade. A densidade é calculada usando um kernel
-gaussiano com largura de banda \code{sigma} definida como o máximo entre 10\% da
-amplitude da unidade espacial e 30 metros.
+Delega o cálculo de densidade para \code{\link[pns.zonas:density_point]{pns.zonas::density_point()}}, que usa
+estimativa de densidade por kernel gaussiano (pacote \code{spatstat}) com
+largura de banda \verb{sigma = max(10\% da amplitude, 30 m)}. Unidades com um
+único ponto são retornadas diretamente.
 }
