@@ -14,7 +14,9 @@ mod_codigo_ui <- function(id) {
 
 #' @keywords internal
 mod_codigo_server <- function(id, restricoes_lista, agencias_treinamento,
-                              agencias_treinamento_inicial) {
+                              agencias_treinamento_inicial,
+                              params_alterados = NULL,
+                              params_fixos_nomes = character()) {
   shiny::moduleServer(id, function(input, output, session) {
 
     codigo_texto <- shiny::reactive({
@@ -22,18 +24,20 @@ mod_codigo_server <- function(id, restricoes_lista, agencias_treinamento,
       ag_trein <- agencias_treinamento()
       ag_trein_ini <- agencias_treinamento_inicial()
 
-      # Incluir agências de treinamento apenas se alteradas
+      # Incluir agências de treinamento se existirem (original ou modificada)
       todas_restricoes <- restr
-      if (!is.null(ag_trein) &&
-          !identical(sort(ag_trein), sort(ag_trein_ini %||% character()))) {
+      ag_trein_efetivo <- ag_trein %||% ag_trein_ini
+      if (!is.null(ag_trein_efetivo) && length(ag_trein_efetivo) > 0) {
         todas_restricoes <- c(
           todas_restricoes,
           list(list(tipo = "agencias_treinamento",
-                    agencias_treinamento = ag_trein))
+                    agencias_treinamento = ag_trein_efetivo))
         )
       }
 
-      orce_gerar_codigo(todas_restricoes)
+      p_alt <- if (!is.null(params_alterados)) params_alterados() else list()
+      orce_gerar_codigo(todas_restricoes, params_alterados = p_alt,
+                        params_fixos_nomes = params_fixos_nomes)
     })
 
     output$codigo <- shiny::renderText({

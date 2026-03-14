@@ -1,3 +1,8 @@
+# Constantes compartilhadas para restrições
+.TIPOS_RESTRICAO <- c("bloquear", "forcar", "desativar_agencia",
+                       "agencias_treinamento")
+.CUSTO_PROIBITIVO <- 1e6
+
 #' Aplicar Restrições Manuais aos Dados de Entrada do orce
 #'
 #' Modifica os data frames de entrada (`ucs`, `agencias`, `distancias_ucs`) e
@@ -34,8 +39,8 @@
 #' @details
 #' As restrições são aplicadas na ordem fornecida. Cada tipo funciona assim:
 #'
-#' - **`bloquear`**: Define `distancia_km = 1e6` e `duracao_horas = 1e6` para
-#'   o par (UC, agência), tornando a atribuição proibitivamente cara.
+#' - **`bloquear`**: Define `distancia_km` e `duracao_horas` como proibitivos
+#'   para o par (UC, agência), tornando a atribuição proibitivamente cara.
 #' - **`forcar`**: Define custos proibitivos para todas as *outras* agências
 #'   daquela UC, forçando a atribuição à agência especificada.
 #' - **`desativar_agencia`**: Remove a agência de `agencias` e de
@@ -55,54 +60,35 @@ orce_aplicar_restricoes <- function(ucs, agencias, distancias_ucs,
     ))
   }
 
-  tipos_validos <- c("bloquear", "forcar", "desativar_agencia",
-                     "agencias_treinamento")
-
   for (i in seq_along(restricoes)) {
     r <- restricoes[[i]]
 
-    if (is.null(r$tipo) || !r$tipo %in% tipos_validos) {
+    if (is.null(r$tipo) || !r$tipo %in% .TIPOS_RESTRICAO) {
       cli::cli_abort(
-        "Restri\\u00e7\\u00e3o {i} tem tipo inv\\u00e1lido: {.val {r$tipo %||% 'NULL'}}. Tipos v\\u00e1lidos: {.val {tipos_validos}}."
+        "Restri\\u00e7\\u00e3o {i} tem tipo inv\\u00e1lido: {.val {r$tipo %||% 'NULL'}}. Tipos v\\u00e1lidos: {.val {(.TIPOS_RESTRICAO)}}."
       )
     }
 
     if (r$tipo == "bloquear") {
       checkmate::assert_character(r$uc, min.len = 1)
       checkmate::assert_string(r$agencia_codigo)
-      distancias_ucs <- distancias_ucs |>
-        dplyr::mutate(
-          distancia_km = dplyr::if_else(
-            uc %in% r$uc & agencia_codigo == r$agencia_codigo,
-            1e6, distancia_km
-          ),
-          duracao_horas = dplyr::if_else(
-            uc %in% r$uc & agencia_codigo == r$agencia_codigo,
-            1e6, duracao_horas
-          )
-        )
+      mask <- distancias_ucs$uc %in% r$uc &
+        distancias_ucs$agencia_codigo == r$agencia_codigo
+      distancias_ucs$distancia_km[mask] <- .CUSTO_PROIBITIVO
+      distancias_ucs$duracao_horas[mask] <- .CUSTO_PROIBITIVO
 
     } else if (r$tipo == "forcar") {
       checkmate::assert_character(r$uc, min.len = 1)
       checkmate::assert_string(r$agencia_codigo)
-      distancias_ucs <- distancias_ucs |>
-        dplyr::mutate(
-          distancia_km = dplyr::if_else(
-            uc %in% r$uc & agencia_codigo != r$agencia_codigo,
-            1e6, distancia_km
-          ),
-          duracao_horas = dplyr::if_else(
-            uc %in% r$uc & agencia_codigo != r$agencia_codigo,
-            1e6, duracao_horas
-          )
-        )
+      mask <- distancias_ucs$uc %in% r$uc &
+        distancias_ucs$agencia_codigo != r$agencia_codigo
+      distancias_ucs$distancia_km[mask] <- .CUSTO_PROIBITIVO
+      distancias_ucs$duracao_horas[mask] <- .CUSTO_PROIBITIVO
 
     } else if (r$tipo == "desativar_agencia") {
       checkmate::assert_string(r$agencia_codigo)
-      agencias <- agencias |>
-        dplyr::filter(agencia_codigo != r$agencia_codigo)
-      distancias_ucs <- distancias_ucs |>
-        dplyr::filter(agencia_codigo != r$agencia_codigo)
+      agencias <- agencias[agencias$agencia_codigo != r$agencia_codigo, ]
+      distancias_ucs <- distancias_ucs[distancias_ucs$agencia_codigo != r$agencia_codigo, ]
 
     } else if (r$tipo == "agencias_treinamento") {
       checkmate::assert_character(r$agencias_treinamento, min.len = 1)
@@ -116,4 +102,24 @@ orce_aplicar_restricoes <- function(ucs, agencias, distancias_ucs,
     distancias_ucs = distancias_ucs,
     agencias_treinamento = agencias_treinamento
   )
+}
+
+#' Anotar data frame de UCs com rótulos de restrições
+#' @keywords internal
+.anotar_restricoes <- function(df, restricoes) {
+  df$restricao <- ""
+  for (r in restricoes) {
+    if (r$tipo == "bloquear") {
+      idx <- df$uc %in% r$uc
+      df$restricao[idx] <- paste0(
+        df$restricao[idx],
+        ifelse(df$restricao[idx] == "", "", "; "),
+        "bloqueada de ", r$agencia_codigo
+      )
+    } else if (r$tipo == "forcar") {
+      idx <- df$uc %in% r$uc
+      df$restricao[idx] <- paste0("for\u00e7ada -> ", r$agencia_codigo)
+    }
+  }
+  df
 }

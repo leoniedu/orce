@@ -4,11 +4,21 @@
 \alias{orce_gerar_codigo}
 \title{Gerar Código R Reproduzível a Partir de Restrições}
 \usage{
-orce_gerar_codigo(restricoes = list())
+orce_gerar_codigo(
+  restricoes = list(),
+  params_alterados = list(),
+  params_fixos_nomes = character()
+)
 }
 \arguments{
 \item{restricoes}{Lista de restrições no mesmo formato aceito por
 \code{\link[=orce_aplicar_restricoes]{orce_aplicar_restricoes()}}.}
+
+\item{params_alterados}{Lista nomeada de parâmetros escalares que diferem
+dos valores iniciais (ex: \code{list(rel_tol = 0.01, dias_treinamento = 4)}).}
+
+\item{params_fixos_nomes}{Vetor de nomes de parâmetros não-escalares
+(ex: \code{"distancias_agencias"}) a incluir na chamada \code{orce()} gerada.}
 }
 \value{
 Uma string contendo código R válido e reproduzível.

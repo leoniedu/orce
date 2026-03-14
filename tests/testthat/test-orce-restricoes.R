@@ -1,6 +1,7 @@
 library(testthat)
 library(orce)
 
+set.seed(42)
 # Dados mínimos para testar restrições (sem precisar de orcedata)
 agencias_test <- data.frame(
   agencia_codigo = c("AG01", "AG02", "AG03"),
@@ -165,7 +166,7 @@ test_that("gerar_codigo produz código para bloquear", {
   expect_match(codigo, "Bloquear")
   expect_match(codigo, "UC01")
   expect_match(codigo, "AG01")
-  expect_match(codigo, "1e6")
+  expect_match(codigo, "1e\\+06")
 })
 
 test_that("gerar_codigo produz código para forcar", {
@@ -197,6 +198,42 @@ test_that("gerar_codigo produz código para agencias_treinamento", {
   expect_match(codigo, "treinamento")
   expect_match(codigo, "AG01")
   expect_match(codigo, "AG02")
+})
+
+test_that("gerar_codigo inclui params_alterados na chamada orce()", {
+  codigo <- orce_gerar_codigo(
+    params_alterados = list(rel_tol = 0.01, dias_treinamento = 4, solver = "glpk")
+  )
+  expect_match(codigo, "rel_tol = 0.01")
+  expect_match(codigo, "dias_treinamento = 4")
+  expect_match(codigo, 'solver = "glpk"')
+  expect_match(codigo, "resultado_completo = TRUE")
+})
+
+test_that("gerar_codigo inclui params_fixos_nomes na chamada orce()", {
+  codigo <- orce_gerar_codigo(
+    params_alterados = list(rel_tol = 0.01),
+    params_fixos_nomes = c("distancias_agencias")
+  )
+  expect_match(codigo, "distancias_agencias = distancias_agencias")
+  expect_match(codigo, "rel_tol = 0.01")
+})
+
+test_that("gerar_codigo inclui agencias_treinamento na chamada orce()", {
+  restricoes <- list(
+    list(tipo = "agencias_treinamento",
+         agencias_treinamento = c("AG01"))
+  )
+  codigo <- orce_gerar_codigo(restricoes)
+  expect_match(codigo, "agencias_treinamento <- \"AG01\"")
+  expect_match(codigo, "agencias_treinamento = agencias_treinamento")
+})
+
+test_that("gerar_codigo com Inf gera valor correto", {
+  codigo <- orce_gerar_codigo(
+    params_alterados = list(diarias_entrevistador_max = Inf)
+  )
+  expect_match(codigo, "diarias_entrevistador_max = Inf")
 })
 
 test_that("gerar_codigo com múltiplas UCs usa c()", {

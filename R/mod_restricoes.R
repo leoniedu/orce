@@ -19,13 +19,15 @@ mod_restricoes_ui <- function(id) {
                         class = "btn-primary btn-sm"),
 
     shiny::hr(),
-    shiny::h4("Ag\u00eancias de treinamento"),
-    shiny::uiOutput(ns("treinamento_ui")),
-
-    shiny::hr(),
     shiny::h4("Restri\u00e7\u00f5es ativas"),
-    shiny::uiOutput(ns("lista_restricoes")),
+    shiny::uiOutput(ns("lista_restricoes"))
+  )
+}
 
+#' @keywords internal
+mod_restricoes_botoes_ui <- function(id) {
+  ns <- shiny::NS(id)
+  shiny::tagList(
     shiny::hr(),
     shiny::actionButton(ns("reotimizar"), "Re-otimizar",
                         class = "btn-success"),
@@ -38,19 +40,23 @@ mod_restricoes_ui <- function(id) {
 mod_restricoes_server <- function(id, selected_uc, selected_agencia,
                                   agencias_disponiveis,
                                   ucs_disponiveis,
-                                  agencias_treinamento_inicial) {
+                                  nomes_agencias = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # Choices com nomes para dropdowns de agências
+    agencias_choices <- shiny::reactive({
+      codigos <- agencias_disponiveis()
+      if (!is.null(nomes_agencias)) {
+        labels <- paste0(nomes_agencias[codigos], " (", codigos, ")")
+        stats::setNames(codigos, labels)
+      } else {
+        codigos
+      }
+    })
+
     # Estado reativo: lista de restrições
     restricoes <- shiny::reactiveVal(list())
-
-    # Estado reativo: agências de treinamento
-    agencias_treinamento <- shiny::reactiveVal(NULL)
-
-    shiny::observe({
-      agencias_treinamento(agencias_treinamento_inicial())
-    })
 
     # Mostrar seleção atual
     output$selecao_info <- shiny::renderText({
@@ -58,7 +64,14 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
       ag <- selected_agencia()
       linhas <- character()
       if (!is.null(uc)) linhas <- c(linhas, paste("UC:", uc))
-      if (!is.null(ag)) linhas <- c(linhas, paste("Ag\u00eancia:", ag))
+      if (!is.null(ag)) {
+        ag_label <- if (!is.null(nomes_agencias) && ag %in% names(nomes_agencias)) {
+          paste0(nomes_agencias[[ag]], " (", ag, ")")
+        } else {
+          ag
+        }
+        linhas <- c(linhas, paste("Ag\u00eancia:", ag_label))
+      }
       if (length(linhas) == 0) "Nenhuma sele\u00e7\u00e3o"
       else paste(linhas, collapse = "\n")
     })
@@ -70,6 +83,7 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
 
       uc_sel <- selected_uc()
       ag_sel <- selected_agencia()
+      choices <- agencias_choices()
 
       if (tipo %in% c("bloquear", "forcar")) {
         shiny::tagList(
@@ -78,31 +92,15 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
                                 selected = uc_sel,
                                 multiple = TRUE),
           shiny::selectInput(ns("agencia_alvo"), "Ag\u00eancia:",
-                             choices = agencias_disponiveis(),
+                             choices = choices,
                              selected = ag_sel)
         )
       } else if (tipo == "desativar_agencia") {
         shiny::selectInput(ns("agencia_alvo"), "Ag\u00eancia:",
-                           choices = agencias_disponiveis(),
+                           choices = choices,
                            selected = ag_sel)
       }
     })
-
-    # UI para agências de treinamento
-    output$treinamento_ui <- shiny::renderUI({
-      shiny::selectizeInput(
-        ns("agencias_treinamento_sel"),
-        label = NULL,
-        choices = agencias_disponiveis(),
-        selected = agencias_treinamento(),
-        multiple = TRUE
-      )
-    })
-
-    # Observar mudanças nas agências de treinamento
-    shiny::observeEvent(input$agencias_treinamento_sel, {
-      agencias_treinamento(input$agencias_treinamento_sel)
-    }, ignoreNULL = FALSE)
 
     # Adicionar restrição
     shiny::observeEvent(input$adicionar, {
@@ -134,8 +132,8 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
       }
     })
 
-    # Contador de observers criados (para evitar duplicatas)
-    observers_criados <- shiny::reactiveVal(character())
+    # Registro de observers de remoção (keyed by .id)
+    obs_remocao <- reactiveValues()
 
     # Renderizar lista de restrições ativas
     output$lista_restricoes <- shiny::renderUI({
@@ -145,7 +143,7 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
       }
       itens <- lapply(restr, function(r) {
         rid <- r$.id
-        descricao <- .descrever_restricao(r)
+        descricao <- .descrever_restricao(r, nomes_agencias)
         shiny::div(
           class = "d-flex justify-content-between align-items-center mb-1",
           shiny::span(descricao),
@@ -160,52 +158,64 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
       shiny::tagList(itens)
     })
 
-    # Observar botões de remoção (criar observer uma única vez por ID)
+    # Observar botões de remoção (criar observer uma única vez por ID, destruir ao remover)
     shiny::observe({
       restr <- restricoes()
       ids_atuais <- vapply(restr, function(r) r$.id, character(1))
-      novos <- setdiff(ids_atuais, observers_criados())
+      ids_registrados <- names(shiny::reactiveValuesToList(obs_remocao))
 
-      for (rid in novos) {
+      # Criar observers para novas restrições
+      for (rid in setdiff(ids_atuais, ids_registrados)) {
         local({
           my_rid <- rid
           btn_id <- paste0("remover_", my_rid)
-          shiny::observeEvent(input[[btn_id]], {
+          obs_remocao[[my_rid]] <- shiny::observeEvent(input[[btn_id]], {
             atual <- restricoes()
             restricoes(Filter(function(r) r$.id != my_rid, atual))
           }, ignoreInit = TRUE)
         })
       }
 
-      observers_criados(union(observers_criados(), novos))
+      # Destruir observers de restrições removidas
+      for (rid in setdiff(ids_registrados, ids_atuais)) {
+        obs_remocao[[rid]]$destroy()
+        obs_remocao[[rid]] <- NULL
+      }
     })
 
     # Limpar tudo
     shiny::observeEvent(input$limpar, {
       restricoes(list())
-      agencias_treinamento(agencias_treinamento_inicial())
     })
 
     # Retornar valores
     list(
       restricoes = restricoes,
-      agencias_treinamento = agencias_treinamento,
-      reotimizar = shiny::reactive(input$reotimizar)
+      reotimizar = shiny::reactive(input$reotimizar),
+      limpar = shiny::reactive(input$limpar)
     )
   })
 }
 
 #' Descrever restrição em texto legível
 #' @keywords internal
-.descrever_restricao <- function(r) {
+.descrever_restricao <- function(r, nomes_agencias = NULL) {
+  .nome_ag <- function(codigo) {
+    if (!is.null(nomes_agencias) && codigo %in% names(nomes_agencias)) {
+      nomes_agencias[[codigo]]
+    } else {
+      codigo
+    }
+  }
   switch(r$tipo,
     bloquear = paste0("Bloquear ", paste(r$uc, collapse = ", "),
-                      " de ", r$agencia_codigo),
+                      " de ", .nome_ag(r$agencia_codigo)),
     forcar = paste0("For\u00e7ar ", paste(r$uc, collapse = ", "),
-                    " -> ", r$agencia_codigo),
-    desativar_agencia = paste0("Desativar ", r$agencia_codigo),
+                    " \u2192 ", .nome_ag(r$agencia_codigo)),
+    desativar_agencia = paste0("Desativar ", .nome_ag(r$agencia_codigo)),
     agencias_treinamento = paste0("Treinamento: ",
-                                   paste(r$agencias_treinamento, collapse = ", ")),
+                                   paste(vapply(r$agencias_treinamento, .nome_ag,
+                                                character(1)), collapse = ", ")),
     paste("Restri\u00e7\u00e3o:", r$tipo)
   )
 }

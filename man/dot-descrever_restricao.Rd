@@ -4,7 +4,7 @@
 \alias{.descrever_restricao}
 \title{Descrever restrição em texto legível}
 \usage{
-.descrever_restricao(r)
+.descrever_restricao(r, nomes_agencias = NULL)
 }
 \description{
 Descrever restrição em texto legível

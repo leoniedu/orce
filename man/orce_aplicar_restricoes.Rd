@@ -53,8 +53,8 @@ com \code{\link[=orce]{orce()}}.
 \details{
 As restrições são aplicadas na ordem fornecida. Cada tipo funciona assim:
 \itemize{
-\item \strong{\code{bloquear}}: Define \code{distancia_km = 1e6} e \code{duracao_horas = 1e6} para
-o par (UC, agência), tornando a atribuição proibitivamente cara.
+\item \strong{\code{bloquear}}: Define \code{distancia_km} e \code{duracao_horas} como proibitivos
+para o par (UC, agência), tornando a atribuição proibitivamente cara.
 \item \strong{\code{forcar}}: Define custos proibitivos para todas as \emph{outras} agências
 daquela UC, forçando a atribuição à agência especificada.
 \item \strong{\code{desativar_agencia}}: Remove a agência de \code{agencias} e de
