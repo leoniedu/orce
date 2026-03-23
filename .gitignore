@@ -3,3 +3,8 @@
 .RData
 .Ruserdata
 _extensions
+data-raw/*pof*
+.claude/
+docs/superpowers/
+output/
+*.png
