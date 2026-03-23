@@ -460,35 +460,117 @@ orce <- function(ucs,
   model <- orce_function(environment())
 
   cli::cli_progress_step("Otimizando...")
-  # Resolver o modelo de otimização
-  if (solver == "symphony") {
-    log <- utils::capture.output(
-      result <- ompr::solve_model(
-        model,
-        ompr.roi::with_ROI(solver = solver,
-                           max_time = as.numeric(max_time),
-                           gap_limit = rel_tol * 100, ...)
-      )
-    )
-  } else {
-    log <- utils::capture.output(
-      result <- ompr::solve_model(
-        model,
-        ompr.roi::with_ROI(solver = solver,
-                           max_time = as.numeric(max_time),
-                           rel_tol = rel_tol, ...)
-      )
-    )
-  }
 
-  if (solver == "symphony") {
-    if (result$additional_solver_output$ROI$status$msg$code %in% c(231L, 232L)) {
-      result$status <- result$additional_solver_output$ROI$status$msg$message
+  # Helper: solve model once with the appropriate solver options
+  .solve_once <- function(model) {
+    if (solver == "symphony") {
+      log <- utils::capture.output(
+        result <- ompr::solve_model(
+          model,
+          ompr.roi::with_ROI(solver = solver,
+                             max_time = as.numeric(max_time),
+                             gap_limit = rel_tol * 100, ...)
+        )
+      )
+    } else {
+      log <- utils::capture.output(
+        result <- ompr::solve_model(
+          model,
+          ompr.roi::with_ROI(solver = solver,
+                             max_time = as.numeric(max_time),
+                             rel_tol = rel_tol, ...)
+        )
+      )
     }
+    if (solver == "symphony") {
+      if (result$additional_solver_output$ROI$status$msg$code %in% c(231L, 232L)) {
+        result$status <- result$additional_solver_output$ROI$status$msg$message
+      }
+    }
+    if (result$status == "error") {
+      cli::cli_abort("O solver retornou um erro. Verifique os par\u00e2metros do modelo.")
+    }
+    list(result = result, log = log)
   }
 
-  if (result$status == "error") {
-    cli::cli_abort("O solver retornou um erro. Verifique os par\u00e2metros do modelo.")
+  # Helper: find subtours in route solution for each active agency.
+  # Returns a list of lists, each with $j (agency index) and $S (node indices in subtour).
+  .find_route_subtours <- function(result, m, N) {
+    route_sol <- ompr::get_solution(result, route[i, k, j]) |>
+      dplyr::filter(value > 0.5)
+    if (nrow(route_sol) == 0L) return(list())
+
+    subtours_found <- list()
+    for (jj in unique(route_sol$j)) {
+      arcs_j <- route_sol[route_sol$j == jj, , drop = FALSE]
+      # Build adjacency: for each node, find its successor
+      nodes <- unique(c(arcs_j$i, arcs_j$k))
+      if (length(nodes) <= 1L) next
+      # successor map
+      succ <- stats::setNames(arcs_j$k, arcs_j$i)
+      visited <- rep(FALSE, N)
+      names(visited) <- seq_len(N)
+      tours <- list()
+      for (start in nodes) {
+        if (visited[start]) next
+        tour <- integer(0)
+        cur <- start
+        while (!is.na(cur) && !visited[cur]) {
+          visited[cur] <- TRUE
+          tour <- c(tour, cur)
+          cur <- succ[as.character(cur)]
+        }
+        if (length(tour) > 0L) tours <- c(tours, list(tour))
+      }
+      # A valid route for agency jj is a single cycle (depot -> UCs -> depot).
+      # If there are multiple cycles, the non-depot ones are subtours to eliminate.
+      if (length(tours) > 1L) {
+        for (tour in tours) {
+          # Skip the cycle that contains the depot (node jj)
+          if (jj %in% tour) next
+          # Only UC-UC subtours need DFJ cuts
+          subtours_found <- c(subtours_found, list(list(j = jj, S = tour)))
+        }
+      }
+    }
+    subtours_found
+  }
+
+  if (tsp) {
+    # Iterative DFJ subtour elimination loop
+    max_dfj_iter <- 100L
+    dfj_iter <- 0L
+    log <- character(0)
+    repeat {
+      dfj_iter <- dfj_iter + 1L
+      sol <- .solve_once(model)
+      result <- sol$result
+      log <- c(log, sol$log)
+
+      subtours_found <- .find_route_subtours(result, m, N)
+      cli::cli_progress_message(
+        "DFJ iter {dfj_iter}: {length(subtours_found)} subtour{?s} found"
+      )
+
+      if (length(subtours_found) == 0L || dfj_iter >= max_dfj_iter) break
+
+      # Add DFJ cuts for each subtour: sum of arcs within S <= |S| - 1
+      for (st in subtours_found) {
+        S <- st$S
+        jj <- st$j
+        model <- ompr::add_constraint(
+          model,
+          ompr::sum_expr(route[i, k, jj], i = S, k = S, i != k) <= length(S) - 1L
+        )
+      }
+    }
+    if (length(subtours_found) > 0L) {
+      cli::cli_warn("DFJ did not converge in {max_dfj_iter} iterations ({length(subtours_found)} subtour{?s} remain).")
+    }
+  } else {
+    sol <- .solve_once(model)
+    result <- sol$result
+    log <- sol$log
   }
   # Extrair a solução
   resultado <- list()

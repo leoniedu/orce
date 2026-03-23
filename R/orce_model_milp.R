@@ -13,7 +13,8 @@
 #' ## Papel do TSP (`peso_tsp`)
 #'
 #' Quando `peso_tsp > 0`, o modelo adiciona variáveis de roteamento
-#' (`route[i, k, j]`) e restrições MTZ para eliminar sub-rotas. O objetivo
+#' (`route[i, k, j]`). A eliminação de sub-rotas é feita via cortes DFJ
+#' iterativos no loop de resolução em `.orce_impl`. O objetivo
 #' inclui, além dos custos operacionais habituais (`transport_cost_i_j`), uma
 #' penalidade proporcional ao comprimento da rota TSP de cada agência:
 #'
@@ -93,6 +94,7 @@ orce_model_milp <- function(env, route_max_km = Inf) {
       allow_base_uc <- xor(is_base_i, is_base_k)
       allowed     <- no_self & own_depot_i & own_depot_k & (allow_base_uc | allow_uc_uc)
       forbidden   <- grid_route[!allowed, ]
+      allowed_grid <- grid_route[allowed, ]
 
       model <- model |>
         # route[i,k,j] = 1 se o vendedor j percorre o arco i->k (multi-depósito)
@@ -102,8 +104,6 @@ orce_model_milp <- function(env, route_max_km = Inf) {
         ompr::add_constraint(
           route[forbidden$i, forbidden$k, forbidden$j] == 0
         ) |>
-        # variável auxiliar MTZ apenas para nós de UCs (indexadas 1..n_uc)
-        ompr::add_variable(u[q, j], q = 1:n_uc, j = 1:m, lb = 1, ub = n_uc) |>
         # conservação de fluxo apenas nos nós de UCs: sum_in == sum_out
         ompr::add_constraint(
           ompr::sum_expr(route[f, m + q, j], f = 1:N) -
@@ -116,21 +116,32 @@ orce_model_milp <- function(env, route_max_km = Inf) {
         # cada vendedor j sai de sua própria base j exatamente uma vez se ativo
         ompr::add_constraint(ompr::sum_expr(route[j, node, j], node = (m + 1):N) == y[j], j = 1:m) |>
         # e retorna para sua base j exatamente uma vez se ativo
-        ompr::add_constraint(ompr::sum_expr(route[f, j, j], f = (m + 1):N) == y[j], j = 1:m) |>
-        # MTZ apenas sobre nós de UCs (evita subtours) para q != r
-        ompr::add_constraint(
-          u[q, j] - u[r, j] + 1 <= (n_uc) * (1 - route[m + q, m + r, j]),
-          q = 1:n_uc, r = 1:n_uc, j = 1:m, q != r
-        )
+        ompr::add_constraint(ompr::sum_expr(route[f, j, j], f = (m + 1):N) == y[j], j = 1:m)
+        # Subtour elimination via iterative DFJ cuts (added during solve loop in .orce_impl)
     }
 
     # Objetivo: sum_expr must be inlined into set_objective (not pre-computed),
     # because MILPModel resolves model variables lazily inside the pipe.
     if (tsp) {
+      # Split the route cost into per-agency auxiliary variables to avoid a single
+      # N^2*m-term sum_expr in set_objective (the model-build bottleneck).
+      # Each route_cost[j] = sum of dist * route for agency j (N^2 terms each).
+      model <- model |>
+        ompr::add_variable(route_cost[j], j = 1:m, type = "continuous", lb = 0)
+      for (jj in 1:m) {
+        model <- ompr::add_constraint(
+          model,
+          route_cost[jj] == ompr::sum_expr(
+            ompr::colwise(distancias_nos[cbind(i, k)]) * route[i, k, jj],
+            i = 1:N, k = 1:N
+          )
+        )
+      }
+
       model <- model |>
         ompr::set_objective(
           (custo_litro_combustivel * peso_tsp / kml) *
-            ompr::sum_expr(ompr::colwise(distancias_nos[cbind(i, k)]) * route[i, k, j], i = 1:N, k = 1:N, j = 1:m) +
+            ompr::sum_expr(route_cost[j], j = 1:m) +
             ompr::sum_expr(ompr::colwise(transport_cost_i_j[cbind(i, j)]) * x[i, j], i = 1:n, j = 1:m) +
             ompr::sum_expr(ompr::colwise(agencias_t$custo_fixo[j]) * y[j], j = 1:m) +
             remuneracao_entrevistador * ompr::sum_expr(w[j], j = 1:m) +
