@@ -46,6 +46,11 @@
 #'   \item `distancia_km`: Distância em quilômetros entre a agência de origem e a de destino.
 #'   \item `duracao_horas`: Duração da viagem em horas entre a agência de origem e a de destino.
 #' }
+#' @param entrevistadores_por_uc Número de entrevistadores que trabalham juntos em cada UC
+#'   (e.g., dupla masculino/feminino). Afeta o cálculo de diárias (multiplicadas pelo
+#'   número de entrevistadores) e a capacidade (dias_coleta é multiplicado internamente
+#'   por este valor para obter o consumo em entrevistador-dias). O custo de combustível
+#'   não é afetado (assume-se veículo compartilhado). Padrão: 1.
 #' @param adicional_troca_jurisdicao Custo adicional quando há troca de agência de coleta. Padrão: 0.
 #' @param resultado_completo (Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.
 #' @param solver Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "highs". Outras opções: "glpk", "symphony" (instalação manual).
@@ -105,6 +110,7 @@ orce <- function(ucs,
                         agencias_treinamento = NULL,
                         distancias_ucs,
                         distancias_agencias = NULL,
+                        entrevistadores_por_uc = 1,
                         adicional_troca_jurisdicao = 0,
                         resultado_completo = FALSE,
                         solver = "highs",
@@ -136,6 +142,7 @@ orce <- function(ucs,
     agencias_treinamento = agencias_treinamento,
     distancias_ucs = distancias_ucs,
     distancias_agencias = distancias_agencias,
+    entrevistadores_por_uc = entrevistadores_por_uc,
     adicional_troca_jurisdicao = adicional_troca_jurisdicao,
     resultado_completo = resultado_completo,
     solver = solver,
@@ -182,6 +189,7 @@ orce <- function(ucs,
                              agencias_treinamento,
                              distancias_ucs,
                              distancias_agencias,
+                             entrevistadores_por_uc,
                              adicional_troca_jurisdicao,
                              resultado_completo,
                              solver,
@@ -218,6 +226,7 @@ orce <- function(ucs,
   checkmate::assert_number(dias_coleta_entrevistador_max, lower = 1)
   checkmate::assert_number(remuneracao_entrevistador, lower = 0)
   checkmate::assert_character(agencias_treinadas, null.ok = TRUE)
+  checkmate::assert_int(entrevistadores_por_uc, lower = 1)
   checkmate::assert_string(alocar_por, null.ok = FALSE)
 
   missing_dist_ucs <- setdiff(c('diaria_municipio', 'uc', 'diaria_pernoite'), names(distancias_ucs))
@@ -386,7 +395,7 @@ orce <- function(ucs,
                                dias_coleta * 2
       ),
       total_diarias = dplyr::if_else(diaria, calcula_diarias(dias_coleta, meia_diaria), 0),
-      custo_diarias = total_diarias * diaria_valor,
+      custo_diarias = total_diarias * diaria_valor * entrevistadores_por_uc,
       distancia_total_km = trechos * distancia_km,
       duracao_total_horas = trechos * duracao_horas,
       custo_combustivel = ((distancia_total_km / kml) * custo_litro_combustivel),
@@ -427,8 +436,8 @@ orce <- function(ucs,
   }
   # Criar matrizes de custos
   transport_cost_i_j <- make_i_j(x = dist_i_agencias, col = "custo_deslocamento_com_troca")
-  diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias")
-  dias_coleta_i_j <- make_i_j(x = dist_i_agencias, col = "dias_coleta")
+  diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias") * entrevistadores_por_uc
+
 
   dias_coleta_ijt_df <- dist_uc_agencias |>
     dplyr::group_by(i, j, t) |>
@@ -440,7 +449,7 @@ orce <- function(ucs,
   p <- max(indice_t$t)
   # 3D array for O(1) lookup in model constraints
   dias_coleta_arr <- array(0, dim = c(n, m, p))
-  dias_coleta_arr[as.matrix(dplyr::select(dias_coleta_ijt_df, i, j, t))] <- dias_coleta_ijt_df$dias_coleta
+  dias_coleta_arr[as.matrix(dplyr::select(dias_coleta_ijt_df, i, j, t))] <- dias_coleta_ijt_df$dias_coleta * entrevistadores_por_uc
   dias_coleta_ijt <- function(ii, jj, tt) dias_coleta_arr[ii, jj, tt]
   # Índices para TSP multi-depósitos: primeiros m nós são as agências (bases),
   # nós m+1..m+n são as UCs.
@@ -646,7 +655,7 @@ orce <- function(ucs,
   ## dias de coleta por período máximo  por agencia de jurisdicao
   dias_coleta_j <- ucs_i|>
     dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao,data)|>
-    dplyr::summarise(dias_coleta=sum(dias_coleta))|>
+    dplyr::summarise(dias_coleta=sum(dias_coleta) * entrevistadores_por_uc)|>
     dplyr::group_by(agencia_codigo)|>
     dplyr::arrange(desc(dias_coleta))|>
     dplyr::slice(1)|>
@@ -661,7 +670,7 @@ orce <- function(ucs,
     dplyr::mutate(
       entrevistadores = pmax(
         ceiling(dias_coleta_max_data / dias_coleta_entrevistador_max),
-        ceiling(total_diarias / diarias_entrevistador_max),
+        ceiling(total_diarias * entrevistadores_por_uc / diarias_entrevistador_max),
         n_entrevistadores_min
       ),
       custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador
