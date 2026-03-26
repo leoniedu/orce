@@ -124,7 +124,7 @@ agencias_now <- mutate(agencias_bdo%>%filter(substr(agencia_codigo, 1, 2)==ufnow
                        agencia_nome=capitalizar(agencia_nome), custo_fixo=0, n_entrevistadores_agencia_max=Inf, diaria_valor=diaria_valor_get(substr(agencia_codigo,1,7)))
 ufs <- ufs%>%mutate(uf_nome=capitalizar(uf_nome))
 
-mnow <- municipios_22%>%
+mnow <- municipios%>%
   filter(uf_sigla==params$uf_sigla_munic)%>%
   left_join(agencias_bdo_mun, by="municipio_codigo", suffix=c("", "_bdo"
   ))
@@ -168,7 +168,7 @@ Vamos supor que seja necessário visitar todos os `r nrow(mnow)` municípios. Co
 
 
 ```{r}
-ucs_now <- municipios_22%>%
+ucs_now <- municipios%>%
   sf::st_drop_geometry()%>%
   filter(substr(municipio_codigo,1,2)==ufnow$uf_codigo)%>%
   left_join(agencias_bdo_mun%>%select(agencia_codigo, municipio_codigo), by="municipio_codigo")%>%
@@ -288,7 +288,7 @@ resultado_ucs <- bind_rows(
 toexport <- res$resultado_ucs_jurisdicao%>%
   rename(municipio_codigo=uc)%>%
   left_join(agencias_now%>%sf::st_drop_geometry(), by = join_by(agencia_codigo))%>%
-  left_join(municipios_22%>%select(municipio_codigo, municipio_nome), by = join_by(municipio_codigo))%>%
+  left_join(municipios%>%select(municipio_codigo, municipio_nome), by = join_by(municipio_codigo))%>%
   left_join(assistencias, by = join_by(agencia_codigo))%>%
   transmute(
     assistencia_nome,
@@ -322,7 +322,7 @@ mnow%>%
 #### Lidando com contigências da coleta
 
 ```{r}
-munnow <- municipios_22%>%filter(municipio_codigo=='3200904')
+munnow <- municipios%>%filter(municipio_codigo=='3200904')
 ```
 
 Suponha agora que é necessário fazer uma visita ao município de `r munnow$municipio_nome`, mas a agência de jurisdição não está disponível por qualquer motivo (férias, licença de saúde, veículo do IBGE quebrado, etc.) Quais são as agências alternativas para realizar essa coleta? A função `orce` retorna, opcionalmente, a lista completa de combinações entre agências $X$ municípios, que permite facilmente responder essa pergunta.
@@ -376,7 +376,7 @@ mudancas <- resultado_ucs%>%
                                   agencia_nome,
                                   agencia_lat,
                                   agencia_lon), by="agencia_codigo")%>%
-  left_join(municipios_22%>%
+  left_join(municipios%>%
               sf::st_drop_geometry()%>%
               select(uc=municipio_codigo, municipio_nome, municipio_sede_lat, municipio_sede_lon), by="uc")%>%
   mutate(uc_lat=municipio_sede_lat, uc_lon=municipio_sede_lon)%>%
@@ -719,7 +719,7 @@ amostra_pof <- amostra_preliminar%>%
   distinct(uc=upa, pesquisa=paste("pof", if_else(trimestre==1, 2024, 2025), if_else(trimestre==1, 4, trimestre-1)), agencia_codigo=as.character(agencia_codigo), dias_coleta=params$dias_coleta_pof, viagens=params$viagens_pof)
 
 ## municipais
-municipais <- municipios_22%>%
+municipais <- municipios%>%
   sf::st_drop_geometry()%>%
   left_join(agencias_bdo_mun%>%select(agencia_codigo, municipio_codigo), by="municipio_codigo")%>%
   mutate(uc=municipio_codigo)%>%

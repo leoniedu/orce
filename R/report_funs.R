@@ -46,14 +46,14 @@ gt1 <- function(..., decimal_pct=1, decimal_currency=0, decimal_num=2) gt::gt(..
 relatorio_municipios <- function(r) {
   rlang::check_installed("orcedata", reason = "para usar relatorio_municipios()")
   agencias_bdo <- orcedata::agencias_bdo
-  municipios_22 <- orcedata::municipios_22
+  municipios <- orcedata::municipios
   vs <- c("municipio_nome", 'agencia_nome','custo_total', 'n_ucs', 'total_diarias', 'custo_diarias', 'custo_combustivel', 'distancia_total_km', 'custo_deslocamento',  'custo_fixo', 'entrevistadores', "agencia_codigo", "municipio_codigo")
   r1 <- r$resultado_ucs_otimo|>
     dplyr::full_join(r$resultado_ucs_jurisdicao, by=c("uc", "agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
     dplyr::left_join(agencias_bdo, by="agencia_codigo")|>
     dplyr::left_join(agencias_bdo|>select(agencia_codigo, agencia_nome), by=c("agencia_codigo_jurisdicao"="agencia_codigo"), suffix=c("", "_jurisdicao"))|>
     dplyr::mutate(municipio_codigo=substr(uc,1,7))|>
-    dplyr::left_join(municipios_22, by=c("municipio_codigo"))|>
+    dplyr::left_join(municipios, by=c("municipio_codigo"))|>
     dplyr::transmute(troca=agencia_codigo!=agencia_codigo_jurisdicao,
                      dplyr::pick(starts_with(vs)))
   r1
