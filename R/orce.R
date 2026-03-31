@@ -756,30 +756,20 @@ orce <- function(ucs,
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
 
-  # Jurisdiction results: use solver-based solution if available, otherwise filter
-  if (!is.null(result_juris) && result_juris$status != "error") {
-    matching_juris <- result_juris |>
-      ompr::get_solution(x[i, j]) |>
-      dplyr::filter(value > .9) |>
-      dplyr::select(i, j)
-    resultado_ucs_jurisdicao <- dist_uc_agencias |>
-      dplyr::inner_join(matching_juris, by = c("i", "j")) |>
-      dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = "uc") |>
-      dplyr::left_join(indice_t, by = "t") |>
-      dplyr::select(-i, -j, -t, -custo_deslocamento_com_troca)
-    workers_juris <- result_juris |>
-      ompr::get_solution(w[j]) |>
-      dplyr::filter(value > .9) |>
-      dplyr::select(j, entrevistadores = value)
-  } else {
-    resultado_ucs_jurisdicao <- dist_uc_agencias |>
-      dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo) |>
-      dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
-      dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = c("uc")) |>
-      dplyr::left_join(indice_t, by = "t") |>
-      dplyr::select(-i, -t)
-    workers_juris <- NULL
-  }
+  # Jurisdiction results from the constrained solve
+  matching_juris <- result_juris |>
+    ompr::get_solution(x[i, j]) |>
+    dplyr::filter(value > .9) |>
+    dplyr::select(i, j)
+  resultado_ucs_jurisdicao <- dist_uc_agencias |>
+    dplyr::inner_join(matching_juris, by = c("i", "j")) |>
+    dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = "uc") |>
+    dplyr::left_join(indice_t, by = "t") |>
+    dplyr::select(-i, -j, -t, -custo_deslocamento_com_troca)
+  workers_juris <- result_juris |>
+    ompr::get_solution(w[j]) |>
+    dplyr::filter(value > .9) |>
+    dplyr::select(j, entrevistadores = value)
 
   ags_group_vars <- c(names(agencias_t), 'entrevistadores')
 
@@ -805,42 +795,15 @@ orce <- function(ucs,
   }
 
   # Criar resultados para agências - jurisdição
-  if (!is.null(workers_juris)) {
-    # Solver-based jurisdiction: use optimal w[j] from the constrained solve
-    resultado_agencias_jurisdicao <- agencias_t |>
-      dplyr::inner_join(resultado_ucs_jurisdicao, by = c("agencia_codigo")) |>
-      dplyr::select(-data) |>
-      dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
-      dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao), n_ucs = dplyr::n()) |>
-      dplyr::ungroup() |>
-      dplyr::left_join(workers_juris, by = c("j")) |>
-      dplyr::select(-j) |>
-      dplyr::mutate(custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador)
-  } else {
-    # Fallback: heuristic worker estimate
-    dias_coleta_j <- ucs_i |>
-      dplyr::group_by(agencia_codigo = agencia_codigo_jurisdicao, data) |>
-      dplyr::summarise(dias_coleta = sum(dias_coleta) * entrevistadores_por_uc) |>
-      dplyr::group_by(agencia_codigo) |>
-      dplyr::arrange(dplyr::desc(dias_coleta)) |>
-      dplyr::slice(1) |>
-      dplyr::transmute(agencia_codigo, dias_coleta_max_data = dias_coleta)
-    resultado_agencias_jurisdicao <- agencias_t |>
-      dplyr::inner_join(resultado_ucs_jurisdicao, by = "agencia_codigo") |>
-      dplyr::select(-j, -custo_deslocamento_com_troca, -data) |>
-      dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
-      dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs = dplyr::n()) |>
-      dplyr::left_join(dias_coleta_j, by = "agencia_codigo") |>
-      dplyr::mutate(
-        entrevistadores = pmax(
-          ceiling(dias_coleta_max_data / dias_coleta_entrevistador_max),
-          ceiling(total_diarias / diarias_entrevistador_max),
-          n_entrevistadores_min
-        ),
-        custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador
-      ) |>
-      dplyr::ungroup()
-  }
+  resultado_agencias_jurisdicao <- agencias_t |>
+    dplyr::inner_join(resultado_ucs_jurisdicao, by = c("agencia_codigo")) |>
+    dplyr::select(-data) |>
+    dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
+    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao), n_ucs = dplyr::n()) |>
+    dplyr::ungroup() |>
+    dplyr::left_join(workers_juris, by = c("j")) |>
+    dplyr::select(-j) |>
+    dplyr::mutate(custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador)
   # Preparar resultados finais
   resultado$resultado_ucs_otimo <- resultado_ucs_otimo
   resultado$resultado_ucs_jurisdicao <- resultado_ucs_jurisdicao
