@@ -31,7 +31,8 @@ Ela recebe um ambiente com todos os objetos preparados por \code{.orce_impl}
 \subsection{Papel do TSP (\code{peso_tsp})}{
 
 Quando \code{peso_tsp > 0}, o modelo adiciona variáveis de roteamento
-(\code{route[i, k, j]}) e restrições MTZ para eliminar sub-rotas. O objetivo
+(\code{route[i, k, j]}). A eliminação de sub-rotas é feita via cortes DFJ
+iterativos no loop de resolução em \code{.orce_impl}. O objetivo
 inclui, além dos custos operacionais habituais (\code{transport_cost_i_j}), uma
 penalidade proporcional ao comprimento da rota TSP de cada agência:
 

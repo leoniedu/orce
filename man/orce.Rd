@@ -23,6 +23,7 @@ orce(
   agencias_treinamento = NULL,
   distancias_ucs,
   distancias_agencias = NULL,
+  entrevistadores_por_uc = 1,
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
   solver = "highs",
@@ -94,6 +95,12 @@ determina o número máximo de dias de coleta que a agência pode realizar (n_en
 \item \code{distancia_km}: Distância em quilômetros entre a agência de origem e a de destino.
 \item \code{duracao_horas}: Duração da viagem em horas entre a agência de origem e a de destino.
 }}
+
+\item{entrevistadores_por_uc}{Número de entrevistadores que trabalham juntos em cada UC
+(e.g., dupla masculino/feminino). Afeta o cálculo de diárias (multiplicadas pelo
+número de entrevistadores) e a capacidade (dias_coleta é multiplicado internamente
+por este valor para obter o consumo em entrevistador-dias). O custo de combustível
+não é afetado (assume-se veículo compartilhado). Padrão: 1.}
 
 \item{adicional_troca_jurisdicao}{Custo adicional quando há troca de agência de coleta. Padrão: 0.}
 
