@@ -652,6 +652,14 @@ orce <- function(ucs,
 
   # Only fix UCs whose jurisdiction agency is in the candidate set
   juris_valid <- !is.na(juris_j)
+  if (any(!juris_valid)) {
+    missing_ag <- unique(juris$agencia_codigo_jurisdicao[!juris_valid])
+    cli::cli_warn(
+      c("{sum(!juris_valid)} UC{?s} {?has/have} jurisdiction agenc{?y/ies} not in the candidate set.",
+        "i" = "Missing agenc{?y/ies}: {missing_ag}",
+        "i" = "These UCs will be freely assigned in the jurisdiction baseline.")
+    )
+  }
   sol_file <- NULL
   result_juris <- NULL
   if (any(juris_valid)) {
