@@ -33,6 +33,7 @@ orce(
   distancias_nos = NULL,
   peso_tsp = 0,
   orce_function = orce_model_milp,
+  mip_start = FALSE,
   ...
 )
 }
@@ -135,6 +136,12 @@ porque a rota conjunta é mais curta. Não substitui o custo real de deslocament
 argumento \code{env} (um ambiente) com todos os objetos já preparados dentro de \code{.orce_impl}
 e deve retornar um objeto \code{ompr::MILPModel}. O padrão é \code{\link[=orce_model_milp]{orce_model_milp()}}
 (backend vetorizado). Use \code{\link[=orce_model_mip]{orce_model_mip()}} para o backend escalar legado.}
+
+\item{mip_start}{Lógico indicando se deve usar a atribuição jurisdicional como
+solução inicial (MIP start) para o solver HiGHS. Quando \code{TRUE}, o solver
+parte da alocação atual (\code{agencia_codigo}) e só se afasta dela quando
+encontra uma solução significativamente melhor (controlado por \code{rel_tol}).
+Ignorado para outros solvers. Padrão: FALSE.}
 
 \item{...}{Opções adicionais para o solver.}
 }

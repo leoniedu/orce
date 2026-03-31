@@ -10,6 +10,10 @@ package <- new.env(parent = emptyenv())
     ROI::ROI_plugin_register_solver_control("highs",
                                             "mip_rel_gap", "rel_tol")
   }, silent = TRUE)
+  try({
+    ROI::ROI_plugin_register_solver_control("highs",
+                                            "read_solution_file", "X")
+  }, silent = TRUE)
   # data release
   package$name <- "orce"
   # local cache dir
