@@ -394,8 +394,8 @@ orce <- function(ucs,
                                # sem diária ou com meia diária
                                dias_coleta * 2
       ),
-      total_diarias = dplyr::if_else(diaria, calcula_diarias(dias_coleta, meia_diaria), 0),
-      custo_diarias = total_diarias * diaria_valor * entrevistadores_por_uc,
+      total_diarias = dplyr::if_else(diaria, calcula_diarias(dias_coleta, meia_diaria), 0) * entrevistadores_por_uc,
+      custo_diarias = total_diarias * diaria_valor,
       distancia_total_km = trechos * distancia_km,
       duracao_total_horas = trechos * duracao_horas,
       custo_combustivel = ((distancia_total_km / kml) * custo_litro_combustivel),
@@ -436,7 +436,7 @@ orce <- function(ucs,
   }
   # Criar matrizes de custos
   transport_cost_i_j <- make_i_j(x = dist_i_agencias, col = "custo_deslocamento_com_troca")
-  diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias") * entrevistadores_por_uc
+  diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias")
 
 
   dias_coleta_ijt_df <- dist_uc_agencias |>
@@ -670,7 +670,7 @@ orce <- function(ucs,
     dplyr::mutate(
       entrevistadores = pmax(
         ceiling(dias_coleta_max_data / dias_coleta_entrevistador_max),
-        ceiling(total_diarias * entrevistadores_por_uc / diarias_entrevistador_max),
+        ceiling(total_diarias / diarias_entrevistador_max),
         n_entrevistadores_min
       ),
       custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador
