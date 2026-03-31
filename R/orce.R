@@ -179,6 +179,30 @@ orce <- function(ucs,
   }
 }
 
+# Write an ompr solution to a HiGHS .sol file for warm starting.
+# Returns the temp file path.
+#' @keywords internal
+.write_sol_file <- function(result, model) {
+  keys <- ompr::variable_keys(model)
+  ncols <- length(keys)
+  sol_vals <- stats::setNames(rep(0, ncols), keys)
+  sol_vals[names(result$solution)] <- result$solution
+
+  sol_file <- tempfile(fileext = ".sol")
+  lines <- c(
+    "Model status",
+    "Unknown",
+    "",
+    "# Primal solution values",
+    "Feasible",
+    paste("Objective", ompr::objective_value(result)),
+    paste("#", "Columns", ncols),
+    paste0("C", seq_len(ncols) - 1L, " ", unname(sol_vals))
+  )
+  writeLines(lines, sol_file)
+  sol_file
+}
+
 # Build a HiGHS .sol file with the jurisdiction assignment as MIP start.
 # Returns the temp file path, or NULL if any jurisdiction agency is missing.
 #' @keywords internal
@@ -620,13 +644,31 @@ orce <- function(ucs,
     subtours_found
   }
 
-  # Build MIP start file if requested
+  # Solve jurisdiction model: fix x[i, j_juris] = 1 for each UC's jurisdiction agency.
+  # This produces (a) the jurisdiction baseline for reporting and (b) a warm start.
+  juris <- ucs_i |>
+    dplyr::distinct(i, agencia_codigo_jurisdicao)
+  juris_j <- match(juris$agencia_codigo_jurisdicao, agencias_t$agencia_codigo)
+
+  # Only fix UCs whose jurisdiction agency is in the candidate set
+  juris_valid <- !is.na(juris_j)
   sol_file <- NULL
-  if (mip_start && solver == "highs") {
-    sol_file <- .build_mip_start_sol(model, ucs_i, agencias_t)
-    if (!is.null(sol_file)) {
-      on.exit(unlink(sol_file), add = TRUE)
-      cli::cli_alert_info("Usando atribui\u00e7\u00e3o jurisdicional como MIP start.")
+  result_juris <- NULL
+  if (any(juris_valid)) {
+    model_juris <- model
+    for (row in which(juris_valid)) {
+      model_juris <- ompr::add_constraint(model_juris, x[juris$i[row], juris_j[row]] == 1)
+    }
+    sol_juris <- .solve_once(model_juris)
+    result_juris <- sol_juris$result
+
+    # Write warm start .sol file from the jurisdiction solution
+    if (mip_start && solver == "highs" && result_juris$status != "error") {
+      sol_file <- .write_sol_file(result_juris, model)
+      if (!is.null(sol_file)) {
+        on.exit(unlink(sol_file), add = TRUE)
+        cli::cli_alert_info("Usando solu\u00e7\u00e3o jurisdicional como MIP start.")
+      }
     }
   }
 
@@ -706,13 +748,30 @@ orce <- function(ucs,
     dplyr::left_join(indice_t, by="t")|>
     dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
 
-  # Criar resultados para jurisdição
-  resultado_ucs_jurisdicao <- dist_uc_agencias |>
-    dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo)|>
-    dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
-    dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = c("uc"))|>
-    dplyr::left_join(indice_t, by="t")|>
-    dplyr::select(-i,-t)
+  # Jurisdiction results: use solver-based solution if available, otherwise filter
+  if (!is.null(result_juris) && result_juris$status != "error") {
+    matching_juris <- result_juris |>
+      ompr::get_solution(x[i, j]) |>
+      dplyr::filter(value > .9) |>
+      dplyr::select(i, j)
+    resultado_ucs_jurisdicao <- dist_uc_agencias |>
+      dplyr::inner_join(matching_juris, by = c("i", "j")) |>
+      dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = "uc") |>
+      dplyr::left_join(indice_t, by = "t") |>
+      dplyr::select(-i, -j, -t, -custo_deslocamento_com_troca)
+    workers_juris <- result_juris |>
+      ompr::get_solution(w[j]) |>
+      dplyr::filter(value > .9) |>
+      dplyr::select(j, entrevistadores = value)
+  } else {
+    resultado_ucs_jurisdicao <- dist_uc_agencias |>
+      dplyr::filter(agencia_codigo_jurisdicao == agencia_codigo) |>
+      dplyr::select(-agencia_codigo_jurisdicao, -j, -custo_troca_jurisdicao) |>
+      dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = c("uc")) |>
+      dplyr::left_join(indice_t, by = "t") |>
+      dplyr::select(-i, -t)
+    workers_juris <- NULL
+  }
 
   ags_group_vars <- c(names(agencias_t), 'entrevistadores')
 
@@ -737,30 +796,43 @@ orce <- function(ucs,
       dplyr::summarise(distancia_km_tsp=sum(distancia_km)))
   }
 
-  ## dias de coleta por período máximo  por agencia de jurisdicao
-  dias_coleta_j <- ucs_i|>
-    dplyr::group_by(agencia_codigo=agencia_codigo_jurisdicao,data)|>
-    dplyr::summarise(dias_coleta=sum(dias_coleta) * entrevistadores_por_uc)|>
-    dplyr::group_by(agencia_codigo)|>
-    dplyr::arrange(desc(dias_coleta))|>
-    dplyr::slice(1)|>
-    dplyr::transmute(agencia_codigo, dias_coleta_max_data=dias_coleta)
   # Criar resultados para agências - jurisdição
-  resultado_agencias_jurisdicao <- agencias_t|>
-    dplyr::inner_join(resultado_ucs_jurisdicao, by="agencia_codigo")|>
-    dplyr::select(-j, -custo_deslocamento_com_troca, -data)|>
-    dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars)))|>
-    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs = dplyr::n())|>
-    dplyr::left_join(dias_coleta_j, by="agencia_codigo")|>
-    dplyr::mutate(
-      entrevistadores = pmax(
-        ceiling(dias_coleta_max_data / dias_coleta_entrevistador_max),
-        ceiling(total_diarias / diarias_entrevistador_max),
-        n_entrevistadores_min
-      ),
-      custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador
-    ) |>
-    dplyr::ungroup()
+  if (!is.null(workers_juris)) {
+    # Solver-based jurisdiction: use optimal w[j] from the constrained solve
+    resultado_agencias_jurisdicao <- agencias_t |>
+      dplyr::inner_join(resultado_ucs_jurisdicao, by = c("agencia_codigo")) |>
+      dplyr::select(-data) |>
+      dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
+      dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao), n_ucs = dplyr::n()) |>
+      dplyr::ungroup() |>
+      dplyr::left_join(workers_juris, by = c("j")) |>
+      dplyr::select(-j) |>
+      dplyr::mutate(custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador)
+  } else {
+    # Fallback: heuristic worker estimate
+    dias_coleta_j <- ucs_i |>
+      dplyr::group_by(agencia_codigo = agencia_codigo_jurisdicao, data) |>
+      dplyr::summarise(dias_coleta = sum(dias_coleta) * entrevistadores_por_uc) |>
+      dplyr::group_by(agencia_codigo) |>
+      dplyr::arrange(dplyr::desc(dias_coleta)) |>
+      dplyr::slice(1) |>
+      dplyr::transmute(agencia_codigo, dias_coleta_max_data = dias_coleta)
+    resultado_agencias_jurisdicao <- agencias_t |>
+      dplyr::inner_join(resultado_ucs_jurisdicao, by = "agencia_codigo") |>
+      dplyr::select(-j, -custo_deslocamento_com_troca, -data) |>
+      dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
+      dplyr::summarise(dplyr::across(where(is.numeric), sum), n_ucs = dplyr::n()) |>
+      dplyr::left_join(dias_coleta_j, by = "agencia_codigo") |>
+      dplyr::mutate(
+        entrevistadores = pmax(
+          ceiling(dias_coleta_max_data / dias_coleta_entrevistador_max),
+          ceiling(total_diarias / diarias_entrevistador_max),
+          n_entrevistadores_min
+        ),
+        custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador
+      ) |>
+      dplyr::ungroup()
+  }
   # Preparar resultados finais
   resultado$resultado_ucs_otimo <- resultado_ucs_otimo
   resultado$resultado_ucs_jurisdicao <- resultado_ucs_jurisdicao
