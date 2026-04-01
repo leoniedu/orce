@@ -77,11 +77,6 @@
 #'   e deve retornar um objeto `ompr::MILPModel`. O padrão é [orce_model_milp()]
 #'   (backend vetorizado). Use [orce_model_mip()] para o backend escalar legado.
 #'
-#' @param mip_start Lógico indicando se deve usar a atribuição jurisdicional como
-#'   solução inicial (MIP start) para o solver HiGHS. Quando `TRUE`, o solver
-#'   parte da alocação atual (`agencia_codigo`) e só se afasta dela quando
-#'   encontra uma solução significativamente melhor (controlado por `rel_tol`).
-#'   Ignorado para outros solvers. Padrão: FALSE.
 #' @param ... Opções adicionais para o solver.
 #'
 #' @return Uma lista contendo:
@@ -126,7 +121,6 @@ orce <- function(ucs,
                   peso_tsp=0,
                   # Função construtora do modelo OMPR (padrão: orce_model_milp)
                   orce_function = orce_model_milp,
-                  mip_start = FALSE,
                          ...) {
   # `orce_function` deve ser uma função que recebe `env` e retorna `ompr::MILPModel`
 
@@ -156,8 +150,7 @@ orce <- function(ucs,
     max_time = max_time,
     distancias_nos=distancias_nos,
     peso_tsp=peso_tsp,
-    orce_function = orce_function,
-    mip_start = mip_start
+    orce_function = orce_function
   )
 
   # Add any additional arguments
@@ -177,87 +170,6 @@ orce <- function(ucs,
     cli::cli_alert_info("Calculando sem usar cache.")
     do.call(.orce_impl, args)
   }
-}
-
-# Write an ompr solution to a HiGHS .sol file for warm starting.
-# Returns the temp file path.
-#' @keywords internal
-.write_sol_file <- function(result, model) {
-  keys <- ompr::variable_keys(model)
-  ncols <- length(keys)
-  sol_vals <- stats::setNames(rep(0, ncols), keys)
-  sol_vals[names(result$solution)] <- result$solution
-
-  sol_file <- tempfile(fileext = ".sol")
-  lines <- c(
-    "Model status",
-    "Unknown",
-    "",
-    "# Primal solution values",
-    "Feasible",
-    paste("Objective", ompr::objective_value(result)),
-    paste("#", "Columns", ncols),
-    paste0("C", seq_len(ncols) - 1L, " ", unname(sol_vals))
-  )
-  writeLines(lines, sol_file)
-  sol_file
-}
-
-# Build a HiGHS .sol file with the jurisdiction assignment as MIP start.
-# Returns the temp file path, or NULL if any jurisdiction agency is missing.
-#' @keywords internal
-.build_mip_start_sol <- function(model, ucs_i, agencias_t) {
-  # One jurisdiction per allocation unit (i)
-  juris <- ucs_i |>
-    dplyr::distinct(i, agencia_codigo_jurisdicao)
-  juris_j <- match(juris$agencia_codigo_jurisdicao, agencias_t$agencia_codigo)
-  if (anyNA(juris_j)) return(NULL)
-
-  # Discover x[i,j] column positions via variable_keys
-  keys <- ompr::variable_keys(model)
-  ncols <- length(keys)
-  x_pattern <- "^x\\[(\\d+),(\\d+)\\]$"
-  x_mask <- grepl(x_pattern, keys)
-  x_matches <- regmatches(keys[x_mask], regexec(x_pattern, keys[x_mask]))
-  x_i <- vapply(x_matches, \(m) as.integer(m[2]), integer(1))
-  x_j <- vapply(x_matches, \(m) as.integer(m[3]), integer(1))
-  x_cols <- which(x_mask)  # 1-based global column indices
-
-  # Build solution vector (all zeros, then set jurisdiction assignments to 1)
-  sol_vals <- rep(0, ncols)
-  active_j <- unique(juris_j)
-  for (row in seq_len(nrow(juris))) {
-    idx <- which(x_i == juris$i[row] & x_j == juris_j[row])
-    if (length(idx) == 1L) sol_vals[x_cols[idx]] <- 1
-  }
-
-  # Also set y[j] = 1 for agencies with assigned UCs
-  y_pattern <- "^y\\[(\\d+)\\]$"
-  y_mask <- grepl(y_pattern, keys)
-  if (any(y_mask)) {
-    y_matches <- regmatches(keys[y_mask], regexec(y_pattern, keys[y_mask]))
-    y_j <- vapply(y_matches, \(m) as.integer(m[2]), integer(1))
-    y_cols <- which(y_mask)
-    for (jj in active_j) {
-      idx <- which(y_j == jj)
-      if (length(idx) == 1L) sol_vals[y_cols[idx]] <- 1
-    }
-  }
-
-  # Write .sol file (HiGHS format, 0-based column indices)
-  sol_file <- tempfile(fileext = ".sol")
-  lines <- c(
-    "Model status",
-    "Unknown",
-    "",
-    "# Primal solution values",
-    "Feasible",
-    "Objective 0",
-    paste("#", "Columns", ncols),
-    paste0("C", seq_len(ncols) - 1L, " ", sol_vals)
-  )
-  writeLines(lines, sol_file)
-  sol_file
 }
 
 #' @keywords internal
@@ -286,7 +198,6 @@ orce <- function(ucs,
                        distancias_nos,
                        peso_tsp,
                              orce_function,
-                             mip_start,
                              ...) {
   tictoc::tic.clearlog()
   tictoc::tic("Tempo total da otimização", log = TRUE)
@@ -560,7 +471,7 @@ orce <- function(ucs,
   cli::cli_progress_step("Otimizando...")
 
   # Helper: solve model once with the appropriate solver options
-  .solve_once <- function(model, sol_file = NULL) {
+  .solve_once <- function(model) {
     if (solver == "symphony") {
       log <- utils::capture.output(
         result <- ompr::solve_model(
@@ -568,16 +479,6 @@ orce <- function(ucs,
           ompr.roi::with_ROI(solver = solver,
                              max_time = as.numeric(max_time),
                              gap_limit = rel_tol * 100, ...)
-        )
-      )
-    } else if (!is.null(sol_file) && solver == "highs") {
-      log <- utils::capture.output(
-        result <- ompr::solve_model(
-          model,
-          ompr.roi::with_ROI(solver = solver,
-                             max_time = as.numeric(max_time),
-                             rel_tol = rel_tol,
-                             read_solution_file = sol_file, ...)
         )
       )
     } else {
@@ -660,7 +561,6 @@ orce <- function(ucs,
         "i" = "These UCs will be freely assigned in the jurisdiction baseline.")
     )
   }
-  sol_file <- NULL
   result_juris <- NULL
   if (any(juris_valid)) {
     model_juris <- model
@@ -669,15 +569,6 @@ orce <- function(ucs,
     }
     sol_juris <- .solve_once(model_juris)
     result_juris <- sol_juris$result
-
-    # Write warm start .sol file from the jurisdiction solution
-    if (mip_start && solver == "highs" && result_juris$status != "error") {
-      sol_file <- .write_sol_file(result_juris, model)
-      if (!is.null(sol_file)) {
-        on.exit(unlink(sol_file), add = TRUE)
-        cli::cli_alert_info("Usando solu\u00e7\u00e3o jurisdicional como MIP start.")
-      }
-    }
   }
 
   if (tsp) {
@@ -687,7 +578,7 @@ orce <- function(ucs,
     log <- character(0)
     repeat {
       dfj_iter <- dfj_iter + 1L
-      sol <- .solve_once(model, sol_file = sol_file)
+      sol <- .solve_once(model)
       result <- sol$result
       log <- c(log, sol$log)
 
@@ -712,7 +603,7 @@ orce <- function(ucs,
       cli::cli_warn("DFJ did not converge in {max_dfj_iter} iterations ({length(subtours_found)} subtour{?s} remain).")
     }
   } else {
-    sol <- .solve_once(model, sol_file = sol_file)
+    sol <- .solve_once(model)
     result <- sol$result
     log <- sol$log
   }
