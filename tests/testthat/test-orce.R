@@ -2,50 +2,26 @@ library(testthat)
 library(orce)
 options(warn = 2)
 
-skip_if_not_installed("orcedata")
+# Load frozen test data (independent of orcedata version)
+fixture <- readRDS(test_path("fixtures", "test-orce-data.rds"))
+ucs_municipios <- fixture$ucs
+agencias <- fixture$agencias
+dists <- fixture$dists
 
-# Carregar dados de teste
-data(agencias_bdo_mun, package = "orcedata")
-data(agencias_bdo, package = "orcedata")
-data(distancias_agencias_municipios_osrm, package = "orcedata")
-data(agencias_municipios_diaria, package = "orcedata")
-
-
-
-# Criar dados de teste
-ucs_municipios <- agencias_bdo_mun |>
-  dplyr::filter(uf_codigo == 29) |>
-  dplyr::filter(agencia_codigo %in% unique(agencia_codigo)) |>
-  dplyr::group_by(agencia_codigo) |>
-  dplyr::slice(1:2) |>
-  dplyr::ungroup() |>
-  ## uma agencia por municipio
-  dplyr::distinct(municipio_codigo, .keep_all = TRUE) |>
-  dplyr::transmute(uc = municipio_codigo, municipio_codigo, agencia_codigo, dias_coleta = 10, viagens = 1, data = 1, diaria_valor=orce::diaria_valor_get(municipio_codigo))
-
-agencias <- agencias_bdo |>
-  dplyr::semi_join(ucs_municipios,by = dplyr::join_by(agencia_codigo)) |>
-  dplyr::transmute(agencia_codigo, custo_fixo = 0, n_entrevistadores_agencia_max=Inf, diaria_valor=orce::diaria_valor_get(substr(agencia_codigo,1,7))) |>
-  sf::st_drop_geometry()
-
-dists <- distancias_agencias_municipios_osrm |>
-  dplyr::left_join(agencias_municipios_diaria, by = dplyr::join_by(agencia_codigo, municipio_codigo)) |>
-  dplyr::semi_join(ucs_municipios, by = "municipio_codigo") |>
-  dplyr::semi_join(agencias, by = "agencia_codigo") |>
-  dplyr::mutate(diaria_pernoite = duracao_horas > 1.5, uc = municipio_codigo)
-
+# Use GLPK for deterministic results
 params_0 <- list(ucs = ucs_municipios, agencias = agencias, dias_coleta_entrevistador_max = 14, distancias_ucs = dists, remuneracao_entrevistador = 0, rel_tol = 0.01)
 
 # Testes unitários
 test_that("Alocação de UCs com períodos de coleta", {
   f <- function(...) orce(..., use_cache = FALSE)
 
-  # Teste 1: Comparação com alocação sem períodos
+  # Teste 1: Snapshot regression test (GLPK, frozen data)
   r_t <- do.call(f, params_0)
-  expect_equal(r_t$resultado_agencias_otimo$custo_deslocamento, c(486.72, 1596.88, 3415.552, 3866.176, 26.84, 637.28, 797.84, 21.92, 673.12, 717.92, 9083.32, 842.4, 2681.64, 641.56, 948.28, 791.04, 2517.84, 1237.6, 3252.48, 1534.12, 1071, 995.6, 1536.2, 1188, 2434.96, 9997.184, 1585.92, 3484.152, 1102.16, 3336.74,4445.504, 1480.56, 2029.32, 123.44, 246.24, 7519.5, 6762.72,5, 2108.56, 765.48, 4082.292, 985, 876.44, 4863.24, 1891.84,4515.508, 4653.08))
+  expect_equal(r_t$resultado_agencias_otimo$custo_deslocamento, c(483.28, 1673.04, 3418.148, 3879.476, 28.96, 646.36, 22.04, 1422.2, 735.36, 9099.648, 859.96, 1623.16, 644.16, 3353.788, 3365.824, 1598.88, 793.28, 1979.6, 772.12, 2009.52, 1589.96, 1084.72, 2275.2, 4267.904, 1841.8, 2470.72, 10000.82, 1602.08, 3439.784, 1002.32, 3306.88, 4449.476, 1500.6, 1948.28, 127.8, 252.6, 7552.392, 6761.408, 483.52, 1380.88, 776.8, 4263.676, 989.6, 1234.28, 4876.24, 1906.72, 1274.04, 4655.412))
 
-
-
+  # Optimized must beat jurisdiction
+  expect_lt(sum(r_t$resultado_agencias_otimo$custo_deslocamento),
+            sum(r_t$resultado_agencias_jurisdicao$custo_deslocamento))
 
   # Teste 2: Alocação por grupo
   params_1 <- modifyList(params_0, list(ucs = params_0$ucs |> dplyr::mutate(g = agencia_codigo), alocar_por = "g"))
@@ -62,7 +38,6 @@ test_that("Alocação de UCs com períodos de coleta", {
   params_3 <- modifyList(params_2,
                          list(ucs = params_2$ucs |> dplyr::mutate(data = rep(1:n_periodos, length = dplyr::n()))))
   r_t_if_d <- do.call(f, params_3)
-  ## FIX: devia set maior (gt) ou menor (lt) que?
   ## Mais periodos
   expect_lt(sum(r_t_if_d$resultado_agencias_otimo$entrevistadores),
             sum(r_t_if$resultado_agencias_otimo$entrevistadores))
