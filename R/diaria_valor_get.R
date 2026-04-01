@@ -61,7 +61,7 @@ diaria_valor_get <- function(municipio_codigo, valores_diarias = c(425, 380, 335
   }
 
   # Lógica principal
-  dplyr::case_match(
+  dplyr::recode_values(
     municipio_codigo,
     # Nível 1: capitais e regiões metropolitanas
     c("5300108", "1400100", "3304557", "3550308") ~ valores_diarias[1],
@@ -74,6 +74,6 @@ diaria_valor_get <- function(municipio_codigo, valores_diarias = c(425, 380, 335
       "2800308", "2408102", "3205309") ~ valores_diarias[2],
 
     # Nível 3: demais municípios
-    .default = valores_diarias[3]
+    default = valores_diarias[3]
   )
 }
