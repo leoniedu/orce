@@ -546,7 +546,7 @@ orce <- function(ucs,
   }
 
   # Solve jurisdiction model: fix x[i, j_juris] = 1 for each UC's jurisdiction agency.
-  # This produces (a) the jurisdiction baseline for reporting and (b) a warm start.
+  # This produces the jurisdiction baseline for reporting.
   juris <- ucs_i |>
     dplyr::distinct(i, agencia_codigo_jurisdicao)
   juris_j <- match(juris$agencia_codigo_jurisdicao, agencias_t$agencia_codigo)
@@ -563,10 +563,12 @@ orce <- function(ucs,
   }
   result_juris <- NULL
   if (any(juris_valid)) {
-    model_juris <- model
-    for (row in which(juris_valid)) {
-      model_juris <- ompr::add_constraint(model_juris, x[juris$i[row], juris_j[row]] == 1)
-    }
+    valid_rows <- which(juris_valid)
+    valid_i <- juris$i[valid_rows]
+    valid_j <- juris_j[valid_rows]
+    model_juris <- ompr::add_constraint(
+      model, x[valid_i[ii], valid_j[ii]] == 1, ii = seq_along(valid_i)
+    )
     sol_juris <- .solve_once(model_juris)
     result_juris <- sol_juris$result
   }
@@ -630,71 +632,61 @@ orce <- function(ucs,
   }
   dist_i_agencias <- dist_i_agencias |> dplyr::select(-custo_deslocamento_com_troca)
 
-  matching <- result |>
-    ompr::get_solution(x[i, j]) |>
-    dplyr::filter(value > .9) |>
-    dplyr::select(i, j)
-
-  workers <- result |>
-    ompr::get_solution(w[j]) |>
-    dplyr::filter(value > .9) |>
-    dplyr::select(j, entrevistadores = value)
-
-  # Criar resultados para alocação ótima
-  resultado_ucs_otimo <- dist_uc_agencias|>
-    dplyr::inner_join(matching, by=c("i", "j"))|>
-    dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = "uc")|>
-    dplyr::left_join(indice_t, by="t")|>
-    dplyr::select(-i,-j,-t, -custo_deslocamento_com_troca)
-
-  # Jurisdiction results from the constrained solve
-  matching_juris <- result_juris |>
-    ompr::get_solution(x[i, j]) |>
-    dplyr::filter(value > .9) |>
-    dplyr::select(i, j)
-  resultado_ucs_jurisdicao <- dist_uc_agencias |>
-    dplyr::inner_join(matching_juris, by = c("i", "j")) |>
-    dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = "uc") |>
-    dplyr::left_join(indice_t, by = "t") |>
-    dplyr::select(-i, -j, -t, -custo_deslocamento_com_troca)
-  workers_juris <- result_juris |>
-    ompr::get_solution(w[j]) |>
-    dplyr::filter(value > .9) |>
-    dplyr::select(j, entrevistadores = value)
-
-  ags_group_vars <- c(names(agencias_t), 'entrevistadores')
-
-  if (!all(resultado_ucs_jurisdicao$uc %in% (resultado_ucs_otimo$uc))) stop("Solução não encontrada!")
-
-  # Criar resultados para agências - alocação ótima
-  resultado_agencias_otimo <- agencias_t |>
-    dplyr::inner_join(resultado_ucs_otimo, by = c('agencia_codigo')) |>
-    dplyr::select(-data)|>
-    dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
-    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao), n_ucs=dplyr::n())|>
-    dplyr::ungroup() |>
-    dplyr::left_join(workers, by = c('j')) |>
-    dplyr::select(-j) |>
-    dplyr::mutate(custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador)
-
-  if (tsp) {
-    resultado_agencias_otimo <- resultado_agencias_otimo|>
-      dplyr::left_join(
-    segmentos_rota|>
-      dplyr::group_by(agencia_codigo)|>
-      dplyr::summarise(distancia_km_tsp=sum(distancia_km)))
+  # Extract UC-level and agency-level results from a solver result
+  .extract_results <- function(solver_result) {
+    matching <- solver_result |>
+      ompr::get_solution(x[i, j]) |>
+      dplyr::filter(value > .9) |>
+      dplyr::select(i, j)
+    workers <- solver_result |>
+      ompr::get_solution(w[j]) |>
+      dplyr::filter(value > .9) |>
+      dplyr::select(j, entrevistadores = value)
+    resultado_ucs <- dist_uc_agencias |>
+      dplyr::inner_join(matching, by = c("i", "j")) |>
+      dplyr::left_join(ucs |> dplyr::distinct(dplyr::pick(dplyr::all_of(c("uc", alocar_por)))), by = "uc") |>
+      dplyr::left_join(indice_t, by = "t") |>
+      dplyr::select(-i, -j, -t, -custo_deslocamento_com_troca)
+    ags_group_vars <- c(names(agencias_t), "entrevistadores")
+    resultado_agencias <- agencias_t |>
+      dplyr::inner_join(resultado_ucs, by = c("agencia_codigo")) |>
+      dplyr::select(-data) |>
+      dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
+      dplyr::summarise(dplyr::across(where(is.numeric), sum),
+                       n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao),
+                       n_ucs = dplyr::n()) |>
+      dplyr::ungroup() |>
+      dplyr::left_join(workers, by = c("j")) |>
+      dplyr::select(-j) |>
+      dplyr::mutate(custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador +
+                      entrevistadores * custo_treinamento_por_entrevistador)
+    list(ucs = resultado_ucs, agencias = resultado_agencias)
   }
 
-  # Criar resultados para agências - jurisdição
-  resultado_agencias_jurisdicao <- agencias_t |>
-    dplyr::inner_join(resultado_ucs_jurisdicao, by = c("agencia_codigo")) |>
-    dplyr::select(-data) |>
-    dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
-    dplyr::summarise(dplyr::across(where(is.numeric), sum), n_trocas_jurisdicao = sum(agencia_codigo != agencia_codigo_jurisdicao), n_ucs = dplyr::n()) |>
-    dplyr::ungroup() |>
-    dplyr::left_join(workers_juris, by = c("j")) |>
-    dplyr::select(-j) |>
-    dplyr::mutate(custo_total_entrevistadores = entrevistadores * remuneracao_entrevistador + entrevistadores * custo_treinamento_por_entrevistador)
+  res_otimo <- .extract_results(result)
+  resultado_ucs_otimo <- res_otimo$ucs
+  resultado_agencias_otimo <- res_otimo$agencias
+
+  if (tsp) {
+    resultado_agencias_otimo <- resultado_agencias_otimo |>
+      dplyr::left_join(
+        segmentos_rota |>
+          dplyr::group_by(agencia_codigo) |>
+          dplyr::summarise(distancia_km_tsp = sum(distancia_km))
+      )
+  }
+
+  if (!is.null(result_juris)) {
+    res_juris <- .extract_results(result_juris)
+    resultado_ucs_jurisdicao <- res_juris$ucs
+    resultado_agencias_jurisdicao <- res_juris$agencias
+  } else {
+    cli::cli_abort("Jurisdiction solve failed: no valid jurisdiction agencies.")
+  }
+
+  if (!all(resultado_ucs_jurisdicao$uc %in% resultado_ucs_otimo$uc)) {
+    cli::cli_abort("Solu\u00e7\u00e3o n\u00e3o encontrada: UCs da jurisdi\u00e7\u00e3o ausentes no resultado \u00f3timo.")
+  }
   # Preparar resultados finais
   resultado$resultado_ucs_otimo <- resultado_ucs_otimo
   resultado$resultado_ucs_jurisdicao <- resultado_ucs_jurisdicao
