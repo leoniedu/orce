@@ -26,6 +26,8 @@ orce(
   entrevistadores_por_uc = 1,
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
+  fixar_atribuicoes = NULL,
+  seed = 42L,
   solver = "highs",
   rel_tol = 0.005,
   max_time = 30 * 60,
@@ -105,6 +107,15 @@ não é afetado (assume-se veículo compartilhado). Padrão: 1.}
 \item{adicional_troca_jurisdicao}{Custo adicional quando há troca de agência de coleta. Padrão: 0.}
 
 \item{resultado_completo}{(Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.}
+
+\item{fixar_atribuicoes}{(Opcional) Data frame com colunas \code{uc} e
+\code{agencia_codigo} indicando atribuições a fixar via restrições rígidas
+(\code{x[i,j] == 1}). UCs listadas aqui não serão reatribuídas pelo otimizador.
+Útil para congelar atribuições aprovadas e re-otimizar apenas as UCs
+afetadas por restrições. Padrão: \code{NULL} (sem atribuições fixas).}
+
+\item{seed}{Semente para o gerador de números aleatórios, garantindo
+reprodutibilidade. Padrão: \code{42L}. Use \code{NULL} para não definir semente.}
 
 \item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "highs". Outras opções: "glpk", "symphony" (instalação manual).}
 

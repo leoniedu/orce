@@ -2,24 +2,24 @@
 mod_restricoes_ui <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
-    shiny::h4("Sele\u00e7\u00e3o"),
+    shiny::h4("Seleção"),
     shiny::verbatimTextOutput(ns("selecao_info")),
 
     shiny::hr(),
-    shiny::h4("Adicionar restri\u00e7\u00e3o"),
+    shiny::h4("Adicionar restrição"),
 
     shiny::selectInput(ns("tipo_restricao"), "Tipo:",
-                       choices = c("Bloquear UC da ag\u00eancia" = "bloquear",
-                                   "For\u00e7ar UC para ag\u00eancia" = "forcar",
-                                   "Desativar ag\u00eancia" = "desativar_agencia")),
+                       choices = c("Bloquear UC da agência" = "bloquear",
+                                   "Forçar UC para agência" = "forcar",
+                                   "Desativar agência" = "desativar_agencia")),
 
     shiny::uiOutput(ns("restricao_inputs")),
 
-    shiny::actionButton(ns("adicionar"), "Adicionar restri\u00e7\u00e3o",
+    shiny::actionButton(ns("adicionar"), "Adicionar restrição",
                         class = "btn-primary btn-sm"),
 
     shiny::hr(),
-    shiny::h4("Restri\u00e7\u00f5es ativas"),
+    shiny::h4("Restrições ativas"),
     shiny::uiOutput(ns("lista_restricoes"))
   )
 }
@@ -29,6 +29,9 @@ mod_restricoes_botoes_ui <- function(id) {
   ns <- shiny::NS(id)
   shiny::tagList(
     shiny::hr(),
+    shiny::checkboxInput(ns("fixar_nao_afetadas"),
+                         "Fixar UCs não afetadas",
+                         value = TRUE),
     shiny::actionButton(ns("reotimizar"), "Re-otimizar",
                         class = "btn-success"),
     shiny::actionButton(ns("limpar"), "Limpar tudo",
@@ -70,9 +73,9 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
         } else {
           ag
         }
-        linhas <- c(linhas, paste("Ag\u00eancia:", ag_label))
+        linhas <- c(linhas, paste("Agência:", ag_label))
       }
-      if (length(linhas) == 0) "Nenhuma sele\u00e7\u00e3o"
+      if (length(linhas) == 0) "Nenhuma seleção"
       else paste(linhas, collapse = "\n")
     })
 
@@ -91,12 +94,12 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
                                 choices = ucs_disponiveis(),
                                 selected = uc_sel,
                                 multiple = TRUE),
-          shiny::selectInput(ns("agencia_alvo"), "Ag\u00eancia:",
+          shiny::selectInput(ns("agencia_alvo"), "Agência:",
                              choices = choices,
                              selected = ag_sel)
         )
       } else if (tipo == "desativar_agencia") {
-        shiny::selectInput(ns("agencia_alvo"), "Ag\u00eancia:",
+        shiny::selectInput(ns("agencia_alvo"), "Agência:",
                            choices = choices,
                            selected = ag_sel)
       }
@@ -111,7 +114,7 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
         uc <- input$uc_alvo
         ag <- input$agencia_alvo
         if (is.null(uc) || length(uc) == 0 || is.null(ag)) {
-          shiny::showNotification("Selecione UC e ag\u00eancia.", type = "warning")
+          shiny::showNotification("Selecione UC e agência.", type = "warning")
           return()
         }
         nova <- list(tipo = tipo, uc = uc, agencia_codigo = ag)
@@ -119,7 +122,7 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
       } else if (tipo == "desativar_agencia") {
         ag <- input$agencia_alvo
         if (is.null(ag)) {
-          shiny::showNotification("Selecione uma ag\u00eancia.", type = "warning")
+          shiny::showNotification("Selecione uma agência.", type = "warning")
           return()
         }
         nova <- list(tipo = tipo, agencia_codigo = ag)
@@ -128,18 +131,18 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
       if (!is.null(nova)) {
         nova$.id <- as.character(as.numeric(Sys.time()) * 1000 + sample(1000, 1))
         restricoes(c(restricoes(), list(nova)))
-        shiny::showNotification("Restri\u00e7\u00e3o adicionada.", type = "message")
+        shiny::showNotification("Restrição adicionada.", type = "message")
       }
     })
 
-    # Registro de observers de remoção (keyed by .id)
-    obs_remocao <- reactiveValues()
+    # Registro de observers de remoção (plain env to avoid reactive side effects)
+    obs_remocao <- new.env(parent = emptyenv())
 
     # Renderizar lista de restrições ativas
     output$lista_restricoes <- shiny::renderUI({
       restr <- restricoes()
       if (length(restr) == 0) {
-        return(shiny::p("Nenhuma restri\u00e7\u00e3o."))
+        return(shiny::p("Nenhuma restrição."))
       }
       itens <- lapply(restr, function(r) {
         rid <- r$.id
@@ -162,7 +165,7 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
     shiny::observe({
       restr <- restricoes()
       ids_atuais <- vapply(restr, function(r) r$.id, character(1))
-      ids_registrados <- names(shiny::reactiveValuesToList(obs_remocao))
+      ids_registrados <- ls(obs_remocao)
 
       # Criar observers para novas restrições
       for (rid in setdiff(ids_atuais, ids_registrados)) {
@@ -179,7 +182,7 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
       # Destruir observers de restrições removidas
       for (rid in setdiff(ids_registrados, ids_atuais)) {
         obs_remocao[[rid]]$destroy()
-        obs_remocao[[rid]] <- NULL
+        rm(list = rid, envir = obs_remocao)
       }
     })
 
@@ -192,7 +195,8 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
     list(
       restricoes = restricoes,
       reotimizar = shiny::reactive(input$reotimizar),
-      limpar = shiny::reactive(input$limpar)
+      limpar = shiny::reactive(input$limpar),
+      fixar_nao_afetadas = shiny::reactive(input$fixar_nao_afetadas)
     )
   })
 }
@@ -210,12 +214,12 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
   switch(r$tipo,
     bloquear = paste0("Bloquear ", paste(r$uc, collapse = ", "),
                       " de ", .nome_ag(r$agencia_codigo)),
-    forcar = paste0("For\u00e7ar ", paste(r$uc, collapse = ", "),
-                    " \u2192 ", .nome_ag(r$agencia_codigo)),
+    forcar = paste0("Forçar ", paste(r$uc, collapse = ", "),
+                    " → ", .nome_ag(r$agencia_codigo)),
     desativar_agencia = paste0("Desativar ", .nome_ag(r$agencia_codigo)),
     agencias_treinamento = paste0("Treinamento: ",
                                    paste(vapply(r$agencias_treinamento, .nome_ag,
                                                 character(1)), collapse = ", ")),
-    paste("Restri\u00e7\u00e3o:", r$tipo)
+    paste("Restrição:", r$tipo)
   )
 }

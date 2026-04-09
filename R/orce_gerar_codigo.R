@@ -8,105 +8,122 @@
 #'   [orce_aplicar_restricoes()].
 #' @param params_alterados Lista nomeada de parâmetros escalares que diferem
 #'   dos valores iniciais (ex: `list(rel_tol = 0.01, dias_treinamento = 4)`).
-#' @param params_fixos_nomes Vetor de nomes de parâmetros não-escalares
-#'   (ex: `"distancias_agencias"`) a incluir na chamada `orce()` gerada.
+#' @param params_fixos Lista nomeada de parâmetros fixos (não editáveis no UI)
+#'   a incluir na chamada `orce()` gerada com seus valores.
+#' @param fixar_atribuicoes (Opcional) Data frame com colunas `uc` e
+#'   `agencia_codigo` representando atribuições fixas a incluir no código.
 #'
 #' @return Uma string contendo código R válido e reproduzível.
 #'
 #' @export
 orce_gerar_codigo <- function(restricoes = list(), params_alterados = list(),
-                              params_fixos_nomes = character()) {
+                              params_fixos = list(),
+                              fixar_atribuicoes = NULL) {
   if (length(restricoes) == 0 && length(params_alterados) == 0 &&
-      length(params_fixos_nomes) == 0) {
-    return("# Nenhuma restri\u00e7\u00e3o definida\n")
+      length(params_fixos) == 0 && is.null(fixar_atribuicoes)) {
+    return("# Nenhuma restrição definida\n")
   }
-
-  custo <- format(.CUSTO_PROIBITIVO, scientific = TRUE)
 
   linhas <- character()
   linhas <- c(linhas, paste0(
-    "# Restri\u00e7\u00f5es para refinamento do plano orce\n",
+    "# Restrições para refinamento do plano orce\n",
     "# Gerado em ", Sys.Date(), "\n"
   ))
 
-  for (r in restricoes) {
-    comentario <- paste0("# ", .descrever_restricao(r), "\n")
+  # Gerar lista de restrições
+  if (length(restricoes) > 0) {
+    restr_items <- vapply(restricoes, function(r) {
+      if (r$tipo %in% c("bloquear", "forcar")) {
+        paste0("  list(tipo = \"", r$tipo, "\", uc = ",
+               .codificar_vetor(r$uc), ", agencia_codigo = \"",
+               r$agencia_codigo, "\")")
+      } else if (r$tipo == "desativar_agencia") {
+        paste0("  list(tipo = \"desativar_agencia\", agencia_codigo = \"",
+               r$agencia_codigo, "\")")
+      } else if (r$tipo == "agencias_treinamento") {
+        paste0("  list(tipo = \"agencias_treinamento\", agencias_treinamento = ",
+               .codificar_vetor(r$agencias_treinamento), ")")
+      } else {
+        ""
+      }
+    }, character(1))
+    restr_items <- restr_items[nzchar(restr_items)]
 
-    if (r$tipo == "bloquear") {
-      ucs_str <- .codificar_vetor(r$uc)
-      linhas <- c(linhas, paste0(
-        comentario,
-        .gerar_mutate_proibitivo(ucs_str, r$agencia_codigo, "==", custo)
-      ))
-
-    } else if (r$tipo == "forcar") {
-      ucs_str <- .codificar_vetor(r$uc)
-      linhas <- c(linhas, paste0(
-        comentario,
-        .gerar_mutate_proibitivo(ucs_str, r$agencia_codigo, "!=", custo)
-      ))
-
-    } else if (r$tipo == "desativar_agencia") {
-      linhas <- c(linhas, paste0(
-        comentario,
-        "agencias <- agencias |>\n",
-        "  dplyr::filter(agencia_codigo != \"", r$agencia_codigo, "\")\n",
-        "distancias_ucs <- distancias_ucs |>\n",
-        "  dplyr::filter(agencia_codigo != \"", r$agencia_codigo, "\")\n"
-      ))
-
-    } else if (r$tipo == "agencias_treinamento") {
-      ag_str <- .codificar_vetor(r$agencias_treinamento)
-      linhas <- c(linhas, paste0(
-        comentario,
-        "agencias_treinamento <- ", ag_str, "\n"
-      ))
-    }
+    linhas <- c(linhas, paste0(
+      "restricoes <- list(\n",
+      paste(restr_items, collapse = ",\n"),
+      "\n)\n"
+    ))
+    linhas <- c(linhas, paste0(
+      "dados <- orce_aplicar_restricoes(\n",
+      "  ucs = ucs, agencias = agencias,\n",
+      "  distancias_ucs = distancias_ucs,\n",
+      "  agencias_treinamento = agencias_treinamento,\n",
+      "  restricoes = restricoes\n",
+      ")\n"
+    ))
   }
 
-  # Gerar chamada orce() com parâmetros alterados
-  params_code <- character()
+  # Gerar fixar_atribuicoes se presente
+  if (!is.null(fixar_atribuicoes) && nrow(fixar_atribuicoes) > 0) {
+    linhas <- c(linhas, paste0(
+      "# Fixar ", nrow(fixar_atribuicoes),
+      " atribuições UC-agência\n",
+      "fixar_atribuicoes <- data.frame(\n",
+      "  uc = ", .codificar_vetor(fixar_atribuicoes$uc), ",\n",
+      "  agencia_codigo = ", .codificar_vetor(fixar_atribuicoes$agencia_codigo),
+      "\n)\n"
+    ))
+  }
 
-  # Incluir agencias_treinamento se foi definida por restrição
+  # Gerar chamada orce()
+  orce_args <- c(
+    if (length(restricoes) > 0) {
+      c("  ucs = dados$ucs, agencias = dados$agencias",
+        "  distancias_ucs = dados$distancias_ucs")
+    } else {
+      c("  ucs = ucs, agencias = agencias",
+        "  distancias_ucs = distancias_ucs")
+    },
+    "  resultado_completo = TRUE"
+  )
+
+  # agencias_treinamento
   tem_ag_trein <- any(vapply(restricoes, function(r) {
     identical(r$tipo, "agencias_treinamento")
   }, logical(1)))
   if (tem_ag_trein) {
-    params_code <- c(params_code,
-                     "  agencias_treinamento = agencias_treinamento")
+    orce_args <- c(orce_args,
+                   "  agencias_treinamento = dados$agencias_treinamento")
   }
 
-  # Incluir parâmetros não-escalares (data frames, vetores passados via ...)
-  for (nome in params_fixos_nomes) {
-    params_code <- c(params_code, paste0("  ", nome, " = ", nome))
+  # fixar_atribuicoes
+  if (!is.null(fixar_atribuicoes) && nrow(fixar_atribuicoes) > 0) {
+    orce_args <- c(orce_args, "  fixar_atribuicoes = fixar_atribuicoes")
   }
 
-  for (nome in names(params_alterados)) {
-    val <- params_alterados[[nome]]
-    if (is.character(val)) {
-      params_code <- c(params_code, paste0("  ", nome, " = \"", val, "\""))
-    } else if (is.infinite(val)) {
-      params_code <- c(params_code, paste0("  ", nome, " = Inf"))
+  # Parâmetros fixos: inline scalars, reference non-scalars by name
+  for (nome in names(params_fixos)) {
+    val <- params_fixos[[nome]]
+    if (length(val) == 1 && (is.numeric(val) || is.character(val) || is.logical(val))) {
+      orce_args <- c(orce_args, paste0("  ", nome, " = ", .formatar_valor(val)))
     } else {
-      params_code <- c(params_code, paste0("  ", nome, " = ", val))
+      orce_args <- c(orce_args, paste0("  ", nome, " = ", nome))
     }
   }
 
-  linhas <- c(linhas, "# Re-otimizar")
-  if (length(params_code) > 0) {
-    linhas <- c(linhas, paste0(
-      "resultado <- orce(\n",
-      "  ucs = ucs, agencias = agencias,\n",
-      "  distancias_ucs = distancias_ucs,\n",
-      "  resultado_completo = TRUE,\n",
-      paste(params_code, collapse = ",\n"),
-      "\n)\n"
-    ))
-  } else {
-    linhas <- c(linhas,
-      "# resultado <- orce(ucs, agencias, distancias_ucs = distancias_ucs, ...)\n"
-    )
+  # Parâmetros escalares alterados no UI
+  for (nome in names(params_alterados)) {
+    val <- params_alterados[[nome]]
+    orce_args <- c(orce_args, paste0("  ", nome, " = ", .formatar_valor(val)))
   }
+
+  linhas <- c(linhas, "# Re-otimizar")
+  linhas <- c(linhas, paste0(
+    "resultado <- orce(\n",
+    paste(orce_args, collapse = ",\n"),
+    "\n)\n"
+  ))
 
   paste(linhas, collapse = "\n")
 }
@@ -134,5 +151,17 @@ orce_gerar_codigo <- function(restricoes = list(), params_alterados = list(),
     paste0("\"", x, "\"")
   } else {
     paste0("c(", paste0("\"", x, "\"", collapse = ", "), ")")
+  }
+}
+
+#' Formata um valor R escalar como string de código
+#' @keywords internal
+.formatar_valor <- function(val) {
+  if (is.character(val)) {
+    paste0("\"", val, "\"")
+  } else if (is.infinite(val)) {
+    "Inf"
+  } else {
+    as.character(val)
   }
 }

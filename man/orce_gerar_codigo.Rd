@@ -7,7 +7,8 @@
 orce_gerar_codigo(
   restricoes = list(),
   params_alterados = list(),
-  params_fixos_nomes = character()
+  params_fixos = list(),
+  fixar_atribuicoes = NULL
 )
 }
 \arguments{
@@ -17,8 +18,11 @@ orce_gerar_codigo(
 \item{params_alterados}{Lista nomeada de parâmetros escalares que diferem
 dos valores iniciais (ex: \code{list(rel_tol = 0.01, dias_treinamento = 4)}).}
 
-\item{params_fixos_nomes}{Vetor de nomes de parâmetros não-escalares
-(ex: \code{"distancias_agencias"}) a incluir na chamada \code{orce()} gerada.}
+\item{params_fixos}{Lista nomeada de parâmetros fixos (não editáveis no UI)
+a incluir na chamada \code{orce()} gerada com seus valores.}
+
+\item{fixar_atribuicoes}{(Opcional) Data frame com colunas \code{uc} e
+\code{agencia_codigo} representando atribuições fixas a incluir no código.}
 }
 \value{
 Uma string contendo código R válido e reproduzível.

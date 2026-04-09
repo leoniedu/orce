@@ -4,7 +4,6 @@
 #' iterativamente um plano de alocação de UCs a agências. Mudanças feitas na
 #' interface geram código R reproduzível.
 #'
-#' @param resultado Resultado de [orce()] com `resultado_completo = TRUE`.
 #' @param ucs Data frame de UCs (mesmo usado na chamada original a [orce()]).
 #' @param agencias Data frame de agências.
 #' @param distancias_ucs Data frame de distâncias UC–agência.
@@ -13,26 +12,41 @@
 #' @param agencias_sf (Opcional) Objeto `sf` com geometria de pontos das
 #'   agências. Se `NULL`, tenta extrair de `agencias` ou usa
 #'   `orcedata::agencias_bdo`.
-#' @param ... Parâmetros adicionais a serem preservados nas re-otimizações
-#'   (passados para [orce()]).
+#' @param ucs_sf (Opcional) Objeto `sf` com geometria de pontos das UCs,
+#'   contendo ao menos a coluna `uc`. Usado para plotar UCs no mapa.
+#'   Se `NULL`, tenta usar `orcedata::pns_upas`.
+#' @param ... Parâmetros adicionais para [orce()] (preservados nas
+#'   re-otimizações).
 #'
 #' @return Um objeto Shiny app (retorno de [shiny::shinyApp()]).
 #'
 #' @export
-orce_app <- function(resultado, ucs, agencias, distancias_ucs,
+orce_app <- function(ucs, agencias, distancias_ucs,
                      agencias_treinamento = NULL,
                      agencias_sf = NULL,
+                     ucs_sf = NULL,
                      ...) {
   rlang::check_installed(c("shiny", "bslib", "mapgl", "DT"),
                          reason = "para usar orce_app()")
 
-  # Validar que resultado é completo
-  if (is.null(resultado$ucs_agencias_todas)) {
-    cli::cli_abort(
-      c("{.arg resultado} precisa ser de {.code orce(..., resultado_completo = TRUE)}.",
-        "i" = "Re-execute {.fun orce} com {.arg resultado_completo} = {.val TRUE}.")
-    )
+  # Calcular resultado inicial
+  cli::cli_alert_info("Calculando resultado inicial com orce()...")
+  params_extra_init <- list(...)
+  args_init <- c(
+    list(
+      ucs = ucs,
+      agencias = agencias,
+      distancias_ucs = distancias_ucs,
+      resultado_completo = TRUE,
+      use_cache = TRUE
+    ),
+    params_extra_init
+  )
+  if (!is.null(agencias_treinamento)) {
+    args_init$agencias_treinamento <- agencias_treinamento
   }
+  resultado <- do.call(orce, args_init)
+  cli::cli_alert_success("Resultado inicial calculado.")
 
   # Preparar agencias_sf
   if (is.null(agencias_sf)) {
@@ -47,6 +61,24 @@ orce_app <- function(resultado, ucs, agencias, distancias_ucs,
           dplyr::semi_join(agencias, by = "agencia_codigo")
       }
     }
+  }
+
+  # Preparar coordenadas das UCs para o mapa
+  coords_ucs <- NULL
+  if (!is.null(ucs_sf) && inherits(ucs_sf, "sf")) {
+    ucs_sf_4326 <- sf::st_transform(ucs_sf, 4326)
+    coords_ucs <- data.frame(
+      uc = ucs_sf_4326$uc,
+      lon = sf::st_coordinates(ucs_sf_4326)[, 1],
+      lat = sf::st_coordinates(ucs_sf_4326)[, 2]
+    )
+  }
+
+  # Injetar coordenadas no resultado inicial
+  if (!is.null(coords_ucs)) {
+    resultado$resultado_ucs_otimo <- dplyr::left_join(
+      resultado$resultado_ucs_otimo, coords_ucs, by = "uc"
+    )
   }
 
   # Lookup de nomes de agências (codigo -> nome)
@@ -65,6 +97,13 @@ orce_app <- function(resultado, ucs, agencias, distancias_ucs,
   )
   params_extra_escalares <- params_extra[setdiff(names(params_extra),
                                                   names(params_extra_fixos))]
+  # Scalars not in .PARAMS_DEFAULTS won't appear in the UI — keep them as fixed
+  nao_editaveis <- setdiff(names(params_extra_escalares), names(.PARAMS_DEFAULTS))
+  if (length(nao_editaveis) > 0) {
+    params_extra_fixos <- c(params_extra_fixos, params_extra_escalares[nao_editaveis])
+    params_extra_escalares <- params_extra_escalares[setdiff(names(params_extra_escalares),
+                                                              nao_editaveis)]
+  }
 
   ui <- bslib::page_sidebar(
     title = "orce: Refinamento de Plano",
@@ -77,8 +116,8 @@ orce_app <- function(resultado, ucs, agencias, distancias_ucs,
     bslib::navset_card_tab(
       bslib::nav_panel("Mapa", mod_mapa_ui("mapa")),
       bslib::nav_panel("Tabela", mod_tabela_ui("tabela")),
-      bslib::nav_panel("Hist\u00f3rico", mod_historico_ui("historico")),
-      bslib::nav_panel("C\u00f3digo", mod_codigo_ui("codigo"))
+      bslib::nav_panel("Histórico", mod_historico_ui("historico")),
+      bslib::nav_panel("Código", mod_codigo_ui("codigo"))
     ),
     # JavaScript para copiar ao clipboard
     shiny::tags$script(shiny::HTML(
@@ -87,15 +126,6 @@ orce_app <- function(resultado, ucs, agencias, distancias_ucs,
        });"
     ))
   )
-
-  # Capturar coordenadas das UCs do resultado inicial para re-join após re-otimização
-  coords_ucs <- NULL
-  res_ucs_ini <- resultado$resultado_ucs_otimo
-  if (all(c("lat", "lon") %in% names(res_ucs_ini))) {
-    coords_ucs <- unique(res_ucs_ini[, c("uc", "lat", "lon")])
-  } else if (all(c("latitude", "longitude") %in% names(res_ucs_ini))) {
-    coords_ucs <- unique(res_ucs_ini[, c("uc", "latitude", "longitude")])
-  }
 
   server <- function(input, output, session) {
     # Estado reativo: resultado atual
@@ -153,6 +183,23 @@ orce_app <- function(resultado, ucs, agencias, distancias_ucs,
       nomes_agencias = nomes_agencias
     )
 
+    # Reactive para fixar_atribuicoes (usada em código e re-otimização)
+    fixar_atribuicoes_rv <- shiny::reactive({
+      if (!isTRUE(restricoes_mod$fixar_nao_afetadas())) return(NULL)
+      res_atual <- resultado_atual()
+      if (is.null(res_atual$resultado_ucs_otimo)) return(NULL)
+      restr <- restricoes_mod$restricoes()
+      ucs_afetadas <- orce_ucs_afetadas(
+        restr, res_atual$resultado_ucs_otimo,
+        ucs = ucs,
+        alocar_por = params_extra_fixos[["alocar_por"]] %||% "uc"
+      )
+      fixar <- res_atual$resultado_ucs_otimo |>
+        dplyr::filter(!uc %in% ucs_afetadas) |>
+        dplyr::distinct(uc, agencia_codigo)
+      if (nrow(fixar) > 0) fixar else NULL
+    })
+
     # Módulo de código
     codigo_mod <- mod_codigo_server(
       "codigo",
@@ -160,7 +207,8 @@ orce_app <- function(resultado, ucs, agencias, distancias_ucs,
       agencias_treinamento = parametros_mod$agencias_treinamento,
       agencias_treinamento_inicial = agencias_treinamento_rv,
       params_alterados = parametros_mod$params_atuais,
-      params_fixos_nomes = names(params_extra_fixos)
+      params_fixos = params_extra_fixos,
+      fixar_atribuicoes = fixar_atribuicoes_rv
     )
 
     # Módulo de histórico
@@ -180,6 +228,7 @@ orce_app <- function(resultado, ucs, agencias, distancias_ucs,
       if (!is.null(click)) {
         if (click$layer == "ucs") {
           selected_uc(click$properties$uc)
+          selected_agencia(click$properties$agencia_codigo)
         } else if (click$layer == "agencias") {
           selected_agencia(click$properties$agencia_codigo)
         }
@@ -233,6 +282,12 @@ orce_app <- function(resultado, ucs, agencias, distancias_ucs,
           args$agencias_treinamento <- ag_trein
         }
 
+        # Fixar UCs não afetadas pelas restrições
+        fixar <- fixar_atribuicoes_rv()
+        if (!is.null(fixar)) {
+          args$fixar_atribuicoes <- fixar
+        }
+
         tryCatch({
           novo_resultado <- do.call(orce, args)
 
@@ -246,7 +301,7 @@ orce_app <- function(resultado, ucs, agencias, distancias_ucs,
           }
 
           resultado_atual(novo_resultado)
-          shiny::showNotification("Re-otimiza\u00e7\u00e3o conclu\u00edda!",
+          shiny::showNotification("Re-otimização concluída!",
                                   type = "message")
         }, error = function(e) {
           shiny::showNotification(

@@ -72,6 +72,13 @@
 #'   porque a rota conjunta é mais curta. Não substitui o custo real de deslocamento
 #'   (`transport_cost_i_j`); atua como ajuste de coerência geográfica. Padrão: 0
 #'   (sem penalidade TSP).
+#' @param fixar_atribuicoes (Opcional) Data frame com colunas `uc` e
+#'   `agencia_codigo` indicando atribuições a fixar via restrições rígidas
+#'   (`x[i,j] == 1`). UCs listadas aqui não serão reatribuídas pelo otimizador.
+#'   Útil para congelar atribuições aprovadas e re-otimizar apenas as UCs
+#'   afetadas por restrições. Padrão: `NULL` (sem atribuições fixas).
+#' @param seed Semente para o gerador de números aleatórios, garantindo
+#'   reprodutibilidade. Padrão: `42L`. Use `NULL` para não definir semente.
 #' @param orce_function Função construtora do modelo OMPR a ser usada. Recebe um único
 #'   argumento `env` (um ambiente) com todos os objetos já preparados dentro de `.orce_impl`
 #'   e deve retornar um objeto `ompr::MILPModel`. O padrão é [orce_model_milp()]
@@ -113,6 +120,8 @@ orce <- function(ucs,
                         entrevistadores_por_uc = 1,
                         adicional_troca_jurisdicao = 0,
                         resultado_completo = FALSE,
+                        fixar_atribuicoes = NULL,
+                        seed = 42L,
                         solver = "highs",
                         rel_tol = .005,
                         max_time = 30 * 60,
@@ -145,6 +154,8 @@ orce <- function(ucs,
     entrevistadores_por_uc = entrevistadores_por_uc,
     adicional_troca_jurisdicao = adicional_troca_jurisdicao,
     resultado_completo = resultado_completo,
+    fixar_atribuicoes = fixar_atribuicoes,
+    seed = seed,
     solver = solver,
     rel_tol = rel_tol,
     max_time = max_time,
@@ -192,6 +203,8 @@ orce <- function(ucs,
                              entrevistadores_por_uc,
                              adicional_troca_jurisdicao,
                              resultado_completo,
+                             fixar_atribuicoes,
+                             seed,
                              solver,
                              rel_tol,
                              max_time,
@@ -199,6 +212,7 @@ orce <- function(ucs,
                        peso_tsp,
                              orce_function,
                              ...) {
+  if (!is.null(seed)) set.seed(seed)
   tictoc::tic.clearlog()
   tictoc::tic("Tempo total da otimização", log = TRUE)
   on.exit({
@@ -231,26 +245,26 @@ orce <- function(ucs,
 
   missing_dist_ucs <- setdiff(c('diaria_municipio', 'uc', 'diaria_pernoite'), names(distancias_ucs))
   if (length(missing_dist_ucs) > 0) {
-    cli::cli_abort("{.arg distancias_ucs} est\u00e1 faltando a coluna{?s}: {.val {missing_dist_ucs}}.")
+    cli::cli_abort("{.arg distancias_ucs} está faltando a coluna{?s}: {.val {missing_dist_ucs}}.")
   }
   missing_ucs <- setdiff(c('dias_coleta', 'viagens', 'data', 'diaria_valor'), names(ucs))
   if (length(missing_ucs) > 0) {
-    cli::cli_abort("{.arg ucs} est\u00e1 faltando a coluna{?s}: {.val {missing_ucs}}.")
+    cli::cli_abort("{.arg ucs} está faltando a coluna{?s}: {.val {missing_ucs}}.")
   }
   missing_agencias <- setdiff(c('n_entrevistadores_agencia_max', 'custo_fixo', 'diaria_valor'), names(agencias))
   if (length(missing_agencias) > 0) {
-    cli::cli_abort("{.arg agencias} est\u00e1 faltando a coluna{?s}: {.val {missing_agencias}}.")
+    cli::cli_abort("{.arg agencias} está faltando a coluna{?s}: {.val {missing_agencias}}.")
   }
 
   if (alocar_por == "agencia_codigo") {
-    cli::cli_abort("{.arg alocar_por} n\u00e3o pode ser {.val \"agencia_codigo\"}.")
+    cli::cli_abort("{.arg alocar_por} não pode ser {.val \"agencia_codigo\"}.")
   }
 
   # Pré-processamento dos dados
   required_cols <- c("uc", "agencia_codigo", "dias_coleta", "viagens", "data", "diaria_valor")
   if (alocar_por != "uc") {
     if (!alocar_por %in% names(ucs)) {
-      cli::cli_abort("{.arg alocar_por} = {.val {alocar_por}} n\u00e3o \u00e9 uma coluna de {.arg ucs}.")
+      cli::cli_abort("{.arg alocar_por} = {.val {alocar_por}} não é uma coluna de {.arg ucs}.")
     }
     required_cols <- c(required_cols, alocar_por)
   }
@@ -260,7 +274,7 @@ orce <- function(ucs,
       cli::cli_abort("{.arg peso_tsp} > 0 requer {.arg alocar_por} = {.val \"uc\"}.")
     }
     if (dplyr::n_distinct(ucs$data) != 1) {
-      cli::cli_abort("{.arg peso_tsp} > 0 requer exatamente um per\u00edodo em {.field data}.")
+      cli::cli_abort("{.arg peso_tsp} > 0 requer exatamente um período em {.field data}.")
     }
   }
   distancias_ucs <- distancias_ucs |> dplyr::select(uc, agencia_codigo, distancia_km, duracao_horas, diaria_municipio, diaria_pernoite)
@@ -465,6 +479,27 @@ orce <- function(ucs,
       distancias_nos = distancias_nos
     )
   }
+  # Traduzir fixar_atribuicoes para índices (i, j) do modelo
+  fixar_atribuicoes_ij <- NULL
+  if (!is.null(fixar_atribuicoes)) {
+    checkmate::assert_data_frame(fixar_atribuicoes)
+    checkmate::assert_names(names(fixar_atribuicoes),
+                            must.include = c("uc", "agencia_codigo"))
+    fix_i <- match(fixar_atribuicoes$uc, ucs$uc)
+    fix_j <- match(fixar_atribuicoes$agencia_codigo, agencias_t$agencia_codigo)
+    valid <- !is.na(fix_i) & !is.na(fix_j)
+    if (any(valid)) {
+      fixar_atribuicoes_ij <- data.frame(
+        i = ucs$i[fix_i[valid]],
+        j = agencias_t$j[fix_j[valid]]
+      )
+      fixar_atribuicoes_ij <- unique(fixar_atribuicoes_ij)
+      cli::cli_alert_info(
+        "Fixando {nrow(fixar_atribuicoes_ij)} atribuições UC-agência."
+      )
+    }
+  }
+
   # Construir modelo via função injetável
   model <- orce_function(environment())
 
@@ -497,7 +532,7 @@ orce <- function(ucs,
       }
     }
     if (result$status == "error") {
-      cli::cli_abort("O solver retornou um erro. Verifique os par\u00e2metros do modelo.")
+      cli::cli_abort("O solver retornou um erro. Verifique os parâmetros do modelo.")
     }
     list(result = result, log = log)
   }
@@ -571,6 +606,15 @@ orce <- function(ucs,
     )
     sol_juris <- .solve_once(model_juris)
     result_juris <- sol_juris$result
+  }
+
+  # Aplicar fixar_atribuicoes_ij ao modelo (após jurisdiction, antes do solve otimizado)
+  if (!is.null(fixar_atribuicoes_ij) && nrow(fixar_atribuicoes_ij) > 0) {
+    fix_i <- fixar_atribuicoes_ij$i
+    fix_j <- fixar_atribuicoes_ij$j
+    model <- ompr::add_constraint(
+      model, x[fix_i[k], fix_j[k]] == 1, k = seq_along(fix_i)
+    )
   }
 
   if (tsp) {
@@ -685,7 +729,7 @@ orce <- function(ucs,
   }
 
   if (!all(resultado_ucs_jurisdicao$uc %in% resultado_ucs_otimo$uc)) {
-    cli::cli_abort("Solu\u00e7\u00e3o n\u00e3o encontrada: UCs da jurisdi\u00e7\u00e3o ausentes no resultado \u00f3timo.")
+    cli::cli_abort("Solução não encontrada: UCs da jurisdição ausentes no resultado ótimo.")
   }
   # Preparar resultados finais
   resultado$resultado_ucs_otimo <- resultado_ucs_otimo

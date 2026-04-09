@@ -56,13 +56,13 @@ mod_historico_server <- function(id, resultado_atual, codigo_texto,
         contagens <- table(tipos)
         nomes_tipo <- c(
           bloquear = "bloqueio",
-          forcar = "for\u00e7amento",
+          forcar = "forçamento",
           desativar_agencia = "ag. desativada",
           agencias_treinamento = "ag. treinamento"
         )
         nomes_tipo_pl <- c(
           bloquear = "bloqueios",
-          forcar = "for\u00e7amentos",
+          forcar = "forçamentos",
           desativar_agencia = "ag. desativadas",
           agencias_treinamento = "ag. treinamento"
         )
@@ -95,7 +95,7 @@ mod_historico_server <- function(id, resultado_atual, codigo_texto,
         }
       }
 
-      if (length(partes) == 0) return("(sem altera\u00e7\u00f5es)")
+      if (length(partes) == 0) return("(sem alterações)")
       paste(partes, collapse = "; ")
     }
 
@@ -170,11 +170,11 @@ mod_historico_server <- function(id, resultado_atual, codigo_texto,
         if (i == 1) {
           data.frame(
             "#" = i,
-            "Altera\u00e7\u00f5es" = s$alteracoes,
+            "Alterações" = s$alteracoes,
             "Custo total" = as.character(s$custo_total),
-            "Ag\u00eancias" = as.character(s$n_agencias),
+            "Agências" = as.character(s$n_agencias),
             "Total km" = as.character(s$total_km),
-            "Total di\u00e1rias" = if (!is.na(s$total_diarias))
+            "Total diárias" = if (!is.na(s$total_diarias))
               as.character(s$total_diarias) else NA_character_,
             check.names = FALSE,
             stringsAsFactors = FALSE
@@ -182,14 +182,14 @@ mod_historico_server <- function(id, resultado_atual, codigo_texto,
         } else {
           data.frame(
             "#" = i,
-            "Altera\u00e7\u00f5es" = s$alteracoes,
+            "Alterações" = s$alteracoes,
             "Custo total" = paste0(s$custo_total,
                                     .fmt_diff(s$custo_total, base$custo_total, 2)),
-            "Ag\u00eancias" = paste0(s$n_agencias,
+            "Agências" = paste0(s$n_agencias,
                                       .fmt_diff(s$n_agencias, base$n_agencias, 0)),
             "Total km" = paste0(s$total_km,
                                  .fmt_diff(s$total_km, base$total_km, 1)),
-            "Total di\u00e1rias" = if (!is.na(s$total_diarias))
+            "Total diárias" = if (!is.na(s$total_diarias))
               paste0(s$total_diarias,
                      .fmt_diff(s$total_diarias, base$total_diarias, 0))
             else NA_character_,

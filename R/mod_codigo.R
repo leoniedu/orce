@@ -4,7 +4,7 @@ mod_codigo_ui <- function(id) {
   shiny::tagList(
     shiny::div(
       class = "d-flex justify-content-between align-items-center mb-2",
-      shiny::h4("C\u00f3digo R", class = "mb-0"),
+      shiny::h4("Código R", class = "mb-0"),
       shiny::actionButton(ns("copiar"), "Copiar",
                           class = "btn-outline-secondary btn-sm")
     ),
@@ -16,7 +16,8 @@ mod_codigo_ui <- function(id) {
 mod_codigo_server <- function(id, restricoes_lista, agencias_treinamento,
                               agencias_treinamento_inicial,
                               params_alterados = NULL,
-                              params_fixos_nomes = character()) {
+                              params_fixos = list(),
+                              fixar_atribuicoes = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
 
     codigo_texto <- shiny::reactive({
@@ -36,8 +37,10 @@ mod_codigo_server <- function(id, restricoes_lista, agencias_treinamento,
       }
 
       p_alt <- if (!is.null(params_alterados)) params_alterados() else list()
+      fixar <- if (!is.null(fixar_atribuicoes)) fixar_atribuicoes() else NULL
       orce_gerar_codigo(todas_restricoes, params_alterados = p_alt,
-                        params_fixos_nomes = params_fixos_nomes)
+                        params_fixos = params_fixos,
+                        fixar_atribuicoes = fixar)
     })
 
     output$codigo <- shiny::renderText({
@@ -46,7 +49,7 @@ mod_codigo_server <- function(id, restricoes_lista, agencias_treinamento,
 
     # Copiar para clipboard via JS
     shiny::observeEvent(input$copiar, {
-      shiny::showNotification("C\u00f3digo copiado!", type = "message", duration = 2)
+      shiny::showNotification("Código copiado!", type = "message", duration = 2)
       session$sendCustomMessage("copiar_clipboard", codigo_texto())
     })
 

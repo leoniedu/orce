@@ -102,3 +102,45 @@ test_that("Alocação de UCs com períodos de coleta", {
 
 
 })
+
+test_that("fixar_atribuicoes fixa UCs nas agências especificadas", {
+  f <- function(...) orce(..., use_cache = FALSE)
+
+  # Rodar otimização base
+  r_base <- do.call(f, params_0)
+  resultado_base <- r_base$resultado_ucs_otimo
+
+  # Escolher 5 UCs e suas agências atuais para fixar
+  fixar <- resultado_base |>
+    dplyr::distinct(uc, agencia_codigo) |>
+    utils::head(5)
+
+  # Re-rodar com essas UCs fixas
+  r_fix <- do.call(f, c(params_0, list(fixar_atribuicoes = fixar)))
+
+  # Verificar que as UCs fixas mantiveram suas agências
+  resultado_fix <- r_fix$resultado_ucs_otimo |>
+    dplyr::filter(uc %in% fixar$uc) |>
+    dplyr::distinct(uc, agencia_codigo)
+
+  expect_equal(
+    dplyr::arrange(resultado_fix, uc),
+    dplyr::arrange(fixar, uc)
+  )
+})
+
+test_that("fixar_atribuicoes com TODAS as UCs fixas não causa infeasibility", {
+  f <- function(...) orce(..., use_cache = FALSE)
+
+  r_base <- do.call(f, params_0)
+
+  # Fixar TODAS as UCs (simula toggle ON sem restrições)
+  fixar_todas <- r_base$resultado_ucs_otimo |>
+    dplyr::distinct(uc, agencia_codigo)
+
+  r_fix <- do.call(f, c(params_0, list(fixar_atribuicoes = fixar_todas)))
+  expect_equal(
+    dplyr::arrange(r_fix$resultado_ucs_otimo |> dplyr::distinct(uc, agencia_codigo), uc),
+    dplyr::arrange(fixar_todas, uc)
+  )
+})

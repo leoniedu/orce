@@ -25,7 +25,7 @@ calcula_distancias <- function(destinos, origens, chunk_size = 100L,
   if (!is.null(nmax)) {
     chunk_size <- max(1L, floor(nmax / nrow(destinos)))
     cli::cli_warn(
-      "O argumento {.arg nmax} est\u00e1 descontinuado. Use {.arg chunk_size}.",
+      "O argumento {.arg nmax} está descontinuado. Use {.arg chunk_size}.",
       .frequency = "once"
     )
   }
@@ -37,10 +37,10 @@ calcula_distancias <- function(destinos, origens, chunk_size = 100L,
     cli::cli_abort("{.arg origens} deve ser um objeto {.cls sf}.")
   }
   if (any(is.na(sf::st_coordinates(destinos)))) {
-    cli::cli_abort("{.arg destinos} n\u00e3o pode ter coordenadas {.val NA}.")
+    cli::cli_abort("{.arg destinos} não pode ter coordenadas {.val NA}.")
   }
   if (any(is.na(sf::st_coordinates(origens)))) {
-    cli::cli_abort("{.arg origens} n\u00e3o pode ter coordenadas {.val NA}.")
+    cli::cli_abort("{.arg origens} não pode ter coordenadas {.val NA}.")
   }
 
   dec_original <- getOption("OutDec")
@@ -59,12 +59,12 @@ calcula_distancias <- function(destinos, origens, chunk_size = 100L,
   n_failed <- 0L
   results <- vector("list", length(chunks))
 
-  cli::cli_progress_bar("Calculando dist\u00e2ncias", total = length(chunks))
+  cli::cli_progress_bar("Calculando distâncias", total = length(chunks))
 
   for (i in seq_along(chunks)) {
     src <- origens_1[chunks[[i]], ]
     results[[i]] <- tryCatch({
-      rlang::check_installed("osrm", reason = "para calcular dist\u00e2ncias via OSRM")
+      rlang::check_installed("osrm", reason = "para calcular distâncias via OSRM")
       r <- osrm::osrmTable(
         src = src,
         dst = destinos_1,
@@ -87,7 +87,7 @@ calcula_distancias <- function(destinos, origens, chunk_size = 100L,
 
   if (n_failed > 0L) {
     cli::cli_warn(
-      "{n_failed} lote{?s} falhou ao calcular dist\u00e2ncias e foi ignorado{?s}."
+      "{n_failed} lote{?s} falhou ao calcular distâncias e foi ignorado{?s}."
     )
   }
 

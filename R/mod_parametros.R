@@ -7,7 +7,7 @@ mod_parametros_ui <- function(id) {
       id = ns("accordion_outer"),
       open = FALSE,
       bslib::accordion_panel(
-        "Par\u00e2metros",
+        "Parâmetros",
         bslib::accordion(
           id = ns("accordion"),
           open = FALSE,
@@ -17,7 +17,7 @@ mod_parametros_ui <- function(id) {
                             "Dias coleta/entrevistador (max):",
                             value = NULL, min = 1, step = 1),
         shiny::numericInput(ns("diarias_entrevistador_max"),
-                            "Di\u00e1rias/entrevistador (max):",
+                            "Diárias/entrevistador (max):",
                             value = NULL, min = 1, step = 1),
         shiny::helpText("Deixe vazio para Inf"),
         shiny::numericInput(ns("n_entrevistadores_min"),
@@ -27,19 +27,19 @@ mod_parametros_ui <- function(id) {
       bslib::accordion_panel(
         "Custos",
         shiny::numericInput(ns("remuneracao_entrevistador"),
-                            "Remunera\u00e7\u00e3o entrevistador (R$):",
+                            "Remuneração entrevistador (R$):",
                             value = NULL, min = 0, step = 100),
         shiny::numericInput(ns("custo_litro_combustivel"),
-                            "Custo combust\u00edvel (R$/L):",
+                            "Custo combustível (R$/L):",
                             value = NULL, min = 0, step = 0.5),
         shiny::numericInput(ns("custo_hora_viagem"),
                             "Custo hora viagem (R$):",
                             value = NULL, min = 0, step = 1),
         shiny::numericInput(ns("kml"),
-                            "Consumo ve\u00edculo (km/L):",
+                            "Consumo veículo (km/L):",
                             value = NULL, min = 1, step = 1),
         shiny::numericInput(ns("adicional_troca_jurisdicao"),
-                            "Adicional troca jurisdi\u00e7\u00e3o (R$):",
+                            "Adicional troca jurisdição (R$):",
                             value = NULL, min = 0, step = 100)
       ),
       bslib::accordion_panel(
@@ -52,14 +52,14 @@ mod_parametros_ui <- function(id) {
       bslib::accordion_panel(
         "Solver",
         shiny::numericInput(ns("rel_tol"),
-                            "Toler\u00e2ncia relativa:",
+                            "Tolerância relativa:",
                             value = NULL, min = 0, max = 1, step = 0.001),
         shiny::selectInput(ns("solver"),
                            "Solver:",
                            choices = c("highs", "glpk", "symphony"),
                            selected = NULL),
         shiny::numericInput(ns("max_time"),
-                            "Tempo m\u00e1ximo (seg):",
+                            "Tempo máximo (seg):",
                             value = NULL, min = 10, step = 60),
         shiny::numericInput(ns("peso_tsp"),
                             "Peso TSP:",
@@ -131,11 +131,23 @@ mod_parametros_server <- function(id, params_iniciais,
       }
     })
 
+    # Choices for training dropdown: available agencies + current training agencies
+    treinamento_choices <- shiny::reactive({
+      codigos <- union(agencias_disponiveis(), agencias_treinamento())
+      codigos <- sort(codigos[!is.na(codigos)])
+      if (!is.null(nomes_agencias)) {
+        labels <- paste0(nomes_agencias[codigos], " (", codigos, ")")
+        stats::setNames(codigos, labels)
+      } else {
+        codigos
+      }
+    })
+
     output$treinamento_ui <- shiny::renderUI({
       shiny::selectizeInput(
         ns("agencias_treinamento_sel"),
-        "Ag\u00eancias de treinamento:",
-        choices = agencias_choices(),
+        "Agências de treinamento:",
+        choices = treinamento_choices(),
         selected = agencias_treinamento(),
         multiple = TRUE
       )
@@ -143,7 +155,7 @@ mod_parametros_server <- function(id, params_iniciais,
 
     shiny::observeEvent(input$agencias_treinamento_sel, {
       agencias_treinamento(input$agencias_treinamento_sel)
-    }, ignoreNULL = FALSE)
+    }, ignoreNULL = FALSE, ignoreInit = TRUE)
 
     # Resetar agências de treinamento ao limpar tudo
     if (!is.null(limpar)) {

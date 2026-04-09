@@ -3,7 +3,7 @@ mod_tabela_ui <- function(id) {
   ns <- shiny::NS(id)
   bslib::navset_card_pill(
     bslib::nav_panel("Por UC", DT::dataTableOutput(ns("tabela_ucs"))),
-    bslib::nav_panel("Por Ag\u00eancia", DT::dataTableOutput(ns("tabela_agencias")))
+    bslib::nav_panel("Por Agência", DT::dataTableOutput(ns("tabela_agencias")))
   )
 }
 

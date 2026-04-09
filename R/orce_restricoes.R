@@ -65,7 +65,7 @@ orce_aplicar_restricoes <- function(ucs, agencias, distancias_ucs,
 
     if (is.null(r$tipo) || !r$tipo %in% .TIPOS_RESTRICAO) {
       cli::cli_abort(
-        "Restri\\u00e7\\u00e3o {i} tem tipo inv\\u00e1lido: {.val {r$tipo %||% 'NULL'}}. Tipos v\\u00e1lidos: {.val {(.TIPOS_RESTRICAO)}}."
+        "Restrição {i} tem tipo inválido: {.val {r$tipo %||% 'NULL'}}. Tipos válidos: {.val {(.TIPOS_RESTRICAO)}}."
       )
     }
 
@@ -104,6 +104,48 @@ orce_aplicar_restricoes <- function(ucs, agencias, distancias_ucs,
   )
 }
 
+#' Identificar UCs Afetadas por Restrições
+#'
+#' Retorna os códigos das UCs que são diretamente afetadas por uma lista de
+#' restrições, considerando também UCs atribuídas a agências desativadas.
+#' Quando `alocar_por` não é `"uc"`, expande as UCs afetadas para incluir
+#' todas as UCs do mesmo grupo de alocação.
+#'
+#' @param restricoes Lista de restrições (mesmo formato de
+#'   [orce_aplicar_restricoes()]).
+#' @param resultado_ucs Data frame com o resultado atual da otimização,
+#'   contendo ao menos as colunas `uc` e `agencia_codigo`.
+#' @param ucs (Opcional) Data frame de UCs contendo a coluna de agrupamento
+#'   especificada por `alocar_por`. Necessário quando `alocar_por != "uc"`.
+#' @param alocar_por Coluna usada para agrupar UCs na otimização.
+#'   Padrão: `"uc"` (sem agrupamento).
+#'
+#' @return Vetor de caracteres com os códigos das UCs afetadas (sem duplicatas).
+#'
+#' @export
+orce_ucs_afetadas <- function(restricoes, resultado_ucs = NULL,
+                               ucs = NULL, alocar_por = "uc") {
+  afetadas <- character()
+  for (r in restricoes) {
+    if (r$tipo %in% c("bloquear", "forcar")) {
+      afetadas <- c(afetadas, r$uc)
+    } else if (r$tipo == "desativar_agencia" && !is.null(resultado_ucs)) {
+      ucs_da_agencia <- resultado_ucs$uc[
+        resultado_ucs$agencia_codigo == r$agencia_codigo
+      ]
+      afetadas <- c(afetadas, ucs_da_agencia)
+    }
+  }
+  afetadas <- unique(afetadas)
+
+  # Expandir para todos os membros do grupo de alocação
+  if (alocar_por != "uc" && !is.null(ucs) && length(afetadas) > 0) {
+    grupos_afetados <- unique(ucs[[alocar_por]][ucs$uc %in% afetadas])
+    afetadas <- unique(ucs$uc[ucs[[alocar_por]] %in% grupos_afetados])
+  }
+  afetadas
+}
+
 #' Anotar data frame de UCs com rótulos de restrições
 #' @keywords internal
 .anotar_restricoes <- function(df, restricoes) {
@@ -118,7 +160,7 @@ orce_aplicar_restricoes <- function(ucs, agencias, distancias_ucs,
       )
     } else if (r$tipo == "forcar") {
       idx <- df$uc %in% r$uc
-      df$restricao[idx] <- paste0("for\u00e7ada -> ", r$agencia_codigo)
+      df$restricao[idx] <- paste0("forçada -> ", r$agencia_codigo)
     }
   }
   df

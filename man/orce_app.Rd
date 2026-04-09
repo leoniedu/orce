@@ -5,18 +5,16 @@
 \title{Aplicativo Shiny para Refinamento Interativo de Planos orce}
 \usage{
 orce_app(
-  resultado,
   ucs,
   agencias,
   distancias_ucs,
   agencias_treinamento = NULL,
   agencias_sf = NULL,
+  ucs_sf = NULL,
   ...
 )
 }
 \arguments{
-\item{resultado}{Resultado de \code{\link[=orce]{orce()}} com \code{resultado_completo = TRUE}.}
-
 \item{ucs}{Data frame de UCs (mesmo usado na chamada original a \code{\link[=orce]{orce()}}).}
 
 \item{agencias}{Data frame de agências.}
@@ -30,8 +28,12 @@ orce_app(
 agências. Se \code{NULL}, tenta extrair de \code{agencias} ou usa
 \code{orcedata::agencias_bdo}.}
 
-\item{...}{Parâmetros adicionais a serem preservados nas re-otimizações
-(passados para \code{\link[=orce]{orce()}}).}
+\item{ucs_sf}{(Opcional) Objeto \code{sf} com geometria de pontos das UCs,
+contendo ao menos a coluna \code{uc}. Usado para plotar UCs no mapa.
+Se \code{NULL}, tenta usar \code{orcedata::pns_upas}.}
+
+\item{...}{Parâmetros adicionais para \code{\link[=orce]{orce()}} (preservados nas
+re-otimizações).}
 }
 \value{
 Um objeto Shiny app (retorno de \code{\link[shiny:shinyApp]{shiny::shinyApp()}}).
