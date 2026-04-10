@@ -106,16 +106,23 @@ mod_historico_server <- function(id, resultado_atual, codigo_texto,
       .sum_col <- function(df, col) {
         if (col %in% names(df)) round(sum(df[[col]], na.rm = TRUE), 2) else NA_real_
       }
+      entrev <- .sum_col(res_ag, "entrevistadores")
+      diarias <- .sum_col(res_ag, "custo_diarias")
+      combustivel <- .sum_col(res_ag, "custo_combustivel")
+      treinamento <- if (all(c("entrevistadores", "custo_treinamento_por_entrevistador") %in% names(res_ag))) {
+        round(sum(res_ag$entrevistadores * res_ag$custo_treinamento_por_entrevistador, na.rm = TRUE), 2)
+      } else { 0 }
+      remuneracao <- .sum_col(res_ag, "custo_total_entrevistadores") - treinamento
+      custo_total <- diarias + combustivel + remuneracao + treinamento
       data.frame(
-        custo_total = round(attr(resultado, "valor"), 2),
+        custo_total = custo_total,
         n_agencias = nrow(res_ag),
-        entrevistadores = .sum_col(res_ag, "entrevistadores"),
-        custo_diarias = .sum_col(res_ag, "custo_diarias"),
-        custo_combustivel = .sum_col(res_ag, "custo_combustivel"),
-        custo_remuneracao = .sum_col(res_ag, "custo_total_entrevistadores"),
+        entrevistadores = entrev,
+        custo_diarias = diarias,
+        custo_combustivel = combustivel,
+        custo_remuneracao = remuneracao,
+        custo_treinamento = treinamento,
         total_km = round(sum(res_ucs$distancia_km, na.rm = TRUE), 1),
-        total_diarias = if ("total_diarias" %in% names(res_ucs))
-          sum(res_ucs$total_diarias, na.rm = TRUE) else NA_real_,
         alteracoes = alteracoes,
         codigo = codigo,
         stringsAsFactors = FALSE
@@ -187,6 +194,7 @@ mod_historico_server <- function(id, resultado_atual, codigo_texto,
           "Diárias (R$)" = .col(s$custo_diarias, base$custo_diarias, 0),
           "Combust. (R$)" = .col(s$custo_combustivel, base$custo_combustivel, 0),
           "Remun. (R$)" = .col(s$custo_remuneracao, base$custo_remuneracao, 0),
+          "Trein. (R$)" = .col(s$custo_treinamento, base$custo_treinamento, 0),
           "Custo total" = .col(s$custo_total, base$custo_total, 2),
           check.names = FALSE,
           stringsAsFactors = FALSE
