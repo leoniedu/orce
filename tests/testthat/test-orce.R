@@ -144,3 +144,51 @@ test_that("fixar_atribuicoes com TODAS as UCs fixas não causa infeasibility", {
     dplyr::arrange(fixar_todas, uc)
   )
 })
+
+test_that("bloquear_atribuicoes impede atribuição ao par bloqueado", {
+  f <- function(...) orce(..., use_cache = FALSE)
+
+  r_base <- do.call(f, params_0)
+
+  # Pick a UC and its current agency to block
+  alocacao <- r_base$resultado_ucs_otimo |>
+    dplyr::distinct(uc, agencia_codigo) |>
+    utils::head(1)
+
+  bloquear <- data.frame(
+    uc = alocacao$uc,
+    agencia_codigo = alocacao$agencia_codigo,
+    stringsAsFactors = FALSE
+  )
+
+  r_blk <- do.call(f, c(params_0, list(bloquear_atribuicoes = bloquear)))
+
+  # UC must NOT be assigned to blocked agency
+  alocacao_blk <- r_blk$resultado_ucs_otimo |>
+    dplyr::filter(uc == bloquear$uc) |>
+    dplyr::distinct(agencia_codigo)
+  expect_false(bloquear$agencia_codigo %in% alocacao_blk$agencia_codigo)
+})
+
+test_that("fixar + bloquear mesmo par gera erro", {
+  f <- function(...) orce(..., use_cache = FALSE)
+
+  par <- data.frame(uc = "UC_FAKE", agencia_codigo = "AG_FAKE",
+                    stringsAsFactors = FALSE)
+
+  # Won't match any real UC/agency but conflict check happens before matching
+
+  # Use real data so we reach the conflict check
+  r_base <- do.call(f, params_0)
+  alocacao <- r_base$resultado_ucs_otimo |>
+    dplyr::distinct(uc, agencia_codigo) |>
+    utils::head(1)
+
+  expect_error(
+    do.call(f, c(params_0, list(
+      fixar_atribuicoes = alocacao,
+      bloquear_atribuicoes = alocacao
+    ))),
+    "Conflito"
+  )
+})

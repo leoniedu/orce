@@ -31,18 +31,22 @@
 #'   \describe{
 #'     \item{ucs}{Data frame de UCs (inalterado).}
 #'     \item{agencias}{Data frame de agências (possivelmente filtrado).}
-#'     \item{distancias_ucs}{Data frame de distâncias (possivelmente com
-#'       custos proibitivos).}
+#'     \item{distancias_ucs}{Data frame de distâncias (inalterado, exceto
+#'       remoção de agências desativadas).}
 #'     \item{agencias_treinamento}{Vetor atualizado de agências de treinamento.}
+#'     \item{fixar_atribuicoes}{Data frame com colunas `uc` e
+#'       `agencia_codigo` derivado de restrições `"forcar"`, ou `NULL`.}
+#'     \item{bloquear_atribuicoes}{Data frame com colunas `uc` e
+#'       `agencia_codigo` derivado de restrições `"bloquear"`, ou `NULL`.}
 #'   }
 #'
 #' @details
 #' As restrições são aplicadas na ordem fornecida. Cada tipo funciona assim:
 #'
-#' - **`bloquear`**: Define `distancia_km` e `duracao_horas` como proibitivos
-#'   para o par (UC, agência), tornando a atribuição proibitivamente cara.
-#' - **`forcar`**: Define custos proibitivos para todas as *outras* agências
-#'   daquela UC, forçando a atribuição à agência especificada.
+#' - **`bloquear`**: Acumula pares (UC, agência) em `bloquear_atribuicoes`,
+#'   que serão traduzidos em restrições rígidas `x[i,j] == 0` por [orce()].
+#' - **`forcar`**: Acumula pares (UC, agência) em `fixar_atribuicoes`,
+#'   que serão traduzidos em restrições rígidas `x[i,j] == 1` por [orce()].
 #' - **`desativar_agencia`**: Remove a agência de `agencias` e de
 #'   `distancias_ucs`.
 #' - **`agencias_treinamento`**: Substitui o vetor de agências de treinamento.
@@ -56,9 +60,14 @@ orce_aplicar_restricoes <- function(ucs, agencias, distancias_ucs,
       ucs = ucs,
       agencias = agencias,
       distancias_ucs = distancias_ucs,
-      agencias_treinamento = agencias_treinamento
+      agencias_treinamento = agencias_treinamento,
+      fixar_atribuicoes = NULL,
+      bloquear_atribuicoes = NULL
     ))
   }
+
+  bloquear_rows <- list()
+  fixar_rows <- list()
 
   for (i in seq_along(restricoes)) {
     r <- restricoes[[i]]
@@ -72,18 +81,18 @@ orce_aplicar_restricoes <- function(ucs, agencias, distancias_ucs,
     if (r$tipo == "bloquear") {
       checkmate::assert_character(r$uc, min.len = 1)
       checkmate::assert_string(r$agencia_codigo)
-      mask <- distancias_ucs$uc %in% r$uc &
-        distancias_ucs$agencia_codigo == r$agencia_codigo
-      distancias_ucs$distancia_km[mask] <- .CUSTO_PROIBITIVO
-      distancias_ucs$duracao_horas[mask] <- .CUSTO_PROIBITIVO
+      bloquear_rows <- c(bloquear_rows, list(data.frame(
+        uc = r$uc, agencia_codigo = r$agencia_codigo,
+        stringsAsFactors = FALSE
+      )))
 
     } else if (r$tipo == "forcar") {
       checkmate::assert_character(r$uc, min.len = 1)
       checkmate::assert_string(r$agencia_codigo)
-      mask <- distancias_ucs$uc %in% r$uc &
-        distancias_ucs$agencia_codigo != r$agencia_codigo
-      distancias_ucs$distancia_km[mask] <- .CUSTO_PROIBITIVO
-      distancias_ucs$duracao_horas[mask] <- .CUSTO_PROIBITIVO
+      fixar_rows <- c(fixar_rows, list(data.frame(
+        uc = r$uc, agencia_codigo = r$agencia_codigo,
+        stringsAsFactors = FALSE
+      )))
 
     } else if (r$tipo == "desativar_agencia") {
       checkmate::assert_string(r$agencia_codigo)
@@ -96,11 +105,20 @@ orce_aplicar_restricoes <- function(ucs, agencias, distancias_ucs,
     }
   }
 
+  fixar_atribuicoes <- if (length(fixar_rows) > 0) {
+    unique(do.call(rbind, fixar_rows))
+  }
+  bloquear_atribuicoes <- if (length(bloquear_rows) > 0) {
+    unique(do.call(rbind, bloquear_rows))
+  }
+
   list(
     ucs = ucs,
     agencias = agencias,
     distancias_ucs = distancias_ucs,
-    agencias_treinamento = agencias_treinamento
+    agencias_treinamento = agencias_treinamento,
+    fixar_atribuicoes = fixar_atribuicoes,
+    bloquear_atribuicoes = bloquear_atribuicoes
   )
 }
 

@@ -41,24 +41,24 @@ test_that("restricoes vazia retorna dados inalterados", {
   expect_identical(res$agencias, agencias_test)
   expect_identical(res$distancias_ucs, distancias_test)
   expect_null(res$agencias_treinamento)
+  expect_null(res$fixar_atribuicoes)
+  expect_null(res$bloquear_atribuicoes)
 })
 
-test_that("bloquear define custos proibitivos para par UC-agencia", {
+test_that("bloquear acumula em bloquear_atribuicoes sem alterar distancias", {
   restricoes <- list(
     list(tipo = "bloquear", uc = "UC01", agencia_codigo = "AG02")
   )
   res <- orce_aplicar_restricoes(ucs_test, agencias_test, distancias_test,
                                  restricoes = restricoes)
 
-  bloqueado <- res$distancias_ucs |>
-    dplyr::filter(uc == "UC01", agencia_codigo == "AG02")
-  expect_equal(bloqueado$distancia_km, 1e6)
-  expect_equal(bloqueado$duracao_horas, 1e6)
+  # distancias_ucs inalteradas
+  expect_identical(res$distancias_ucs, distancias_test)
 
-  # Outros pares não afetados
-  outros <- res$distancias_ucs |>
-    dplyr::filter(!(uc == "UC01" & agencia_codigo == "AG02"))
-  expect_true(all(outros$distancia_km < 1e6))
+  # bloquear_atribuicoes contém o par
+  expect_equal(nrow(res$bloquear_atribuicoes), 1)
+  expect_equal(res$bloquear_atribuicoes$uc, "UC01")
+  expect_equal(res$bloquear_atribuicoes$agencia_codigo, "AG02")
 })
 
 test_that("bloquear aceita múltiplas UCs", {
@@ -68,29 +68,25 @@ test_that("bloquear aceita múltiplas UCs", {
   res <- orce_aplicar_restricoes(ucs_test, agencias_test, distancias_test,
                                  restricoes = restricoes)
 
-  bloqueados <- res$distancias_ucs |>
-    dplyr::filter(uc %in% c("UC01", "UC02"), agencia_codigo == "AG03")
-  expect_true(all(bloqueados$distancia_km == 1e6))
+  expect_equal(nrow(res$bloquear_atribuicoes), 2)
+  expect_equal(sort(res$bloquear_atribuicoes$uc), c("UC01", "UC02"))
+  expect_true(all(res$bloquear_atribuicoes$agencia_codigo == "AG03"))
 })
 
-test_that("forcar define custos proibitivos para todas OUTRAS agencias", {
+test_that("forcar acumula em fixar_atribuicoes sem alterar distancias", {
   restricoes <- list(
     list(tipo = "forcar", uc = "UC01", agencia_codigo = "AG01")
   )
   res <- orce_aplicar_restricoes(ucs_test, agencias_test, distancias_test,
                                  restricoes = restricoes)
 
-  # Agência forçada mantém custo original
-  forcado <- res$distancias_ucs |>
-    dplyr::filter(uc == "UC01", agencia_codigo == "AG01")
-  expect_true(forcado$distancia_km < 1e6)
+  # distancias_ucs inalteradas
+  expect_identical(res$distancias_ucs, distancias_test)
 
-
-  # Outras agências recebem custo proibitivo
-  outros <- res$distancias_ucs |>
-    dplyr::filter(uc == "UC01", agencia_codigo != "AG01")
-  expect_true(all(outros$distancia_km == 1e6))
-  expect_true(all(outros$duracao_horas == 1e6))
+  # fixar_atribuicoes contém o par
+  expect_equal(nrow(res$fixar_atribuicoes), 1)
+  expect_equal(res$fixar_atribuicoes$uc, "UC01")
+  expect_equal(res$fixar_atribuicoes$agencia_codigo, "AG01")
 })
 
 test_that("desativar_agencia remove de agencias e distancias_ucs", {
@@ -128,15 +124,15 @@ test_that("múltiplas restrições são aplicadas em sequência", {
   # AG03 removida
   expect_false("AG03" %in% res$agencias$agencia_codigo)
 
-  # UC01 forçada para AG01 (AG02 proibitiva, AG03 já removida)
-  uc01_ag02 <- res$distancias_ucs |>
-    dplyr::filter(uc == "UC01", agencia_codigo == "AG02")
-  expect_equal(uc01_ag02$distancia_km, 1e6)
+  # UC01 forçada para AG01 via fixar_atribuicoes
+  expect_equal(nrow(res$fixar_atribuicoes), 1)
+  expect_equal(res$fixar_atribuicoes$uc, "UC01")
+  expect_equal(res$fixar_atribuicoes$agencia_codigo, "AG01")
 
-  # UC02 bloqueada de AG01
-  uc02_ag01 <- res$distancias_ucs |>
-    dplyr::filter(uc == "UC02", agencia_codigo == "AG01")
-  expect_equal(uc02_ag01$distancia_km, 1e6)
+  # UC02 bloqueada de AG01 via bloquear_atribuicoes
+  expect_equal(nrow(res$bloquear_atribuicoes), 1)
+  expect_equal(res$bloquear_atribuicoes$uc, "UC02")
+  expect_equal(res$bloquear_atribuicoes$agencia_codigo, "AG01")
 })
 
 test_that("tipo inválido gera erro", {
@@ -305,6 +301,17 @@ test_that("gerar_codigo com Inf gera valor correto", {
   expect_match(codigo, "diarias_entrevistador_max = Inf")
 })
 
+test_that("gerar_codigo inclui bloquear_atribuicoes na chamada orce()", {
+  bloquear <- data.frame(uc = c("UC01", "UC02"),
+                         agencia_codigo = c("AG01", "AG03"),
+                         stringsAsFactors = FALSE)
+  codigo <- orce_gerar_codigo(bloquear_atribuicoes = bloquear)
+  expect_match(codigo, "Bloquear 2")
+  expect_match(codigo, "bloquear_atribuicoes")
+  expect_match(codigo, "UC01")
+  expect_match(codigo, "AG03")
+})
+
 test_that("gerar_codigo com múltiplas UCs usa c()", {
   restricoes <- list(
     list(tipo = "bloquear", uc = c("UC01", "UC02"), agencia_codigo = "AG01")
@@ -339,9 +346,10 @@ test_that("código gerado por orce_gerar_codigo é avaliável", {
   eval(parse(text = paste(linhas, collapse = "\n")), envir = env)
 
   # Verificar que o código aplicou as restrições via orce_aplicar_restricoes
-  bloqueado <- env$dados$distancias_ucs |>
-    dplyr::filter(uc == "UC01", agencia_codigo == "AG02")
-  expect_equal(bloqueado$distancia_km, 1e6)
+  # bloquear gera bloquear_atribuicoes (distancias inalteradas)
+  expect_equal(nrow(env$dados$bloquear_atribuicoes), 1)
+  expect_equal(env$dados$bloquear_atribuicoes$uc, "UC01")
+  expect_equal(env$dados$bloquear_atribuicoes$agencia_codigo, "AG02")
 
   expect_false("AG03" %in% env$dados$agencias$agencia_codigo)
 })

@@ -17,7 +17,8 @@ mod_codigo_server <- function(id, restricoes_lista, agencias_treinamento,
                               agencias_treinamento_inicial,
                               params_alterados = NULL,
                               params_fixos = list(),
-                              fixar_atribuicoes = NULL) {
+                              fixar_atribuicoes = NULL,
+                              bloquear_atribuicoes = NULL) {
   shiny::moduleServer(id, function(input, output, session) {
 
     codigo_texto <- shiny::reactive({
@@ -38,9 +39,11 @@ mod_codigo_server <- function(id, restricoes_lista, agencias_treinamento,
 
       p_alt <- if (!is.null(params_alterados)) params_alterados() else list()
       fixar <- if (!is.null(fixar_atribuicoes)) fixar_atribuicoes() else NULL
+      bloquear <- if (!is.null(bloquear_atribuicoes)) bloquear_atribuicoes() else NULL
       orce_gerar_codigo(todas_restricoes, params_alterados = p_alt,
                         params_fixos = params_fixos,
-                        fixar_atribuicoes = fixar)
+                        fixar_atribuicoes = fixar,
+                        bloquear_atribuicoes = bloquear)
     })
 
     output$codigo <- shiny::renderText({

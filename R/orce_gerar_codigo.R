@@ -12,15 +12,19 @@
 #'   a incluir na chamada `orce()` gerada com seus valores.
 #' @param fixar_atribuicoes (Opcional) Data frame com colunas `uc` e
 #'   `agencia_codigo` representando atribuições fixas a incluir no código.
+#' @param bloquear_atribuicoes (Opcional) Data frame com colunas `uc` e
+#'   `agencia_codigo` representando atribuições bloqueadas a incluir no código.
 #'
 #' @return Uma string contendo código R válido e reproduzível.
 #'
 #' @export
 orce_gerar_codigo <- function(restricoes = list(), params_alterados = list(),
                               params_fixos = list(),
-                              fixar_atribuicoes = NULL) {
+                              fixar_atribuicoes = NULL,
+                              bloquear_atribuicoes = NULL) {
   if (length(restricoes) == 0 && length(params_alterados) == 0 &&
-      length(params_fixos) == 0 && is.null(fixar_atribuicoes)) {
+      length(params_fixos) == 0 && is.null(fixar_atribuicoes) &&
+      is.null(bloquear_atribuicoes)) {
     return("# Nenhuma restrição definida\n")
   }
 
@@ -76,6 +80,18 @@ orce_gerar_codigo <- function(restricoes = list(), params_alterados = list(),
     ))
   }
 
+  # Gerar bloquear_atribuicoes se presente
+  if (!is.null(bloquear_atribuicoes) && nrow(bloquear_atribuicoes) > 0) {
+    linhas <- c(linhas, paste0(
+      "# Bloquear ", nrow(bloquear_atribuicoes),
+      " atribuições UC-agência\n",
+      "bloquear_atribuicoes <- data.frame(\n",
+      "  uc = ", .codificar_vetor(bloquear_atribuicoes$uc), ",\n",
+      "  agencia_codigo = ", .codificar_vetor(bloquear_atribuicoes$agencia_codigo),
+      "\n)\n"
+    ))
+  }
+
   # Gerar chamada orce()
   orce_args <- c(
     if (length(restricoes) > 0) {
@@ -100,6 +116,11 @@ orce_gerar_codigo <- function(restricoes = list(), params_alterados = list(),
   # fixar_atribuicoes
   if (!is.null(fixar_atribuicoes) && nrow(fixar_atribuicoes) > 0) {
     orce_args <- c(orce_args, "  fixar_atribuicoes = fixar_atribuicoes")
+  }
+
+  # bloquear_atribuicoes
+  if (!is.null(bloquear_atribuicoes) && nrow(bloquear_atribuicoes) > 0) {
+    orce_args <- c(orce_args, "  bloquear_atribuicoes = bloquear_atribuicoes")
   }
 
   # Parâmetros fixos: inline scalars, reference non-scalars by name

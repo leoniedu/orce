@@ -27,6 +27,7 @@ orce(
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
   fixar_atribuicoes = NULL,
+  bloquear_atribuicoes = NULL,
   seed = 42L,
   solver = "highs",
   rel_tol = 0.005,
@@ -113,6 +114,11 @@ não é afetado (assume-se veículo compartilhado). Padrão: 1.}
 (\code{x[i,j] == 1}). UCs listadas aqui não serão reatribuídas pelo otimizador.
 Útil para congelar atribuições aprovadas e re-otimizar apenas as UCs
 afetadas por restrições. Padrão: \code{NULL} (sem atribuições fixas).}
+
+\item{bloquear_atribuicoes}{(Opcional) Data frame com colunas \code{uc} e
+\code{agencia_codigo} indicando atribuições a bloquear via restrições rígidas
+(\code{x[i,j] == 0}). Pares listados aqui nunca serão atribuídos pelo
+otimizador. Padrão: \code{NULL} (sem bloqueios).}
 
 \item{seed}{Semente para o gerador de números aleatórios, garantindo
 reprodutibilidade. Padrão: \code{42L}. Use \code{NULL} para não definir semente.}

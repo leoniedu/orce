@@ -200,6 +200,18 @@ orce_app <- function(ucs, agencias, distancias_ucs,
       if (nrow(fixar) > 0) fixar else NULL
     })
 
+    # Reactive para bloquear_atribuicoes derivado de restrições
+    bloquear_atribuicoes_rv <- shiny::reactive({
+      restr <- restricoes_mod$restricoes()
+      if (length(restr) == 0) return(NULL)
+      dados_mod <- orce_aplicar_restricoes(
+        ucs = ucs, agencias = agencias,
+        distancias_ucs = distancias_ucs,
+        restricoes = restr
+      )
+      dados_mod$bloquear_atribuicoes
+    })
+
     # Módulo de código
     codigo_mod <- mod_codigo_server(
       "codigo",
@@ -208,7 +220,8 @@ orce_app <- function(ucs, agencias, distancias_ucs,
       agencias_treinamento_inicial = agencias_treinamento_rv,
       params_alterados = parametros_mod$params_atuais,
       params_fixos = params_extra_fixos,
-      fixar_atribuicoes = fixar_atribuicoes_rv
+      fixar_atribuicoes = fixar_atribuicoes_rv,
+      bloquear_atribuicoes = bloquear_atribuicoes_rv
     )
 
     # Módulo de histórico
@@ -282,10 +295,17 @@ orce_app <- function(ucs, agencias, distancias_ucs,
           args$agencias_treinamento <- ag_trein
         }
 
-        # Fixar UCs não afetadas pelas restrições
-        fixar <- fixar_atribuicoes_rv()
-        if (!is.null(fixar)) {
-          args$fixar_atribuicoes <- fixar
+        # Merge restriction-derived fixar with freeze-toggle fixar
+        fixar_restr <- dados_mod$fixar_atribuicoes
+        fixar_freeze <- fixar_atribuicoes_rv()
+        fixar_merged <- unique(rbind(fixar_restr, fixar_freeze))
+        if (!is.null(fixar_merged) && nrow(fixar_merged) > 0) {
+          args$fixar_atribuicoes <- fixar_merged
+        }
+
+        # Pass bloquear_atribuicoes from restrictions
+        if (!is.null(dados_mod$bloquear_atribuicoes)) {
+          args$bloquear_atribuicoes <- dados_mod$bloquear_atribuicoes
         }
 
         tryCatch({

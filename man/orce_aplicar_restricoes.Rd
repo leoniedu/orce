@@ -39,9 +39,13 @@ Lista com os dados modificados:
 \describe{
 \item{ucs}{Data frame de UCs (inalterado).}
 \item{agencias}{Data frame de agências (possivelmente filtrado).}
-\item{distancias_ucs}{Data frame de distâncias (possivelmente com
-custos proibitivos).}
+\item{distancias_ucs}{Data frame de distâncias (inalterado, exceto
+remoção de agências desativadas).}
 \item{agencias_treinamento}{Vetor atualizado de agências de treinamento.}
+\item{fixar_atribuicoes}{Data frame com colunas \code{uc} e
+\code{agencia_codigo} derivado de restrições \code{"forcar"}, ou \code{NULL}.}
+\item{bloquear_atribuicoes}{Data frame com colunas \code{uc} e
+\code{agencia_codigo} derivado de restrições \code{"bloquear"}, ou \code{NULL}.}
 }
 }
 \description{
@@ -53,10 +57,10 @@ com \code{\link[=orce]{orce()}}.
 \details{
 As restrições são aplicadas na ordem fornecida. Cada tipo funciona assim:
 \itemize{
-\item \strong{\code{bloquear}}: Define \code{distancia_km} e \code{duracao_horas} como proibitivos
-para o par (UC, agência), tornando a atribuição proibitivamente cara.
-\item \strong{\code{forcar}}: Define custos proibitivos para todas as \emph{outras} agências
-daquela UC, forçando a atribuição à agência especificada.
+\item \strong{\code{bloquear}}: Acumula pares (UC, agência) em \code{bloquear_atribuicoes},
+que serão traduzidos em restrições rígidas \code{x[i,j] == 0} por \code{\link[=orce]{orce()}}.
+\item \strong{\code{forcar}}: Acumula pares (UC, agência) em \code{fixar_atribuicoes},
+que serão traduzidos em restrições rígidas \code{x[i,j] == 1} por \code{\link[=orce]{orce()}}.
 \item \strong{\code{desativar_agencia}}: Remove a agência de \code{agencias} e de
 \code{distancias_ucs}.
 \item \strong{\code{agencias_treinamento}}: Substitui o vetor de agências de treinamento.
