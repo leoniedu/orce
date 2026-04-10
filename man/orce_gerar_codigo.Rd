@@ -8,8 +8,7 @@ orce_gerar_codigo(
   restricoes = list(),
   params_alterados = list(),
   params_fixos = list(),
-  fixar_atribuicoes = NULL,
-  bloquear_atribuicoes = NULL
+  fixar_atribuicoes = NULL
 )
 }
 \arguments{
@@ -22,11 +21,8 @@ dos valores iniciais (ex: \code{list(rel_tol = 0.01, dias_treinamento = 4)}).}
 \item{params_fixos}{Lista nomeada de parâmetros fixos (não editáveis no UI)
 a incluir na chamada \code{orce()} gerada com seus valores.}
 
-\item{fixar_atribuicoes}{(Opcional) Data frame com colunas \code{uc} e
-\code{agencia_codigo} representando atribuições fixas a incluir no código.}
-
-\item{bloquear_atribuicoes}{(Opcional) Data frame com colunas \code{uc} e
-\code{agencia_codigo} representando atribuições bloqueadas a incluir no código.}
+\item{fixar_atribuicoes}{(Opcional) Data frame com colunas \code{uc},
+\code{agencia_codigo} e opcionalmente \code{valor} (1 = fixar, 0 = bloquear).}
 }
 \value{
 Uma string contendo código R válido e reproduzível.

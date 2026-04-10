@@ -27,7 +27,6 @@ orce(
   adicional_troca_jurisdicao = 0,
   resultado_completo = FALSE,
   fixar_atribuicoes = NULL,
-  bloquear_atribuicoes = NULL,
   seed = 42L,
   solver = "highs",
   rel_tol = 0.005,
@@ -109,16 +108,11 @@ não é afetado (assume-se veículo compartilhado). Padrão: 1.}
 
 \item{resultado_completo}{(Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.}
 
-\item{fixar_atribuicoes}{(Opcional) Data frame com colunas \code{uc} e
-\code{agencia_codigo} indicando atribuições a fixar via restrições rígidas
-(\code{x[i,j] == 1}). UCs listadas aqui não serão reatribuídas pelo otimizador.
-Útil para congelar atribuições aprovadas e re-otimizar apenas as UCs
-afetadas por restrições. Padrão: \code{NULL} (sem atribuições fixas).}
-
-\item{bloquear_atribuicoes}{(Opcional) Data frame com colunas \code{uc} e
-\code{agencia_codigo} indicando atribuições a bloquear via restrições rígidas
-(\code{x[i,j] == 0}). Pares listados aqui nunca serão atribuídos pelo
-otimizador. Padrão: \code{NULL} (sem bloqueios).}
+\item{fixar_atribuicoes}{(Opcional) Data frame com colunas \code{uc},
+\code{agencia_codigo} e opcionalmente \code{valor} (1 ou 0). Quando \code{valor = 1}
+(padrão se coluna ausente), fixa a atribuição via \code{x[i,j] == 1}.
+Quando \code{valor = 0}, bloqueia a atribuição via \code{x[i,j] == 0}.
+Padrão: \code{NULL}.}
 
 \item{seed}{Semente para o gerador de números aleatórios, garantindo
 reprodutibilidade. Padrão: \code{42L}. Use \code{NULL} para não definir semente.}

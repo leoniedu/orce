@@ -72,15 +72,11 @@
 #'   porque a rota conjunta é mais curta. Não substitui o custo real de deslocamento
 #'   (`transport_cost_i_j`); atua como ajuste de coerência geográfica. Padrão: 0
 #'   (sem penalidade TSP).
-#' @param fixar_atribuicoes (Opcional) Data frame com colunas `uc` e
-#'   `agencia_codigo` indicando atribuições a fixar via restrições rígidas
-#'   (`x[i,j] == 1`). UCs listadas aqui não serão reatribuídas pelo otimizador.
-#'   Útil para congelar atribuições aprovadas e re-otimizar apenas as UCs
-#'   afetadas por restrições. Padrão: `NULL` (sem atribuições fixas).
-#' @param bloquear_atribuicoes (Opcional) Data frame com colunas `uc` e
-#'   `agencia_codigo` indicando atribuições a bloquear via restrições rígidas
-#'   (`x[i,j] == 0`). Pares listados aqui nunca serão atribuídos pelo
-#'   otimizador. Padrão: `NULL` (sem bloqueios).
+#' @param fixar_atribuicoes (Opcional) Data frame com colunas `uc`,
+#'   `agencia_codigo` e opcionalmente `valor` (1 ou 0). Quando `valor = 1`
+#'   (padrão se coluna ausente), fixa a atribuição via `x[i,j] == 1`.
+#'   Quando `valor = 0`, bloqueia a atribuição via `x[i,j] == 0`.
+#'   Padrão: `NULL`.
 #' @param seed Semente para o gerador de números aleatórios, garantindo
 #'   reprodutibilidade. Padrão: `42L`. Use `NULL` para não definir semente.
 #' @param orce_function Função construtora do modelo OMPR a ser usada. Recebe um único
@@ -125,7 +121,6 @@ orce <- function(ucs,
                         adicional_troca_jurisdicao = 0,
                         resultado_completo = FALSE,
                         fixar_atribuicoes = NULL,
-                        bloquear_atribuicoes = NULL,
                         seed = 42L,
                         solver = "highs",
                         rel_tol = .005,
@@ -160,7 +155,6 @@ orce <- function(ucs,
     adicional_troca_jurisdicao = adicional_troca_jurisdicao,
     resultado_completo = resultado_completo,
     fixar_atribuicoes = fixar_atribuicoes,
-    bloquear_atribuicoes = bloquear_atribuicoes,
     seed = seed,
     solver = solver,
     rel_tol = rel_tol,
@@ -210,7 +204,6 @@ orce <- function(ucs,
                              adicional_troca_jurisdicao,
                              resultado_completo,
                              fixar_atribuicoes,
-                             bloquear_atribuicoes,
                              seed,
                              solver,
                              rel_tol,
@@ -488,54 +481,53 @@ orce <- function(ucs,
   }
   # Traduzir fixar_atribuicoes para índices (i, j) do modelo
   fixar_atribuicoes_ij <- NULL
+  bloquear_atribuicoes_ij <- NULL
   if (!is.null(fixar_atribuicoes)) {
     checkmate::assert_data_frame(fixar_atribuicoes)
     checkmate::assert_names(names(fixar_atribuicoes),
                             must.include = c("uc", "agencia_codigo"))
-    fix_i <- match(fixar_atribuicoes$uc, ucs$uc)
-    fix_j <- match(fixar_atribuicoes$agencia_codigo, agencias_t$agencia_codigo)
-    valid <- !is.na(fix_i) & !is.na(fix_j)
-    if (any(valid)) {
-      fixar_atribuicoes_ij <- data.frame(
-        i = ucs$i[fix_i[valid]],
-        j = agencias_t$j[fix_j[valid]]
-      )
-      fixar_atribuicoes_ij <- unique(fixar_atribuicoes_ij)
-      cli::cli_alert_info(
-        "Fixando {nrow(fixar_atribuicoes_ij)} atribuições UC-agência."
-      )
+    # Default valor = 1 (fixar) if column missing
+    if (!"valor" %in% names(fixar_atribuicoes)) {
+      fixar_atribuicoes$valor <- 1L
     }
-  }
-
-  # Traduzir bloquear_atribuicoes para índices (i, j) do modelo
-  bloquear_atribuicoes_ij <- NULL
-  if (!is.null(bloquear_atribuicoes)) {
-    checkmate::assert_data_frame(bloquear_atribuicoes)
-    checkmate::assert_names(names(bloquear_atribuicoes),
-                            must.include = c("uc", "agencia_codigo"))
-    blk_i <- match(bloquear_atribuicoes$uc, ucs$uc)
-    blk_j <- match(bloquear_atribuicoes$agencia_codigo, agencias_t$agencia_codigo)
-    valid <- !is.na(blk_i) & !is.na(blk_j)
-    if (any(valid)) {
-      bloquear_atribuicoes_ij <- data.frame(
-        i = ucs$i[blk_i[valid]],
-        j = agencias_t$j[blk_j[valid]]
-      )
-      bloquear_atribuicoes_ij <- unique(bloquear_atribuicoes_ij)
-      cli::cli_alert_info(
-        "Bloqueando {nrow(bloquear_atribuicoes_ij)} atribuições UC-agência."
-      )
-    }
-  }
-
-  # Validar que não há conflito entre fixar e bloquear
-  if (!is.null(fixar_atribuicoes_ij) && !is.null(bloquear_atribuicoes_ij)) {
-    conflito <- dplyr::inner_join(fixar_atribuicoes_ij, bloquear_atribuicoes_ij,
-                                  by = c("i", "j"))
+    checkmate::assert_integerish(fixar_atribuicoes$valor,
+                                 lower = 0, upper = 1)
+    # Validate no conflicting pairs (same UC-agency with both 0 and 1)
+    dup_check <- fixar_atribuicoes |>
+      dplyr::distinct(uc, agencia_codigo, valor)
+    conflito <- dup_check |>
+      dplyr::count(uc, agencia_codigo) |>
+      dplyr::filter(n > 1)
     if (nrow(conflito) > 0) {
       cli::cli_abort(
-        "Conflito: {nrow(conflito)} par{?es} UC-agência aparece{?m} em {.arg fixar_atribuicoes} e {.arg bloquear_atribuicoes} simultaneamente."
+        "Conflito: {nrow(conflito)} par{?es} UC-agência tem valor 0 e 1 simultaneamente em {.arg fixar_atribuicoes}."
       )
+    }
+
+    fa_i <- match(fixar_atribuicoes$uc, ucs$uc)
+    fa_j <- match(fixar_atribuicoes$agencia_codigo, agencias_t$agencia_codigo)
+    valid <- !is.na(fa_i) & !is.na(fa_j)
+    if (any(valid)) {
+      fa_ij <- data.frame(
+        i = ucs$i[fa_i[valid]],
+        j = agencias_t$j[fa_j[valid]],
+        valor = fixar_atribuicoes$valor[valid]
+      )
+      fa_ij <- unique(fa_ij)
+      fix_rows <- fa_ij[fa_ij$valor == 1, , drop = FALSE]
+      blk_rows <- fa_ij[fa_ij$valor == 0, , drop = FALSE]
+      if (nrow(fix_rows) > 0) {
+        fixar_atribuicoes_ij <- fix_rows[, c("i", "j"), drop = FALSE]
+        cli::cli_alert_info(
+          "Fixando {nrow(fixar_atribuicoes_ij)} atribuições UC-agência."
+        )
+      }
+      if (nrow(blk_rows) > 0) {
+        bloquear_atribuicoes_ij <- blk_rows[, c("i", "j"), drop = FALSE]
+        cli::cli_alert_info(
+          "Bloqueando {nrow(bloquear_atribuicoes_ij)} atribuições UC-agência."
+        )
+      }
     }
   }
 

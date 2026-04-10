@@ -42,10 +42,9 @@ test_that("restricoes vazia retorna dados inalterados", {
   expect_identical(res$distancias_ucs, distancias_test)
   expect_null(res$agencias_treinamento)
   expect_null(res$fixar_atribuicoes)
-  expect_null(res$bloquear_atribuicoes)
 })
 
-test_that("bloquear acumula em bloquear_atribuicoes sem alterar distancias", {
+test_that("bloquear acumula em fixar_atribuicoes com valor=0 sem alterar distancias", {
   restricoes <- list(
     list(tipo = "bloquear", uc = "UC01", agencia_codigo = "AG02")
   )
@@ -55,10 +54,11 @@ test_that("bloquear acumula em bloquear_atribuicoes sem alterar distancias", {
   # distancias_ucs inalteradas
   expect_identical(res$distancias_ucs, distancias_test)
 
-  # bloquear_atribuicoes contém o par
-  expect_equal(nrow(res$bloquear_atribuicoes), 1)
-  expect_equal(res$bloquear_atribuicoes$uc, "UC01")
-  expect_equal(res$bloquear_atribuicoes$agencia_codigo, "AG02")
+  # fixar_atribuicoes contém o par com valor=0
+  expect_equal(nrow(res$fixar_atribuicoes), 1)
+  expect_equal(res$fixar_atribuicoes$uc, "UC01")
+  expect_equal(res$fixar_atribuicoes$agencia_codigo, "AG02")
+  expect_equal(res$fixar_atribuicoes$valor, 0L)
 })
 
 test_that("bloquear aceita múltiplas UCs", {
@@ -68,12 +68,13 @@ test_that("bloquear aceita múltiplas UCs", {
   res <- orce_aplicar_restricoes(ucs_test, agencias_test, distancias_test,
                                  restricoes = restricoes)
 
-  expect_equal(nrow(res$bloquear_atribuicoes), 2)
-  expect_equal(sort(res$bloquear_atribuicoes$uc), c("UC01", "UC02"))
-  expect_true(all(res$bloquear_atribuicoes$agencia_codigo == "AG03"))
+  blk <- res$fixar_atribuicoes[res$fixar_atribuicoes$valor == 0, ]
+  expect_equal(nrow(blk), 2)
+  expect_equal(sort(blk$uc), c("UC01", "UC02"))
+  expect_true(all(blk$agencia_codigo == "AG03"))
 })
 
-test_that("forcar acumula em fixar_atribuicoes sem alterar distancias", {
+test_that("forcar acumula em fixar_atribuicoes com valor=1 sem alterar distancias", {
   restricoes <- list(
     list(tipo = "forcar", uc = "UC01", agencia_codigo = "AG01")
   )
@@ -83,10 +84,11 @@ test_that("forcar acumula em fixar_atribuicoes sem alterar distancias", {
   # distancias_ucs inalteradas
   expect_identical(res$distancias_ucs, distancias_test)
 
-  # fixar_atribuicoes contém o par
+  # fixar_atribuicoes contém o par com valor=1
   expect_equal(nrow(res$fixar_atribuicoes), 1)
   expect_equal(res$fixar_atribuicoes$uc, "UC01")
   expect_equal(res$fixar_atribuicoes$agencia_codigo, "AG01")
+  expect_equal(res$fixar_atribuicoes$valor, 1L)
 })
 
 test_that("desativar_agencia remove de agencias e distancias_ucs", {
@@ -124,15 +126,17 @@ test_that("múltiplas restrições são aplicadas em sequência", {
   # AG03 removida
   expect_false("AG03" %in% res$agencias$agencia_codigo)
 
-  # UC01 forçada para AG01 via fixar_atribuicoes
-  expect_equal(nrow(res$fixar_atribuicoes), 1)
-  expect_equal(res$fixar_atribuicoes$uc, "UC01")
-  expect_equal(res$fixar_atribuicoes$agencia_codigo, "AG01")
+  # UC01 forçada para AG01 (valor=1)
+  fix <- res$fixar_atribuicoes[res$fixar_atribuicoes$valor == 1, ]
+  expect_equal(nrow(fix), 1)
+  expect_equal(fix$uc, "UC01")
+  expect_equal(fix$agencia_codigo, "AG01")
 
-  # UC02 bloqueada de AG01 via bloquear_atribuicoes
-  expect_equal(nrow(res$bloquear_atribuicoes), 1)
-  expect_equal(res$bloquear_atribuicoes$uc, "UC02")
-  expect_equal(res$bloquear_atribuicoes$agencia_codigo, "AG01")
+  # UC02 bloqueada de AG01 (valor=0)
+  blk <- res$fixar_atribuicoes[res$fixar_atribuicoes$valor == 0, ]
+  expect_equal(nrow(blk), 1)
+  expect_equal(blk$uc, "UC02")
+  expect_equal(blk$agencia_codigo, "AG01")
 })
 
 test_that("tipo inválido gera erro", {
@@ -301,13 +305,16 @@ test_that("gerar_codigo com Inf gera valor correto", {
   expect_match(codigo, "diarias_entrevistador_max = Inf")
 })
 
-test_that("gerar_codigo inclui bloquear_atribuicoes na chamada orce()", {
-  bloquear <- data.frame(uc = c("UC01", "UC02"),
-                         agencia_codigo = c("AG01", "AG03"),
-                         stringsAsFactors = FALSE)
-  codigo <- orce_gerar_codigo(bloquear_atribuicoes = bloquear)
-  expect_match(codigo, "Bloquear 2")
-  expect_match(codigo, "bloquear_atribuicoes")
+test_that("gerar_codigo inclui valor na fixar_atribuicoes quando há bloqueios", {
+  fixar <- data.frame(uc = c("UC01", "UC02"),
+                      agencia_codigo = c("AG01", "AG03"),
+                      valor = c(1L, 0L),
+                      stringsAsFactors = FALSE)
+  codigo <- orce_gerar_codigo(fixar_atribuicoes = fixar)
+  expect_match(codigo, "Fixar 1")
+  expect_match(codigo, "Bloquear 1")
+  expect_match(codigo, "fixar_atribuicoes")
+  expect_match(codigo, "valor")
   expect_match(codigo, "UC01")
   expect_match(codigo, "AG03")
 })
@@ -346,10 +353,11 @@ test_that("código gerado por orce_gerar_codigo é avaliável", {
   eval(parse(text = paste(linhas, collapse = "\n")), envir = env)
 
   # Verificar que o código aplicou as restrições via orce_aplicar_restricoes
-  # bloquear gera bloquear_atribuicoes (distancias inalteradas)
-  expect_equal(nrow(env$dados$bloquear_atribuicoes), 1)
-  expect_equal(env$dados$bloquear_atribuicoes$uc, "UC01")
-  expect_equal(env$dados$bloquear_atribuicoes$agencia_codigo, "AG02")
+  # bloquear gera fixar_atribuicoes com valor=0 (distancias inalteradas)
+  blk <- env$dados$fixar_atribuicoes[env$dados$fixar_atribuicoes$valor == 0, ]
+  expect_equal(nrow(blk), 1)
+  expect_equal(blk$uc, "UC01")
+  expect_equal(blk$agencia_codigo, "AG02")
 
   expect_false("AG03" %in% env$dados$agencias$agencia_codigo)
 })
