@@ -103,9 +103,16 @@ mod_historico_server <- function(id, resultado_atual, codigo_texto,
     .extrair_stats <- function(resultado, codigo, alteracoes = "") {
       res_ucs <- resultado$resultado_ucs_otimo
       res_ag <- resultado$resultado_agencias_otimo
+      .sum_col <- function(df, col) {
+        if (col %in% names(df)) round(sum(df[[col]], na.rm = TRUE), 2) else NA_real_
+      }
       data.frame(
         custo_total = round(attr(resultado, "valor"), 2),
         n_agencias = nrow(res_ag),
+        entrevistadores = .sum_col(res_ag, "entrevistadores"),
+        custo_diarias = .sum_col(res_ag, "custo_diarias"),
+        custo_combustivel = .sum_col(res_ag, "custo_combustivel"),
+        custo_remuneracao = .sum_col(res_ag, "custo_total_entrevistadores"),
         total_km = round(sum(res_ucs$distancia_km, na.rm = TRUE), 1),
         total_diarias = if ("total_diarias" %in% names(res_ucs))
           sum(res_ucs$total_diarias, na.rm = TRUE) else NA_real_,
@@ -167,36 +174,23 @@ mod_historico_server <- function(id, resultado_atual, codigo_texto,
       base <- hist[[1]]$stats
       stats_list <- lapply(seq_along(hist), function(i) {
         s <- hist[[i]]$stats
-        if (i == 1) {
-          data.frame(
-            "#" = i,
-            "Alterações" = s$alteracoes,
-            "Custo total" = as.character(s$custo_total),
-            "Agências" = as.character(s$n_agencias),
-            "Total km" = as.character(s$total_km),
-            "Total diárias" = if (!is.na(s$total_diarias))
-              as.character(s$total_diarias) else NA_character_,
-            check.names = FALSE,
-            stringsAsFactors = FALSE
-          )
-        } else {
-          data.frame(
-            "#" = i,
-            "Alterações" = s$alteracoes,
-            "Custo total" = paste0(s$custo_total,
-                                    .fmt_diff(s$custo_total, base$custo_total, 2)),
-            "Agências" = paste0(s$n_agencias,
-                                      .fmt_diff(s$n_agencias, base$n_agencias, 0)),
-            "Total km" = paste0(s$total_km,
-                                 .fmt_diff(s$total_km, base$total_km, 1)),
-            "Total diárias" = if (!is.na(s$total_diarias))
-              paste0(s$total_diarias,
-                     .fmt_diff(s$total_diarias, base$total_diarias, 0))
-            else NA_character_,
-            check.names = FALSE,
-            stringsAsFactors = FALSE
-          )
+        .col <- function(val, ref, digits = 1) {
+          if (is.na(val)) return(NA_character_)
+          if (i == 1) as.character(val)
+          else paste0(val, .fmt_diff(val, ref, digits))
         }
+        data.frame(
+          "#" = i,
+          "Alterações" = s$alteracoes,
+          "Agências" = .col(s$n_agencias, base$n_agencias, 0),
+          "Entrev." = .col(s$entrevistadores, base$entrevistadores, 0),
+          "Diárias (R$)" = .col(s$custo_diarias, base$custo_diarias, 0),
+          "Combust. (R$)" = .col(s$custo_combustivel, base$custo_combustivel, 0),
+          "Remun. (R$)" = .col(s$custo_remuneracao, base$custo_remuneracao, 0),
+          "Custo total" = .col(s$custo_total, base$custo_total, 2),
+          check.names = FALSE,
+          stringsAsFactors = FALSE
+        )
       })
       do.call(rbind, stats_list)
     })
