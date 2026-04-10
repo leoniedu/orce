@@ -43,7 +43,8 @@ mod_restricoes_botoes_ui <- function(id) {
 mod_restricoes_server <- function(id, selected_uc, selected_agencia,
                                   agencias_disponiveis,
                                   ucs_disponiveis,
-                                  nomes_agencias = NULL) {
+                                  nomes_agencias = NULL,
+                                  restricoes_iniciais = list()) {
   shiny::moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -58,8 +59,14 @@ mod_restricoes_server <- function(id, selected_uc, selected_agencia,
       }
     })
 
+    # Seed initial restrictions with unique IDs
+    init_restr <- lapply(restricoes_iniciais, function(r) {
+      r$.id <- as.character(as.numeric(Sys.time()) * 1000 + sample(10000, 1))
+      r
+    })
+
     # Estado reativo: lista de restrições
-    restricoes <- shiny::reactiveVal(list())
+    restricoes <- shiny::reactiveVal(init_restr)
 
     # Mostrar seleção atual
     output$selecao_info <- shiny::renderText({

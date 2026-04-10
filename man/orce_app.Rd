@@ -11,6 +11,7 @@ orce_app(
   agencias_treinamento = NULL,
   agencias_sf = NULL,
   ucs_sf = NULL,
+  restricoes = list(),
   ...
 )
 }
@@ -31,6 +32,9 @@ agências. Se \code{NULL}, tenta extrair de \code{agencias} ou usa
 \item{ucs_sf}{(Opcional) Objeto \code{sf} com geometria de pontos das UCs,
 contendo ao menos a coluna \code{uc}. Usado para plotar UCs no mapa.
 Se \code{NULL}, tenta usar \code{orcedata::pns_upas}.}
+
+\item{restricoes}{(Opcional) Lista de restrições iniciais no formato
+aceito por \code{\link[=orce_aplicar_restricoes]{orce_aplicar_restricoes()}}. Exibidas no UI para edição.}
 
 \item{...}{Parâmetros adicionais para \code{\link[=orce]{orce()}} (preservados nas
 re-otimizações).}

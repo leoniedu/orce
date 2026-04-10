@@ -15,6 +15,8 @@
 #' @param ucs_sf (Opcional) Objeto `sf` com geometria de pontos das UCs,
 #'   contendo ao menos a coluna `uc`. Usado para plotar UCs no mapa.
 #'   Se `NULL`, tenta usar `orcedata::pns_upas`.
+#' @param restricoes (Opcional) Lista de restrições iniciais no formato
+#'   aceito por [orce_aplicar_restricoes()]. Exibidas no UI para edição.
 #' @param ... Parâmetros adicionais para [orce()] (preservados nas
 #'   re-otimizações).
 #'
@@ -25,25 +27,53 @@ orce_app <- function(ucs, agencias, distancias_ucs,
                      agencias_treinamento = NULL,
                      agencias_sf = NULL,
                      ucs_sf = NULL,
+                     restricoes = list(),
                      ...) {
   rlang::check_installed(c("shiny", "bslib", "mapgl", "DT"),
                          reason = "para usar orce_app()")
+
+  # Aplicar restrições iniciais se fornecidas
+  if (length(restricoes) > 0) {
+    dados_init <- orce_aplicar_restricoes(
+      ucs = ucs, agencias = agencias,
+      distancias_ucs = distancias_ucs,
+      agencias_treinamento = agencias_treinamento,
+      restricoes = restricoes
+    )
+  } else {
+    dados_init <- list(
+      ucs = ucs, agencias = agencias,
+      distancias_ucs = distancias_ucs,
+      agencias_treinamento = agencias_treinamento,
+      fixar_atribuicoes = NULL
+    )
+  }
 
   # Calcular resultado inicial
   cli::cli_alert_info("Calculando resultado inicial com orce()...")
   params_extra_init <- list(...)
   args_init <- c(
     list(
-      ucs = ucs,
-      agencias = agencias,
-      distancias_ucs = distancias_ucs,
+      ucs = dados_init$ucs,
+      agencias = dados_init$agencias,
+      distancias_ucs = dados_init$distancias_ucs,
       resultado_completo = TRUE,
       use_cache = TRUE
     ),
     params_extra_init
   )
-  if (!is.null(agencias_treinamento)) {
-    args_init$agencias_treinamento <- agencias_treinamento
+  if (!is.null(dados_init$agencias_treinamento)) {
+    args_init$agencias_treinamento <- dados_init$agencias_treinamento
+  }
+  # Merge restriction-derived fixar with any passed via ...
+  fixar_init <- dados_init$fixar_atribuicoes
+  if (!is.null(args_init$fixar_atribuicoes)) {
+    fa <- args_init$fixar_atribuicoes
+    if (!"valor" %in% names(fa)) fa$valor <- 1L
+    fixar_init <- unique(rbind(fixar_init, fa))
+  }
+  if (!is.null(fixar_init) && nrow(fixar_init) > 0) {
+    args_init$fixar_atribuicoes <- fixar_init
   }
   resultado <- do.call(orce, args_init)
   cli::cli_alert_success("Resultado inicial calculado.")
@@ -145,14 +175,15 @@ orce_app <- function(ucs, agencias, distancias_ucs,
 
     agencias_treinamento_rv <- shiny::reactive(agencias_treinamento)
 
-    # Módulo de restrições
+    # Módulo de restrições (seeded with initial restrictions)
     restricoes_mod <- mod_restricoes_server(
       "restricoes",
       selected_uc = selected_uc,
       selected_agencia = selected_agencia,
       agencias_disponiveis = agencias_disponiveis,
       ucs_disponiveis = ucs_disponiveis,
-      nomes_agencias = nomes_agencias
+      nomes_agencias = nomes_agencias,
+      restricoes_iniciais = restricoes
     )
 
     # Módulo de parâmetros (inclui agências de treinamento)

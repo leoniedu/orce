@@ -56,7 +56,8 @@ mod_tabela_server <- function(id, resultado_ucs, resultado_agencias,
 
       colunas_disponiveis <- intersect(
         c("agencia_nome", "agencia_codigo", "n_ucs", "entrevistadores",
-          "custo_fixo", "custo_deslocamento", "custo_total_entrevistadores",
+          "custo_diarias", "custo_combustivel",
+          "custo_total_entrevistadores", "custo_deslocamento",
           "n_trocas_jurisdicao", "distancia_km", "distancia_km_tsp"),
         names(res)
       )
