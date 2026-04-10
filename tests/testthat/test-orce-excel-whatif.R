@@ -120,6 +120,29 @@ test_that("UPAs sheet contains formulas in cost columns", {
   expect_true(all(grepl("<>", realocada)), info = "Realocada should compare agencies")
 })
 
+test_that("Resumo sheet has correct structure and static values", {
+  r <- orce(ucs = fixture$ucs, agencias = fixture$agencias,
+            distancias_ucs = fixture$dists,
+            dias_coleta_entrevistador_max = 14, use_cache = FALSE)
+  ag <- fixture$agencias |>
+    dplyr::mutate(agencia_nome = paste("Ag", agencia_codigo),
+                  municipio_codigo = substr(agencia_codigo, 1, 7),
+                  municipio_nome = paste("Mun", substr(agencia_codigo, 1, 7)))
+  uc <- fixture$ucs |>
+    dplyr::mutate(municipio_nome = paste("Mun", municipio_codigo),
+                  entrevistadores_por_uc = 1)
+  out <- withr::local_tempfile(fileext = ".xlsx")
+  orce_excel_whatif(r, fixture$dists, uc, ag, out)
+  wb <- openxlsx2::wb_load(out)
+  resumo <- openxlsx2::wb_to_df(wb, sheet = "Resumo")
+  expect_true("Cód. agência" %in% names(resumo))
+  expect_true("UPAs jur." %in% names(resumo))
+  expect_true("Custo desloc. jur. (R$)" %in% names(resumo))
+  jur_upas <- sum(r$resultado_agencias_jurisdicao$n_ucs)
+  resumo_jur_total <- sum(resumo[["UPAs jur."]], na.rm = TRUE)
+  expect_equal(resumo_jur_total, jur_upas)
+})
+
 test_that("Parâmetros sheet has correct named ranges and values", {
   r <- orce(ucs = fixture$ucs, agencias = fixture$agencias,
             distancias_ucs = fixture$dists, dias_coleta_entrevistador_max = 14,

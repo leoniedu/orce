@@ -371,6 +371,119 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
 
 .write_resumo <- function(wb, resultado, agencias, agency_codes, n_upas) {
   wb$add_worksheet("Resumo")
+  cl <- openxlsx2::int2col
+
+  # Build static data from resultado
+  agg_cols <- c("n_ucs", "distancia_total_km", "total_diarias",
+                "custo_diarias", "custo_combustivel", "custo_horas_viagem",
+                "custo_deslocamento")
+
+  r_jur <- resultado$resultado_agencias_jurisdicao |>
+    dplyr::select("agencia_codigo", dplyr::all_of(agg_cols))
+  r_ot <- resultado$resultado_agencias_otimo |>
+    dplyr::select("agencia_codigo", dplyr::all_of(agg_cols))
+
+  all_agencies <- sort(unique(c(r_jur$agencia_codigo, r_ot$agencia_codigo)))
+
+  ag_names <- agencias |>
+    dplyr::select("agencia_codigo", "agencia_nome") |>
+    dplyr::distinct()
+
+  resumo_base <- data.frame(agencia_codigo = all_agencies) |>
+    dplyr::left_join(ag_names, by = "agencia_codigo")
+
+  resumo <- resumo_base |>
+    dplyr::left_join(
+      r_jur |> dplyr::rename_with(~ paste0(.x, "_jur"), -"agencia_codigo"),
+      by = "agencia_codigo") |>
+    dplyr::left_join(
+      r_ot |> dplyr::rename_with(~ paste0(.x, "_ot"), -"agencia_codigo"),
+      by = "agencia_codigo") |>
+    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ tidyr::replace_na(.x, 0)))
+
+  n_resumo <- nrow(resumo)
+
+  # Write headers
+  headers <- c(
+    "C\u00f3d. ag\u00eancia", "Ag\u00eancia",
+    "UPAs jur.", "UPAs otim.", "UPAs sel.",
+    "Km total jur.", "Km total otim.", "Km total sel.",
+    "Di\u00e1rias jur.", "Di\u00e1rias otim.", "Di\u00e1rias sel.",
+    "Custo di\u00e1rias jur. (R$)", "Custo di\u00e1rias otim. (R$)", "Custo di\u00e1rias sel. (R$)",
+    "Custo combust. jur. (R$)", "Custo combust. otim. (R$)", "Custo combust. sel. (R$)",
+    "Custo horas viagem jur. (R$)", "Custo horas viagem otim. (R$)", "Custo horas viagem sel. (R$)",
+    "Custo desloc. jur. (R$)", "Custo desloc. otim. (R$)", "Custo desloc. sel. (R$)"
+  )
+  for (i in seq_along(headers)) {
+    wb$add_data(sheet = "Resumo", x = headers[i], dims = paste0(cl(i), "1"))
+  }
+
+  # Write static data columns
+  wb$add_data(sheet = "Resumo", x = data.frame(x = resumo$agencia_codigo), dims = "A2", col_names = FALSE)
+  wb$add_data(sheet = "Resumo", x = data.frame(x = resumo$agencia_nome), dims = "B2", col_names = FALSE)
+
+  static_map <- list(
+    list(col = 3,  field = "n_ucs_jur"),
+    list(col = 4,  field = "n_ucs_ot"),
+    list(col = 6,  field = "distancia_total_km_jur"),
+    list(col = 7,  field = "distancia_total_km_ot"),
+    list(col = 9,  field = "total_diarias_jur"),
+    list(col = 10, field = "total_diarias_ot"),
+    list(col = 12, field = "custo_diarias_jur"),
+    list(col = 13, field = "custo_diarias_ot"),
+    list(col = 15, field = "custo_combustivel_jur"),
+    list(col = 16, field = "custo_combustivel_ot"),
+    list(col = 18, field = "custo_horas_viagem_jur"),
+    list(col = 19, field = "custo_horas_viagem_ot"),
+    list(col = 21, field = "custo_deslocamento_jur"),
+    list(col = 22, field = "custo_deslocamento_ot")
+  )
+  for (sm in static_map) {
+    wb$add_data(sheet = "Resumo",
+                x = data.frame(x = resumo[[sm$field]]),
+                dims = paste0(cl(sm$col), "2"), col_names = FALSE)
+  }
+
+  # SUMIF/COUNTIF formulas for "selected" columns
+  upa_last_row <- n_upas + 1
+  ag_range <- sprintf("UPAs!$J$2:$J$%d", upa_last_row)
+
+  # UPAs hidden cols for "selected": total_diarias=49(AW), custo_diarias=50(AX),
+  # distancia_total_km=51(AY), custo_combustivel=52(AZ), custo_horas_viagem=53(BA)
+  # Visible: custo_deslocamento=16(P)
+  sumif_map <- list(
+    list(resumo_col = 5,  upa_col = "J",     type = "count"),
+    list(resumo_col = 8,  upa_col = cl(51),  type = "sum"),   # distancia_total_km
+    list(resumo_col = 11, upa_col = cl(49),  type = "sum"),   # total_diarias
+    list(resumo_col = 14, upa_col = cl(50),  type = "sum"),   # custo_diarias
+    list(resumo_col = 17, upa_col = cl(52),  type = "sum"),   # custo_combustivel
+    list(resumo_col = 20, upa_col = cl(53),  type = "sum"),   # custo_horas_viagem
+    list(resumo_col = 23, upa_col = "P",     type = "sum")    # custo_deslocamento
+  )
+
+  for (sf in sumif_map) {
+    for (i in seq_len(n_resumo)) {
+      r <- i + 1
+      if (sf$type == "count") {
+        formula <- sprintf("COUNTIF(%s,A%d)", ag_range, r)
+      } else {
+        sum_range <- sprintf("UPAs!$%s$2:$%s$%d", sf$upa_col, sf$upa_col, upa_last_row)
+        formula <- sprintf("SUMIF(%s,A%d,%s)", ag_range, r, sum_range)
+      }
+      wb$add_formula(sheet = "Resumo", x = formula, dims = paste0(cl(sf$resumo_col), r))
+    }
+  }
+
+  # Totals row
+  totals_row <- n_resumo + 2
+  wb$add_data(sheet = "Resumo", x = "TOTAL", dims = paste0("A", totals_row))
+  for (col_idx in 3:23) {
+    range_str <- sprintf("%s2:%s%d", cl(col_idx), cl(col_idx), n_resumo + 1)
+    wb$add_formula(sheet = "Resumo", x = sprintf("SUM(%s)", range_str),
+                   dims = paste0(cl(col_idx), totals_row))
+  }
+
+  wb$freeze_pane(sheet = "Resumo", first_row = TRUE)
 }
 
 .format_workbook <- function(wb, n_upas, n_agencies, agency_codes) {
