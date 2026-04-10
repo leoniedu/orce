@@ -45,6 +45,32 @@ test_that(".pivot_to_matrix handles diaria_municipio correctly", {
   expect_equal(mat$A2, FALSE)
 })
 
+test_that("matrix sheets have correct dimensions", {
+  r <- orce(ucs = fixture$ucs, agencias = fixture$agencias,
+            distancias_ucs = fixture$dists,
+            dias_coleta_entrevistador_max = 14, use_cache = FALSE)
+  ag <- fixture$agencias |>
+    dplyr::mutate(agencia_nome = paste("Ag", agencia_codigo),
+                  municipio_codigo = substr(agencia_codigo, 1, 7),
+                  municipio_nome = paste("Mun", substr(agencia_codigo, 1, 7)))
+  uc <- fixture$ucs |>
+    dplyr::mutate(municipio_nome = paste("Mun", municipio_codigo),
+                  entrevistadores_por_uc = 1)
+  out <- withr::local_tempfile(fileext = ".xlsx")
+  orce_excel_whatif(r, fixture$dists, uc, ag, out)
+  wb <- openxlsx2::wb_load(out)
+
+  n_upas <- dplyr::n_distinct(uc$uc)
+  n_agencies <- dplyr::n_distinct(ag$agencia_codigo)
+
+  dist_df <- openxlsx2::wb_to_df(wb, sheet = "Distâncias")
+  expect_equal(nrow(dist_df), n_upas)
+
+  dm_df <- openxlsx2::wb_to_df(wb, sheet = "Diária Município")
+  n_mun <- dplyr::n_distinct(uc$municipio_codigo)
+  expect_equal(nrow(dm_df), n_mun)
+})
+
 test_that("Parâmetros sheet has correct named ranges and values", {
   r <- orce(ucs = fixture$ucs, agencias = fixture$agencias,
             distancias_ucs = fixture$dists, dias_coleta_entrevistador_max = 14,

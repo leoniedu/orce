@@ -141,9 +141,45 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
 }
 
 .write_matrices <- function(wb, distancias_ucs, upa_data, agency_codes) {
-  for (sheet_name in c("Distâncias", "Durações", "Diária Município", "Diária Pernoite")) {
-    wb$add_worksheet(sheet_name)
+  uc_codes <- upa_data$uc
+  dists <- distancias_ucs |>
+    dplyr::filter(.data$uc %in% uc_codes, .data$agencia_codigo %in% agency_codes)
+
+  # Sheet 3: Distâncias
+  dist_mat <- .pivot_to_matrix(dists, "uc", "agencia_codigo", "distancia_km") |>
+    dplyr::select("uc", dplyr::all_of(agency_codes))
+  wb$add_worksheet("Distâncias")
+  wb$add_data(sheet = "Distâncias", x = dist_mat)
+  wb$freeze_pane(sheet = "Distâncias", first_row = TRUE)
+
+  # Sheet 4: Durações
+  dur_mat <- .pivot_to_matrix(dists, "uc", "agencia_codigo", "duracao_horas") |>
+    dplyr::select("uc", dplyr::all_of(agency_codes))
+  wb$add_worksheet("Durações")
+  wb$add_data(sheet = "Durações", x = dur_mat)
+  wb$freeze_pane(sheet = "Durações", first_row = TRUE)
+
+  # Sheet 5: Diária Município (municipality × agency)
+  if (!"municipio_codigo" %in% names(dists)) {
+    mun_lookup <- upa_data |> dplyr::select("uc", "municipio_codigo")
+    dists <- dists |> dplyr::left_join(mun_lookup, by = "uc")
   }
+  dm_data <- dists |>
+    dplyr::distinct(.data$municipio_codigo, .data$agencia_codigo, .keep_all = TRUE)
+  dm_mat <- .pivot_to_matrix(dm_data, "municipio_codigo", "agencia_codigo", "diaria_municipio") |>
+    dplyr::mutate(dplyr::across(-"municipio_codigo", as.integer)) |>
+    dplyr::select("municipio_codigo", dplyr::all_of(agency_codes))
+  wb$add_worksheet("Diária Município")
+  wb$add_data(sheet = "Diária Município", x = dm_mat)
+  wb$freeze_pane(sheet = "Diária Município", first_row = TRUE)
+
+  # Sheet 6: Diária Pernoite (UPA × agency)
+  dp_mat <- .pivot_to_matrix(dists, "uc", "agencia_codigo", "diaria_pernoite") |>
+    dplyr::mutate(dplyr::across(-"uc", as.integer)) |>
+    dplyr::select("uc", dplyr::all_of(agency_codes))
+  wb$add_worksheet("Diária Pernoite")
+  wb$add_data(sheet = "Diária Pernoite", x = dp_mat)
+  wb$freeze_pane(sheet = "Diária Pernoite", first_row = TRUE)
 }
 
 .write_upas <- function(wb, upa_data, agency_codes, n_upas, n_agencies) {
