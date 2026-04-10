@@ -184,6 +184,189 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
 
 .write_upas <- function(wb, upa_data, agency_codes, n_upas, n_agencies) {
   wb$add_worksheet("UPAs")
+
+  # --- Headers (row 1) ---
+  headers <- c(
+    "UPA", "C\u00f3d. Munic\u00edpio", "Munic\u00edpio", "Dias coleta",
+    "Viagens", "Entrevistadores", "Valor di\u00e1ria (R$)",
+    "Ag. jurisdi\u00e7\u00e3o", "Ag. otimizada", "Ag. selecionada",
+    "Nome ag. jurisdi\u00e7\u00e3o", "Nome ag. otimizada", "Nome ag. selecionada",
+    "Custo desloc. jurisdi\u00e7\u00e3o (R$)",
+    "Custo desloc. otimizada (R$)",
+    "Custo desloc. selecionada (R$)",
+    "Realocada"
+  )
+  # Hidden intermediate headers (3 blocks of 12)
+  inter_labels <- c("distancia_km", "duracao_horas", "diaria_municipio",
+                     "diaria_pernoite", "diaria", "meia_diaria", "trechos",
+                     "total_diarias", "custo_diarias", "distancia_total_km",
+                     "custo_combustivel", "custo_horas_viagem")
+  for (prefix in c("jur", "oti", "sel")) {
+    headers <- c(headers, paste0(prefix, "_", inter_labels))
+  }
+  wb$add_data(sheet = "UPAs", x = matrix(headers, nrow = 1), col_names = FALSE,
+              start_row = 1, start_col = 1)
+
+  # --- Fixed data columns (A-J, rows 2..n_upas+1) ---
+  fixed_df <- data.frame(
+    upa = upa_data$uc,
+    mun_cod = upa_data$municipio_codigo,
+    mun_nome = upa_data$municipio_nome,
+    dias_coleta = upa_data$dias_coleta,
+    viagens = upa_data$viagens,
+    entrevistadores = upa_data$entrevistadores_por_uc,
+    diaria_valor = upa_data$diaria_valor,
+    ag_jur = upa_data$agencia_jurisdicao,
+    ag_oti = upa_data$agencia_otimizada,
+    ag_sel = upa_data$agencia_otimizada,
+    stringsAsFactors = FALSE
+  )
+  wb$add_data(sheet = "UPAs", x = fixed_df, col_names = FALSE,
+              start_row = 2, start_col = 1)
+
+  # --- Name lookup formulas (K, L, M = cols 11, 12, 13) ---
+  .write_upa_name_formulas(wb, n_upas, agency_col = 8, name_col = 11)
+  .write_upa_name_formulas(wb, n_upas, agency_col = 9, name_col = 12)
+  .write_upa_name_formulas(wb, n_upas, agency_col = 10, name_col = 13)
+
+  # --- Intermediate + cost formulas for 3 agency variants ---
+  .write_agency_formulas(wb, n_upas, n_agencies, agency_col = 8,
+                         hidden_start = 18, cost_col = 14)
+  .write_agency_formulas(wb, n_upas, n_agencies, agency_col = 9,
+                         hidden_start = 30, cost_col = 15)
+  .write_agency_formulas(wb, n_upas, n_agencies, agency_col = 10,
+                         hidden_start = 42, cost_col = 16)
+
+  # --- Realocada formula (Q = col 17) ---
+  for (row in seq_len(n_upas) + 1L) {
+    formula <- paste0("J", row, "<>H", row)
+    wb$add_formula(sheet = "UPAs", x = formula,
+                   dims = paste0("Q", row))
+  }
+
+  wb$freeze_pane(sheet = "UPAs", first_row = TRUE)
+}
+
+.write_upa_name_formulas <- function(wb, n_upas, agency_col, name_col) {
+  ag_letter <- openxlsx2::int2col(agency_col)
+  nc <- openxlsx2::int2col(name_col)
+  for (row in seq_len(n_upas) + 1L) {
+    formula <- paste0(
+      "IFERROR(INDEX('Ag\u00eancias'!$B$2:$B$9999,",
+      "MATCH(", ag_letter, row, ",'Ag\u00eancias'!$A$2:$A$9999,0)),\"\")"
+    )
+    wb$add_formula(sheet = "UPAs", x = formula, dims = paste0(nc, row))
+  }
+}
+
+.write_agency_formulas <- function(wb, n_upas, n_agencies, agency_col, hidden_start, cost_col) {
+  h <- function(offset) openxlsx2::int2col(hidden_start + offset)
+  ag <- openxlsx2::int2col(agency_col)
+  last_data_col <- openxlsx2::int2col(n_agencies + 1L)
+  last_upa_row <- n_upas + 1L
+
+  for (row in seq_len(n_upas) + 1L) {
+    # Helper refs
+    upa_cell <- paste0("A", row)
+    mun_cell <- paste0("B", row)
+    ag_cell <- paste0(ag, row)
+    d_cell <- paste0("D", row)   # dias_coleta
+    e_cell <- paste0("E", row)   # viagens
+    f_cell <- paste0("F", row)   # entrevistadores
+    g_cell <- paste0("G", row)   # diaria_valor
+
+    # col+0: distancia_km (R/AD/AP) INDEX('Distâncias'!...)
+    dist_f <- paste0(
+      "INDEX('Dist\u00e2ncias'!$B$2:$", last_data_col, "$", last_upa_row,
+      ",MATCH(", upa_cell, ",'Dist\u00e2ncias'!$A$2:$A$", last_upa_row, ",0)",
+      ",MATCH(", ag_cell, ",'Dist\u00e2ncias'!$B$1:$", last_data_col, "$1,0))"
+    )
+    wb$add_formula(sheet = "UPAs", x = dist_f,
+                   dims = paste0(h(0), row))
+
+    # col+1: duracao_horas INDEX('Durações'!...)
+    dur_f <- paste0(
+      "INDEX('Dura\u00e7\u00f5es'!$B$2:$", last_data_col, "$", last_upa_row,
+      ",MATCH(", upa_cell, ",'Dura\u00e7\u00f5es'!$A$2:$A$", last_upa_row, ",0)",
+      ",MATCH(", ag_cell, ",'Dura\u00e7\u00f5es'!$B$1:$", last_data_col, "$1,0))"
+    )
+    wb$add_formula(sheet = "UPAs", x = dur_f,
+                   dims = paste0(h(1), row))
+
+    # col+2: diaria_municipio INDEX('Diária Município'!...)
+    dm_f <- paste0(
+      "INDEX('Di\u00e1ria Munic\u00edpio'!$B$2:$", last_data_col, "$9999",
+      ",MATCH(", mun_cell, ",'Di\u00e1ria Munic\u00edpio'!$A$2:$A$9999,0)",
+      ",MATCH(", ag_cell, ",'Di\u00e1ria Munic\u00edpio'!$B$1:$", last_data_col, "$1,0))"
+    )
+    wb$add_formula(sheet = "UPAs", x = dm_f,
+                   dims = paste0(h(2), row))
+
+    # col+3: diaria_pernoite INDEX('Diária Pernoite'!...)
+    dp_f <- paste0(
+      "INDEX('Di\u00e1ria Pernoite'!$B$2:$", last_data_col, "$", last_upa_row,
+      ",MATCH(", upa_cell, ",'Di\u00e1ria Pernoite'!$A$2:$A$", last_upa_row, ",0)",
+      ",MATCH(", ag_cell, ",'Di\u00e1ria Pernoite'!$B$1:$", last_data_col, "$1,0))"
+    )
+    wb$add_formula(sheet = "UPAs", x = dp_f,
+                   dims = paste0(h(3), row))
+
+    # col+4: diaria = OR(diaria_municipio, diaria_pernoite)
+    diaria_f <- paste0("OR(", h(2), row, ",", h(3), row, ")")
+    wb$add_formula(sheet = "UPAs", x = diaria_f,
+                   dims = paste0(h(4), row))
+
+    # col+5: meia_diaria = AND(diaria_municipio, NOT(diaria_pernoite))
+    meia_f <- paste0("AND(", h(2), row, ",NOT(", h(3), row, "))")
+    wb$add_formula(sheet = "UPAs", x = meia_f,
+                   dims = paste0(h(5), row))
+
+    # col+6: trechos = IF(AND(diaria, NOT(meia_diaria)), viagens*2, dias_coleta*2)
+    trechos_f <- paste0(
+      "IF(AND(", h(4), row, ",NOT(", h(5), row, ")),",
+      e_cell, "*2,", d_cell, "*2)"
+    )
+    wb$add_formula(sheet = "UPAs", x = trechos_f,
+                   dims = paste0(h(6), row))
+
+    # col+7: total_diarias
+    # IF(diaria, IF(dias=0,0,IF(meia_diaria, dias*0.5, IF(dias=1,1.5,dias-0.5))), 0) * entrevistadores
+    td_f <- paste0(
+      "IF(", h(4), row, ",",
+      "IF(", d_cell, "=0,0,",
+      "IF(", h(5), row, ",", d_cell, "*0.5,",
+      "IF(", d_cell, "=1,1.5,", d_cell, "-0.5))),0)*", f_cell
+    )
+    wb$add_formula(sheet = "UPAs", x = td_f,
+                   dims = paste0(h(7), row))
+
+    # col+8: custo_diarias = total_diarias * diaria_valor
+    cd_f <- paste0(h(7), row, "*", g_cell)
+    wb$add_formula(sheet = "UPAs", x = cd_f,
+                   dims = paste0(h(8), row))
+
+    # col+9: distancia_total_km = trechos * distancia_km
+    dtk_f <- paste0(h(6), row, "*", h(0), row)
+    wb$add_formula(sheet = "UPAs", x = dtk_f,
+                   dims = paste0(h(9), row))
+
+    # col+10: custo_combustivel = (distancia_total_km / kml) * custo_litro_combustivel
+    cc_f <- paste0("(", h(9), row, "/kml)*custo_litro_combustivel")
+    wb$add_formula(sheet = "UPAs", x = cc_f,
+                   dims = paste0(h(10), row))
+
+    # col+11: custo_horas_viagem = trechos * duracao_horas * custo_hora_viagem
+    chv_f <- paste0(h(6), row, "*", h(1), row, "*custo_hora_viagem")
+    wb$add_formula(sheet = "UPAs", x = chv_f,
+                   dims = paste0(h(11), row))
+  }
+
+  # --- Visible cost column = custo_diarias + custo_combustivel + custo_horas_viagem ---
+  cc <- openxlsx2::int2col(cost_col)
+  for (row in seq_len(n_upas) + 1L) {
+    cost_f <- paste0(h(8), row, "+", h(10), row, "+", h(11), row)
+    wb$add_formula(sheet = "UPAs", x = cost_f, dims = paste0(cc, row))
+  }
 }
 
 .write_resumo <- function(wb, resultado, agencias, agency_codes, n_upas) {

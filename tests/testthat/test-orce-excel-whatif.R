@@ -71,6 +71,55 @@ test_that("matrix sheets have correct dimensions", {
   expect_equal(nrow(dm_df), n_mun)
 })
 
+test_that("UPAs sheet has correct fixed columns and row count", {
+  r <- orce(ucs = fixture$ucs, agencias = fixture$agencias,
+            distancias_ucs = fixture$dists,
+            dias_coleta_entrevistador_max = 14, use_cache = FALSE)
+  ag <- fixture$agencias |>
+    dplyr::mutate(agencia_nome = paste("Ag", agencia_codigo),
+                  municipio_codigo = substr(agencia_codigo, 1, 7),
+                  municipio_nome = paste("Mun", substr(agencia_codigo, 1, 7)))
+  uc <- fixture$ucs |>
+    dplyr::mutate(municipio_nome = paste("Mun", municipio_codigo),
+                  entrevistadores_por_uc = 1)
+  out <- withr::local_tempfile(fileext = ".xlsx")
+  orce_excel_whatif(r, fixture$dists, uc, ag, out)
+  wb <- openxlsx2::wb_load(out)
+  upas_df <- openxlsx2::wb_to_df(wb, sheet = "UPAs")
+  n_upas <- dplyr::n_distinct(uc$uc)
+  expect_equal(nrow(upas_df), n_upas)
+  expected_headers <- c("UPA", "Cód. Município", "Município", "Dias coleta",
+                        "Viagens", "Entrevistadores", "Valor diária (R$)",
+                        "Ag. jurisdição", "Ag. otimizada", "Ag. selecionada")
+  for (h in expected_headers) {
+    expect_true(h %in% names(upas_df), info = paste("Missing header:", h))
+  }
+  expect_equal(upas_df[["Ag. selecionada"]], upas_df[["Ag. otimizada"]])
+})
+
+test_that("UPAs sheet contains formulas in cost columns", {
+  r <- orce(ucs = fixture$ucs, agencias = fixture$agencias,
+            distancias_ucs = fixture$dists,
+            dias_coleta_entrevistador_max = 14, use_cache = FALSE)
+  ag <- fixture$agencias |>
+    dplyr::mutate(agencia_nome = paste("Ag", agencia_codigo),
+                  municipio_codigo = substr(agencia_codigo, 1, 7),
+                  municipio_nome = paste("Mun", substr(agencia_codigo, 1, 7)))
+  uc <- fixture$ucs |>
+    dplyr::mutate(municipio_nome = paste("Mun", municipio_codigo),
+                  entrevistadores_por_uc = 1)
+  out <- withr::local_tempfile(fileext = ".xlsx")
+  orce_excel_whatif(r, fixture$dists, uc, ag, out)
+  wb <- openxlsx2::wb_load(out)
+  upas_formulas <- openxlsx2::wb_to_df(wb, sheet = "UPAs", show_formula = TRUE)
+  cost_jur <- upas_formulas[["Custo desloc. jurisdição (R$)"]]
+  expect_true(all(grepl("\\+", cost_jur)), info = "Jur cost should have addition formulas")
+  cost_sel <- upas_formulas[["Custo desloc. selecionada (R$)"]]
+  expect_true(all(grepl("\\+", cost_sel)), info = "Sel cost should have addition formulas")
+  realocada <- upas_formulas[["Realocada"]]
+  expect_true(all(grepl("<>", realocada)), info = "Realocada should compare agencies")
+})
+
 test_that("Parâmetros sheet has correct named ranges and values", {
   r <- orce(ucs = fixture$ucs, agencias = fixture$agencias,
             distancias_ucs = fixture$dists, dias_coleta_entrevistador_max = 14,
