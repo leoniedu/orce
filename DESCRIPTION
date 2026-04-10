@@ -41,6 +41,7 @@ Imports:
     memoise,
     ompr,
     ompr.roi,
+    openxlsx2,
     pns.zonas,
     rlang,
     snakecase,
