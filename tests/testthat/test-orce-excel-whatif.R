@@ -222,6 +222,90 @@ test_that("Agências sheet prefers agency names when x/y columns are present", {
   expect_equal(sheet_col(ag_sheet, "Agência"), paste("Ag", ag_bug$agencia_codigo))
 })
 
+test_that("Entrevistadores sel. equals Entrevistadores otim. at initial state", {
+  # At initial state selected == optimized, so the formula must reproduce the
+  # solver's integer entrevistadores. We evaluate the formula logic in R since
+  # openxlsx2 can't evaluate Excel formulas.
+  verify_entrev <- function(params_test) {
+    ctx <- build_whatif_wb(params = params_test)
+    resumo_ag <- read_sheet(ctx$wb, "Resumo por agência")
+    upas <- read_sheet(ctx$wb, "UPAs")
+
+    entrev_otim <- sheet_col(resumo_ag, "Entrevistadores otim.")
+    ag_codes <- sheet_col(resumo_ag, "Cód. agência")
+    selected_codes <- sheet_col(upas, "Cód. ag. otimizada")
+    carga <- sheet_col(upas, "carga_entrevistador")
+    periodo <- sheet_col(upas, "periodo_key")
+    diarias <- sheet_col(resumo_ag, "Diárias otim.")
+
+    entrev_formula <- vapply(seq_along(ag_codes), function(idx) {
+      ag <- ag_codes[idx]
+      mask <- selected_codes == ag
+      if (!any(mask)) return(0)
+      periods <- unique(periodo[mask])
+      period_terms <- vapply(periods, function(p) {
+        ceiling(sum(carga[mask & periodo == p]) / params_test$dias_coleta_entrevistador_max)
+      }, numeric(1))
+      diarias_term <- if (is.finite(params_test$diarias_entrevistador_max)) {
+        ceiling(diarias[idx] / params_test$diarias_entrevistador_max)
+      } else {
+        0
+      }
+      n_min_term <- params_test$n_entrevistadores_min * (sum(mask) > 0)
+      max(period_terms, diarias_term, n_min_term, 0)
+    }, numeric(1))
+
+    expect_equal(unname(entrev_formula), entrev_otim,
+                 label = paste("params:", paste(names(params_test), params_test, sep = "=", collapse = ", ")))
+  }
+
+  # Default params (dias_coleta_max=14, diarias=Inf, n_min=1)
+  verify_entrev(params_default)
+
+  # Production-like params: need consistent resultado
+  params2 <- list(
+    custo_litro_combustivel = 6, kml = 10, custo_hora_viagem = 10,
+    dias_coleta_entrevistador_max = 14, diarias_entrevistador_max = 40,
+    n_entrevistadores_min = 2
+  )
+  res2 <- orce(
+    ucs = fixture$ucs, agencias = fixture$agencias, distancias_ucs = fixture$dists,
+    dias_coleta_entrevistador_max = 14, diarias_entrevistador_max = 40,
+    n_entrevistadores_min = 2,
+    custo_litro_combustivel = 6, kml = 10, custo_hora_viagem = 10, use_cache = FALSE
+  )
+  out2 <- tempfile(fileext = ".xlsx")
+  orce_excel_whatif(
+    resultado = res2, distancias_ucs = fixture$dists,
+    ucs = uc_default, agencias = ag_default, file = out2, params = params2
+  )
+  wb2 <- openxlsx2::wb_load(out2)
+  resumo2 <- read_sheet(wb2, "Resumo por agência")
+  upas2 <- read_sheet(wb2, "UPAs")
+
+  entrev_otim2 <- sheet_col(resumo2, "Entrevistadores otim.")
+  ag_codes2 <- sheet_col(resumo2, "Cód. agência")
+  selected_codes2 <- sheet_col(upas2, "Cód. ag. otimizada")
+  carga2 <- sheet_col(upas2, "carga_entrevistador")
+  periodo2 <- sheet_col(upas2, "periodo_key")
+  diarias2 <- sheet_col(resumo2, "Diárias otim.")
+
+  entrev_formula2 <- vapply(seq_along(ag_codes2), function(idx) {
+    ag <- ag_codes2[idx]
+    mask <- selected_codes2 == ag
+    if (!any(mask)) return(0)
+    periods <- unique(periodo2[mask])
+    period_terms <- vapply(periods, function(p) {
+      ceiling(sum(carga2[mask & periodo2 == p]) / params2$dias_coleta_entrevistador_max)
+    }, numeric(1))
+    diarias_term <- ceiling(diarias2[idx] / params2$diarias_entrevistador_max)
+    n_min_term <- params2$n_entrevistadores_min * (sum(mask) > 0)
+    max(period_terms, diarias_term, n_min_term, 0)
+  }, numeric(1))
+
+  expect_equal(unname(entrev_formula2), entrev_otim2)
+})
+
 test_that("fallback interviewer formula used when dias_coleta_entrevistador_max is Inf", {
   params_inf <- params_default
   params_inf$dias_coleta_entrevistador_max <- Inf
