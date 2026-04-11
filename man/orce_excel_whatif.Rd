@@ -33,9 +33,12 @@ Colunas opcionais: \code{municipio_nome}, \code{entrevistadores_por_uc}.}
 
 \item{file}{Caminho do arquivo \code{.xlsx} de saída.}
 
-\item{params}{Lista nomeada com parâmetros usados na estimação orce:
-\code{custo_litro_combustivel} (padrão 6), \code{kml} (padrão 10),
-\code{custo_hora_viagem} (padrão 10).}
+\item{params}{Lista nomeada com parâmetros usados na estimação orce.
+A planilha usa diretamente \code{custo_litro_combustivel} (padrão 6),
+\code{kml} (padrão 10), \code{custo_hora_viagem} (padrão 10) e, quando
+fornecidos, \code{dias_coleta_entrevistador_max},
+\code{diarias_entrevistador_max} e \code{n_entrevistadores_min} para estimar o
+número de entrevistadores na agência selecionada.}
 }
 \value{
 Caminho do arquivo (invisível). Efeito colateral: cria o \code{.xlsx}.
@@ -48,18 +51,81 @@ de atribuições de UPAs a agências. O usuário pode alterar a coluna
 \details{
 \subsection{Parâmetros implementados na planilha}{
 
-As fórmulas Excel utilizam apenas três parâmetros escalares, referenciados
-via named ranges na aba Parâmetros:
+As fórmulas Excel utilizam parâmetros escalares referenciados via named
+ranges na aba Parâmetros:
 \itemize{
 \item \code{custo_litro_combustivel}: custo por litro de combustível (R$/L)
 \item \code{kml}: consumo do veículo (km/L)
 \item \code{custo_hora_viagem}: custo por hora de deslocamento (R$/h)
+\item \code{dias_coleta_entrevistador_max}: capacidade por entrevistador
+\item \code{diarias_entrevistador_max}: limite de diárias por entrevistador
+\item \code{n_entrevistadores_min}: mínimo de entrevistadores por agência ativa
 }
 
-Parâmetros como \code{adicional_troca_jurisdicao}, \code{remuneracao_entrevistador},
-\code{dias_treinamento}, \code{custo_fixo} e restrições de otimização \strong{não são
-implementados} na planilha. Os custos de jurisdição e otimizada já
-refletem esses valores; os custos da agência selecionada usam apenas
-combustível, horas de viagem e diárias.
+Os custos de jurisdição e otimizada já refletem custos fixos, treinamento e
+demais restrições da otimização original. Para a agência selecionada, a
+planilha recalcula o custo de deslocamento por fórmula e estima o número de
+entrevistadores a partir dos parâmetros de capacidade quando eles são
+fornecidos; o custo de treinamento usa o custo por entrevistador presente em
+\verb{resultado_agencias_*}.
 }
+}
+\examples{
+\dontrun{
+# Build minimal synthetic inputs
+set.seed(1)
+agencias <- data.frame(
+  agencia_codigo   = c("2900108", "2900207"),
+  agencia_nome     = c("Agência Aracaju", "Agência Salvador"),
+  municipio_codigo = c("2900108", "2900207"),
+  municipio_nome   = c("Aracaju", "Salvador"),
+  diaria_valor     = c(335, 335),
+  custo_fixo       = 0,
+  n_entrevistadores_agencia_max = 10
+)
+ucs <- data.frame(
+  uc               = c("2900001", "2900002", "2900003"),
+  municipio_codigo = c("2900108", "2900108", "2900207"),
+  municipio_nome   = c("Aracaju", "Aracaju", "Salvador"),
+  agencia_codigo   = c("2900108", "2900108", "2900207"),
+  dias_coleta      = c(5L, 5L, 5L),
+  viagens          = c(2L, 2L, 2L),
+  diaria_valor     = c(335, 335, 335)
+)
+distancias_ucs <- expand.grid(
+  uc             = ucs$uc,
+  agencia_codigo = agencias$agencia_codigo,
+  stringsAsFactors = FALSE
+) |>
+  dplyr::mutate(
+    distancia_km     = c(10, 300, 15, 290, 280, 8),
+    duracao_horas    = distancia_km / 60,
+    municipio_codigo = ucs$municipio_codigo[match(uc, ucs$uc)],
+    diaria_municipio = as.integer(distancia_km > 50),
+    diaria_pernoite  = as.integer(distancia_km > 150)
+  )
+
+r <- orce(
+  ucs = ucs, agencias = agencias, distancias_ucs = distancias_ucs,
+  dias_coleta_entrevistador_max = 14, use_cache = FALSE
+)
+
+out <- tempfile(fileext = ".xlsx")
+orce_excel_whatif(
+  resultado      = r,
+  distancias_ucs = distancias_ucs,
+  ucs            = ucs,
+  agencias       = agencias,
+  file           = out,
+  params         = list(
+    custo_litro_combustivel = 7,
+    kml = 10,
+    custo_hora_viagem = 10,
+    dias_coleta_entrevistador_max = 14
+  )
+)
+# Open the file in LibreOffice or Excel to explore the what-if analysis
+# browseURL(out)
+}
+
 }

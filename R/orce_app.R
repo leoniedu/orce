@@ -141,7 +141,10 @@ orce_app <- function(ucs, agencias, distancias_ucs,
       width = 350,
       mod_restricoes_ui("restricoes"),
       mod_parametros_ui("parametros"),
-      mod_restricoes_botoes_ui("restricoes")
+      mod_restricoes_botoes_ui("restricoes"),
+      shiny::hr(),
+      shiny::downloadButton("baixar_whatif", "Baixar planilha what-if",
+                            class = "btn-outline-secondary btn-sm w-100")
     ),
     bslib::navset_card_tab(
       bslib::nav_panel("Mapa", mod_mapa_ui("mapa")),
@@ -356,6 +359,38 @@ orce_app <- function(ucs, agencias, distancias_ucs,
         shiny::showNotification("Resultado restaurado.", type = "message")
       }
     })
+
+    # Download planilha what-if
+    output$baixar_whatif <- shiny::downloadHandler(
+      filename = function() paste0("orce_whatif_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".xlsx"),
+      content = function(file) {
+        shiny::withProgress(message = "Gerando planilha...", {
+          ag_exp <- agencias
+          if (!is.null(agencias_sf) && "agencia_nome" %in% names(agencias_sf)) {
+            ag_nomes <- sf::st_drop_geometry(agencias_sf) |>
+              dplyr::select("agencia_codigo", agencia_nome_lookup = "agencia_nome")
+            ag_exp <- dplyr::left_join(ag_exp, ag_nomes, by = "agencia_codigo")
+            if ("agencia_nome" %in% names(ag_exp)) {
+              ag_exp <- ag_exp |>
+                dplyr::mutate(agencia_nome = dplyr::coalesce(.data$agencia_nome_lookup, .data$agencia_nome))
+            } else {
+              ag_exp <- ag_exp |>
+                dplyr::rename(agencia_nome = "agencia_nome_lookup")
+            }
+            ag_exp <- ag_exp |>
+              dplyr::select(-dplyr::any_of("agencia_nome_lookup"))
+          }
+          orce_excel_whatif(
+            resultado      = resultado_atual(),
+            distancias_ucs = distancias_ucs,
+            ucs            = ucs,
+            agencias       = ag_exp,
+            file           = file,
+            params         = parametros_mod$params_atuais()
+          )
+        })
+      }
+    )
   }
 
   shiny::shinyApp(ui, server)
