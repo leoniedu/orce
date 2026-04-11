@@ -759,17 +759,6 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     dims = paste0("J1:J", upa_last),
     color = openxlsx2::wb_color(hex = "FFFFFFCC")
   )
-  wb <- openxlsx2::wb_add_cell_style(
-    wb,
-    sheet = "UPAs",
-    dims = paste0("J2:J", upa_last),
-    locked = FALSE,
-    apply_protection = TRUE
-  )
-  wb$protect_worksheet(
-    sheet = "UPAs",
-    properties = c(selectLockedCells = FALSE, selectUnlockedCells = TRUE)
-  )
   wb <- openxlsx2::wb_add_data_validation(
     wb,
     sheet = "UPAs",

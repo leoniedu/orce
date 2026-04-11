@@ -137,11 +137,10 @@ test_that("UPAs sheet uses agency names for selection and formulas for derived c
   expect_true(all(grepl("IF\\(M", sheet_col(upas_formulas, "Realocada"))))
 })
 
-test_that("UPAs worksheet is protected and validates the selected agency by name", {
+test_that("UPAs worksheet validates the selected agency by name", {
   ctx <- build_whatif_wb()
   upas_xml <- read_sheet_xml(ctx$out, 9)
 
-  expect_match(upas_xml, "sheetProtection", fixed = TRUE)
   expect_match(upas_xml, "<formula1>=agencia_selecao_lista</formula1>", fixed = TRUE)
 })
 
