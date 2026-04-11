@@ -80,6 +80,7 @@ test_that("orce_excel_whatif creates file with the new sheet order", {
   expect_equal(
     unname(ctx$wb$get_sheet_names()),
     c(
+      "UPAs",
       "Resumo",
       "Resumo por agência",
       "Parâmetros",
@@ -87,8 +88,7 @@ test_that("orce_excel_whatif creates file with the new sheet order", {
       "Distâncias",
       "Durações",
       "Diária Município",
-      "Diária Pernoite",
-      "UPAs"
+      "Diária Pernoite"
     )
   )
 })
@@ -139,7 +139,7 @@ test_that("UPAs sheet uses agency names for selection and formulas for derived c
 
 test_that("UPAs worksheet validates the selected agency by name", {
   ctx <- build_whatif_wb()
-  upas_xml <- read_sheet_xml(ctx$out, 9)
+  upas_xml <- read_sheet_xml(ctx$out, 1)
 
   expect_match(upas_xml, "<formula1>=agencia_selecao_lista</formula1>", fixed = TRUE)
 })
@@ -318,7 +318,7 @@ test_that("fallback interviewer formula used when dias_coleta_entrevistador_max 
 
 test_that("IFERROR wraps INDEX/MATCH formulas in UPAs hidden columns", {
   ctx <- build_whatif_wb()
-  upas_xml <- read_sheet_xml(ctx$out, 9)
+  upas_xml <- read_sheet_xml(ctx$out, 1)
   expect_match(upas_xml, "IFERROR(INDEX", fixed = TRUE)
 })
 

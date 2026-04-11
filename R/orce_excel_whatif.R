@@ -305,6 +305,7 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
 
 .init_workbook_sheets <- function(wb) {
   for (sheet_name in c(
+    "UPAs",
     "Resumo",
     "Resumo por agência",
     "Parâmetros",
@@ -312,8 +313,7 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     "Distâncias",
     "Durações",
     "Diária Município",
-    "Diária Pernoite",
-    "UPAs"
+    "Diária Pernoite"
   )) {
     wb$add_worksheet(sheet_name)
   }
@@ -751,7 +751,7 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   percent_fmt <- "0.0%"
 
   wb$set_col_widths(sheet = "Agências", cols = 7, hidden = TRUE)
-  wb$set_col_widths(sheet = "UPAs", cols = 18:55, widths = 8.43, hidden = TRUE)
+  wb$set_col_widths(sheet = "UPAs", cols = c(2, 11:13, 18:55), widths = 8.43, hidden = TRUE)
 
   wb <- openxlsx2::wb_add_fill(
     wb,
