@@ -191,3 +191,54 @@ test_that("fixar_atribuicoes com valor 0 e 1 para mesmo par gera erro", {
     "Conflito"
   )
 })
+
+test_that("alocar_por with multiagency group succeeds via majority jurisdiction", {
+  f <- function(...) orce(..., use_cache = FALSE)
+
+  # Each UC has a unique municipio_codigo in the fixture. Create a multiagency
+
+  # scenario by forcing two UCs into the same municipality with different agencies.
+  orig_ag <- agencias$agencia_codigo[1]
+  fake_ag <- paste0(substr(orig_ag, 1, 7), "99")
+  shared_mun <- "SHARED1"
+
+  ucs_multi <- ucs_municipios |>
+    dplyr::mutate(municipio_codigo = substr(uc, 1, 7))
+  # Put first two UCs in the same municipality, with different agencies
+  ucs_multi$municipio_codigo[1] <- shared_mun
+  ucs_multi$municipio_codigo[2] <- shared_mun
+  ucs_multi$agencia_codigo[2] <- fake_ag
+
+  agencias_multi <- dplyr::bind_rows(
+    agencias,
+    data.frame(agencia_codigo = fake_ag, custo_fixo = 0,
+               n_entrevistadores_agencia_max = Inf, diaria_valor = 335)
+  )
+
+  # Copy distances from original agency for the fake one
+  dists_multi <- dplyr::bind_rows(
+    dists,
+    dists |> dplyr::filter(agencia_codigo == orig_ag) |>
+      dplyr::mutate(agencia_codigo = fake_ag)
+  )
+
+  # Without fix this would fail (conflicting x[i,j1]==1 and x[i,j2]==1).
+  # options(warn=2) is set globally, so cli_warn becomes an error — temporarily reset.
+  withr::local_options(warn = 0)
+  expect_warning(
+    result <- f(
+      ucs = ucs_multi, agencias = agencias_multi, distancias_ucs = dists_multi,
+      alocar_por = "municipio_codigo", dias_coleta_entrevistador_max = 14
+    ),
+    "Multiagency"
+  )
+
+  expect_true(!is.null(result$resultado_agencias_otimo))
+  expect_true(!is.null(result$resultado_agencias_jurisdicao))
+  expect_equal(sum(result$resultado_agencias_otimo$n_ucs), nrow(ucs_multi))
+
+  # Original per-UC jurisdiction is preserved in output
+  ucs_jur <- result$resultado_ucs_jurisdicao
+  uc2_jur <- ucs_jur$agencia_codigo_jurisdicao[ucs_jur$uc == ucs_multi$uc[2]]
+  expect_equal(unique(uc2_jur), fake_ag)
+})

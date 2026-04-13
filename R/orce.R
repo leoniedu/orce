@@ -617,6 +617,35 @@ orce <- function(ucs,
     dplyr::distinct(i, agencia_codigo_jurisdicao)
   juris_j <- match(juris$agencia_codigo_jurisdicao, agencias_t$agencia_codigo)
 
+  # When alocar_por groups UCs from different jurisdiction agencies into the same
+
+  # group i, fixing x[i,j1]==1 AND x[i,j2]==1 is infeasible (violates sum_j x[i,j]==1).
+  # Resolve by keeping only the majority agency per group (most UCs, then alphabetical).
+  # The true per-UC agencia_codigo_jurisdicao is preserved in resultado_ucs output.
+  duped_i <- juris$i[duplicated(juris$i)]
+  if (length(duped_i) > 0) {
+    majority <- ucs_i |>
+      dplyr::filter(i %in% duped_i) |>
+      dplyr::count(i, agencia_codigo_jurisdicao, name = "n_ucs") |>
+      dplyr::arrange(i, dplyr::desc(n_ucs), agencia_codigo_jurisdicao) |>
+      dplyr::summarise(
+        agencia_codigo_jurisdicao = dplyr::first(agencia_codigo_jurisdicao),
+        .by = i
+      )
+    dropped <- juris |>
+      dplyr::filter(i %in% duped_i) |>
+      dplyr::anti_join(majority, by = c("i", "agencia_codigo_jurisdicao"))
+    cli::cli_warn(c(
+      "Multiagency groups detected: {length(unique(duped_i))} group{?s} have UCs from multiple jurisdiction agencies.",
+      "i" = "Keeping majority agency per group for jurisdiction baseline. Dropped: {dropped$agencia_codigo_jurisdicao}",
+      "i" = "The true per-UC jurisdiction agency is preserved in {.field agencia_codigo_jurisdicao}."
+    ))
+    juris <- juris |>
+      dplyr::filter(!i %in% duped_i) |>
+      dplyr::bind_rows(majority)
+    juris_j <- match(juris$agencia_codigo_jurisdicao, agencias_t$agencia_codigo)
+  }
+
   # Only fix UCs whose jurisdiction agency is in the candidate set
   juris_valid <- !is.na(juris_j)
   if (any(!juris_valid)) {
