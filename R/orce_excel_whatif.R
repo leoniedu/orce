@@ -39,6 +39,7 @@
 #' - `dias_coleta_entrevistador_max`: capacidade por entrevistador
 #' - `diarias_entrevistador_max`: limite de diárias por entrevistador
 #' - `n_entrevistadores_min`: mínimo de entrevistadores por agência ativa
+#' - `remuneracao_entrevistador`: remuneração fixa por entrevistador (R$); padrão 0
 #'
 #' Os custos de jurisdição e otimizada já refletem custos fixos, treinamento e
 #' demais restrições da otimização original. Para a agência selecionada, a
@@ -143,7 +144,8 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     custo_hora_viagem = params$custo_hora_viagem %||% 10,
     dias_coleta_entrevistador_max = params$dias_coleta_entrevistador_max %||% NA_real_,
     diarias_entrevistador_max = params$diarias_entrevistador_max %||% Inf,
-    n_entrevistadores_min = params$n_entrevistadores_min %||% 1
+    n_entrevistadores_min = params$n_entrevistadores_min %||% 1,
+    remuneracao_entrevistador = params$remuneracao_entrevistador %||% 0
   )
 
   if (!"entrevistadores_por_uc" %in% names(ucs)) ucs$entrevistadores_por_uc <- 1
@@ -165,7 +167,12 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   .write_resumo_geral(wb, n_resumo_agencia)
   wb <- .format_workbook(wb, n_upas, n_resumo_agencia)
 
-  openxlsx2::wb_save(wb, file, overwrite = TRUE)
+  tmp <- tempfile(fileext = ".xlsx")
+  on.exit(unlink(tmp), add = TRUE)
+  openxlsx2::wb_save(wb, tmp, overwrite = TRUE)
+  .verify_workbook(openxlsx2::wb_load(tmp), p)
+
+  file.copy(tmp, file, overwrite = TRUE)
   invisible(file)
 }
 
@@ -202,9 +209,13 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   diaria_valor <- .coalesce_columns(agencias, c("diaria_valor"))
   if (is.null(diaria_valor)) diaria_valor <- rep(NA_real_, nrow(agencias))
 
-  treinamento_lookup <- resultado$resultado_agencias_otimo |>
-    dplyr::select("agencia_codigo", "custo_treinamento_por_entrevistador") |>
-    dplyr::distinct() |>
+  treinamento_lookup <- dplyr::bind_rows(
+    resultado$resultado_agencias_otimo |>
+      dplyr::select("agencia_codigo", "custo_treinamento_por_entrevistador"),
+    resultado$resultado_agencias_jurisdicao |>
+      dplyr::select("agencia_codigo", "custo_treinamento_por_entrevistador")
+  ) |>
+    dplyr::distinct(.data$agencia_codigo, .keep_all = TRUE) |>
     dplyr::mutate(agencia_codigo = as.character(.data$agencia_codigo))
 
   agencias |>
@@ -327,7 +338,8 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
       "Custo hora viagem (R$/h)",
       "Dias coleta/entrevistador (max)",
       "Diárias/entrevistador (max)",
-      "Entrevistadores (min)"
+      "Entrevistadores (min)",
+      "Remuneração/entrevistador (R$)"
     ),
     Valor = c(
       p$custo_litro_combustivel,
@@ -335,7 +347,8 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
       p$custo_hora_viagem,
       p$dias_coleta_entrevistador_max,
       if (is.finite(p$diarias_entrevistador_max)) p$diarias_entrevistador_max else NA_real_,
-      p$n_entrevistadores_min
+      p$n_entrevistadores_min,
+      p$remuneracao_entrevistador
     )
   )
   wb$add_data(sheet = "Parâmetros", x = param_df)
@@ -349,7 +362,8 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
         "custo_hora_viagem",
         "dias_coleta_entrevistador_max",
         "diarias_entrevistador_max",
-        "n_entrevistadores_min"
+        "n_entrevistadores_min",
+        "remuneracao_entrevistador"
       )[[i]]
     )
   }
@@ -487,6 +501,7 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   realocada_formulas <- paste0("IF(M", rows, "=\"\",FALSE,M", rows, "<>K", rows, ")")
   wb$add_formula(sheet = "UPAs", x = realocada_formulas, dims = paste0("Q2:Q", n_upas + 1L))
   wb$freeze_pane(sheet = "UPAs", first_row = TRUE)
+  wb$add_filter(sheet = "UPAs", rows = 1, cols = 1:17)
 }
 
 .write_agency_formulas <- function(wb, n_upas, n_agencies, agency_col, hidden_start, cost_col) {
@@ -562,7 +577,8 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   )
 }
 
-.build_selected_interviewers_formula <- function(summary_row, upa_last_row, period_values, p) {
+.build_selected_interviewers_formula <- function(summary_row, upa_last_row, period_values, p,
+                                                  diarias_sel_col) {
   if (length(period_values) == 0L) period_values <- "Total"
 
   active_term <- if (is.finite(p$n_entrevistadores_min) && p$n_entrevistadores_min > 0) {
@@ -584,7 +600,7 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
       )
     }, character(1))
     diarias_term <- if (is.finite(p$diarias_entrevistador_max)) {
-      paste0("ROUNDUP(Q", summary_row, "/diarias_entrevistador_max,0)")
+      paste0("ROUNDUP(", diarias_sel_col, summary_row, "/diarias_entrevistador_max,0)")
     } else {
       "0"
     }
@@ -615,6 +631,9 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     `Custo treinamento jur. (R$)` = resumo_agencia$custo_treinamento_jur,
     `Custo treinamento otim. (R$)` = resumo_agencia$custo_treinamento_ot,
     `Custo treinamento sel. (R$)` = NA,
+    `Remuneração jur. (R$)` = resumo_agencia$entrevistadores_jur * p$remuneracao_entrevistador,
+    `Remuneração otim. (R$)` = resumo_agencia$entrevistadores_ot * p$remuneracao_entrevistador,
+    `Remuneração sel. (R$)` = NA,
     `Km total jur.` = resumo_agencia$distancia_total_km_jur,
     `Km total otim.` = resumo_agencia$distancia_total_km_ot,
     `Km total sel.` = NA,
@@ -627,13 +646,17 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     `Custo combust. jur. (R$)` = resumo_agencia$custo_combustivel_jur,
     `Custo combust. otim. (R$)` = resumo_agencia$custo_combustivel_ot,
     `Custo combust. sel. (R$)` = NA,
-    `Custo horas viagem jur. (R$)` = resumo_agencia$custo_horas_viagem_jur,
-    `Custo horas viagem otim. (R$)` = resumo_agencia$custo_horas_viagem_ot,
-    `Custo horas viagem sel. (R$)` = NA,
-    `Custo desloc. jur. (R$)` = resumo_agencia$custo_deslocamento_jur,
-    `Custo desloc. otim. (R$)` = resumo_agencia$custo_deslocamento_ot,
-    `Custo desloc. sel. (R$)` = NA,
-    `% aumento custo desloc. sel. vs ótimo` = NA
+    `Custo total jur. (R$)` = resumo_agencia$custo_diarias_jur +
+      resumo_agencia$custo_combustivel_jur +
+      resumo_agencia$entrevistadores_jur * p$remuneracao_entrevistador +
+      resumo_agencia$custo_treinamento_jur,
+    `Custo total otim. (R$)` = resumo_agencia$custo_diarias_ot +
+      resumo_agencia$custo_combustivel_ot +
+      resumo_agencia$entrevistadores_ot * p$remuneracao_entrevistador +
+      resumo_agencia$custo_treinamento_ot,
+    `Custo total sel. (R$)` = NA,
+    `% aumento custo total sel. vs ótimo` = NA,
+    check.names = FALSE
   )
   wb$add_data(sheet = "Resumo por agência", x = resumo_df)
 
@@ -664,7 +687,8 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
       character(1),
       upa_last_row = upa_last_row,
       period_values = unique(upa_data$periodo_key),
-      p = p
+      p = p,
+      diarias_sel_col = "T"  # "Diárias sel." column in "Resumo por agência"
     ),
     dims = paste0("H2:H", n_resumo + 1L)
   )
@@ -677,12 +701,20 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     ),
     dims = paste0("K2:K", n_resumo + 1L)
   )
-  selected_sum_formula("N", cl(53))
-  selected_sum_formula("Q", cl(51))
-  selected_sum_formula("T", cl(52))
-  selected_sum_formula("W", cl(54))
-  selected_sum_formula("Z", cl(55))
-  selected_sum_formula("AC", "P")
+  wb$add_formula(
+    sheet = "Resumo por agência",
+    x = paste0("H", rows, "*remuneracao_entrevistador"),
+    dims = paste0("N2:N", n_resumo + 1L)
+  )
+  selected_sum_formula("Q", cl(53))
+  selected_sum_formula("T", cl(51))
+  selected_sum_formula("W", cl(52))
+  selected_sum_formula("Z", cl(54))
+  wb$add_formula(
+    sheet = "Resumo por agência",
+    x = paste0("W", rows, "+Z", rows, "+N", rows, "+K", rows),
+    dims = paste0("AC2:AC", n_resumo + 1L)
+  )
   wb$add_formula(
     sheet = "Resumo por agência",
     x = paste0(
@@ -701,13 +733,14 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     `UPAs` = NA,
     `Entrevistadores` = NA,
     `Custo treinamento (R$)` = NA,
+    `Remuneração (R$)` = NA,
     `Km total` = NA,
     `Diárias` = NA,
     `Custo diárias (R$)` = NA,
     `Custo combust. (R$)` = NA,
-    `Custo horas viagem (R$)` = NA,
-    `Custo desloc. (R$)` = NA,
-    `% custo desloc. vs otim.` = NA
+    `Custo total (R$)` = NA,
+    `% custo total sel. vs otim.` = NA,
+    check.names = FALSE
   )
   wb$add_data(sheet = "Resumo", x = resumo_df)
 
@@ -784,7 +817,9 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     )
   }
 
-  for (col_idx in c(3:14, 18:29)) {
+  # Resumo por agência: cols 3-17 (C:Q = UPAs/Entrev/Trein/Remuner/Km),
+  #   21-29 (U:AC = CustoDiár/CustoComb/CustoTotal)
+  for (col_idx in c(3:17, 21:29)) {
     wb <- openxlsx2::wb_add_numfmt(
       wb,
       sheet = "Resumo por agência",
@@ -792,7 +827,8 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
       numfmt = money_fmt
     )
   }
-  for (col_idx in 15:17) {
+  # Diárias: cols 18:20 (R:T)
+  for (col_idx in 18:20) {
     wb <- openxlsx2::wb_add_numfmt(
       wb,
       sheet = "Resumo por agência",
@@ -807,7 +843,8 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     numfmt = percent_fmt
   )
 
-  for (col_idx in c(2:5, 7:10)) {
+  # Resumo: B:F (UPAs/Entrev/Trein/Remuner/Km) + H:J (CustoDiár/CustoComb/CustoTotal)
+  for (col_idx in c(2:6, 8:10)) {
     wb <- openxlsx2::wb_add_numfmt(
       wb,
       sheet = "Resumo",
@@ -818,7 +855,7 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   wb <- openxlsx2::wb_add_numfmt(
     wb,
     sheet = "Resumo",
-    dims = paste0("F2:F", resumo_last),
+    dims = paste0("G2:G", resumo_last),
     numfmt = diarias_fmt
   )
   wb <- openxlsx2::wb_add_numfmt(
@@ -827,6 +864,12 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     dims = paste0("K2:K", resumo_last),
     numfmt = percent_fmt
   )
+
+  for (sheet_name in c("Resumo", "Resumo por agência", "Parâmetros", "Agências")) {
+    wb$set_col_widths(sheet = sheet_name, cols = seq_len(30L), widths = "auto")
+  }
+  # UPAs: auto-width only the visible columns (hidden ones keep their hidden flag)
+  wb$set_col_widths(sheet = "UPAs", cols = c(1L, 3:10L, 14:17L), widths = "auto")
 
   .set_tab_color <- function(wb, sheet_name, rgb_hex) {
     idx <- which(wb$sheet_names == sheet_name)
@@ -839,4 +882,52 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   for (sheet_name in ref_sheets) .set_tab_color(wb, sheet_name, "FFC0C0C0")
   for (sheet_name in c("Resumo", "Resumo por agência", "UPAs")) .set_tab_color(wb, sheet_name, "FF4472C4")
   wb
+}
+
+.verify_workbook <- function(wb, p) {
+  ag_f <- openxlsx2::wb_to_df(wb, sheet = "Resumo por agência",
+                               show_formula = TRUE, check_names = FALSE)
+  if (nrow(ag_f) == 0L) return(invisible(NULL))
+
+  check <- function(col, pattern, desc) {
+    vals <- ag_f[[col]]
+    if (is.null(vals)) cli::cli_abort("Coluna {.val {col}} ausente em 'Resumo por agência'.")
+    bad <- !grepl(pattern, vals, perl = TRUE)
+    if (any(bad, na.rm = TRUE)) {
+      cli::cli_abort(c(
+        "Fórmula inesperada em {.val {col}} (linha {which(bad)[[1]] + 1L}).",
+        "i" = "Esperado padrão: {.code {pattern}}",
+        "x" = "Encontrado: {.code {vals[bad][[1]]}}"
+      ))
+    }
+  }
+
+  check("UPAs sel.",                         "^COUNTIF\\(",           "COUNTIF for UPAs sel.")
+  check("Entrevistadores sel.",              "^MAX\\(",               "MAX for Entrevistadores sel.")
+  check("Custo treinamento sel. (R$)",       "^H[0-9]+\\*IFERROR\\(", "H*IFERROR for treinamento sel.")
+  check("Remuneração sel. (R$)",             "^H[0-9]+\\*remuneracao_entrevistador$",
+        "H*remuneracao_entrevistador for remuneração sel.")
+  check("Diárias sel.",                      "^SUMIF\\(",             "SUMIF for Diárias sel.")
+  check("Custo diárias sel. (R$)",           "^SUMIF\\(",             "SUMIF for Custo diárias sel.")
+  check("Custo combust. sel. (R$)",          "^SUMIF\\(",             "SUMIF for Custo combust. sel.")
+  check("Custo total sel. (R$)",             "^W[0-9]+\\+Z",          "W+Z+... for Custo total sel.")
+  check("% aumento custo total sel. vs ótimo", "^IF\\(AB",            "IF(AB for % aumento")
+
+  if (is.finite(p$diarias_entrevistador_max)) {
+    vals <- ag_f[["Entrevistadores sel."]]
+    if (any(grepl("ROUNDUP\\(Q[0-9]+/diarias_entrevistador_max", vals, perl = TRUE))) {
+      cli::cli_abort(c(
+        "Coluna errada no termo de diárias de {.val Entrevistadores sel.}.",
+        "i" = "A fórmula referencia {.code Q} (Km total sel.) em vez de {.code T} (Diárias sel.).",
+        "x" = "Isso causaria superdimensionamento massivo de entrevistadores."
+      ))
+    }
+    if (!any(grepl("ROUNDUP\\(T[0-9]+/diarias_entrevistador_max", vals, perl = TRUE))) {
+      cli::cli_abort(
+        "Esperado {.code ROUNDUP(T.../diarias_entrevistador_max)} em {.val Entrevistadores sel.} mas não encontrado."
+      )
+    }
+  }
+
+  invisible(NULL)
 }

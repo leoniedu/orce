@@ -150,13 +150,17 @@ test_that("Resumo por agência keeps static totals and exposes the new selected 
   resumo_ag_formulas <- read_sheet(ctx$wb, "Resumo por agência", show_formula = TRUE)
 
   expect_equal(nrow(resumo_ag), dplyr::n_distinct(ag_default$agencia_codigo))
-  expect_true(all(make.names(c(
+  expect_true(all(c(
     "Entrevistadores jur.",
     "Entrevistadores sel.",
     "Custo treinamento jur. (R$)",
     "Custo treinamento sel. (R$)",
-    "% aumento custo desloc. sel. vs ótimo"
-  )) %in% names(resumo_ag)))
+    "Remuneração jur. (R$)",
+    "Remuneração sel. (R$)",
+    "Custo total jur. (R$)",
+    "Custo total sel. (R$)",
+    "% aumento custo total sel. vs ótimo"
+  ) %in% names(resumo_ag)))
 
   expect_equal(
     sum(sheet_col(resumo_ag, "UPAs jur."), na.rm = TRUE),
@@ -177,7 +181,9 @@ test_that("Resumo por agência keeps static totals and exposes the new selected 
   expect_true(all(grepl("^COUNTIF\\(", sheet_col(resumo_ag_formulas, "UPAs sel."))))
   expect_true(all(grepl("^MAX\\(", sheet_col(resumo_ag_formulas, "Entrevistadores sel."))))
   expect_true(all(grepl("^H[0-9]+\\*IFERROR\\(", sheet_col(resumo_ag_formulas, "Custo treinamento sel. (R$)"))))
-  expect_true(all(grepl("^IF\\(AB", sheet_col(resumo_ag_formulas, "% aumento custo desloc. sel. vs ótimo"))))
+  expect_true(all(grepl("^IF\\(AB", sheet_col(resumo_ag_formulas, "% aumento custo total sel. vs ótimo"))))
+  expect_true(all(grepl("^H[0-9]+\\*remuneracao_entrevistador", sheet_col(resumo_ag_formulas, "Remuneração sel. (R$)"))))
+  expect_true(all(grepl("^W[0-9]+\\+Z", sheet_col(resumo_ag_formulas, "Custo total sel. (R$)"))))
 })
 
 test_that("Resumo sheet summarizes the three scenarios with formulas over Resumo por agência", {
@@ -186,8 +192,25 @@ test_that("Resumo sheet summarizes the three scenarios with formulas over Resumo
 
   expect_equal(sheet_col(resumo, "Cenário"), c("Jurisdição", "Otimizada", "Selecionada"))
   expect_true(all(grepl("'Resumo por agência'!", sheet_col(resumo, "UPAs"), fixed = TRUE)))
-  expect_true(all(grepl("'Resumo por agência'!", sheet_col(resumo, "Custo desloc. (R$)"), fixed = TRUE)))
-  expect_equal(sheet_col(resumo, "% custo desloc. vs otim.")[[2]], "0")
+  expect_true(all(grepl("'Resumo por agência'!", sheet_col(resumo, "Custo total (R$)"), fixed = TRUE)))
+  expect_equal(sheet_col(resumo, "% custo total sel. vs otim.")[[2]], "0")
+})
+
+test_that("diarias_entrevistador_max formula references Diárias sel. column (T), not Km total (Q)", {
+  ctx <- build_whatif_wb(params = list(
+    custo_litro_combustivel = 7,
+    kml = 10,
+    custo_hora_viagem = 10,
+    dias_coleta_entrevistador_max = 14,
+    diarias_entrevistador_max = 40
+  ))
+  resumo_ag_formulas <- read_sheet(ctx$wb, "Resumo por agência", show_formula = TRUE)
+  entrev_formulas <- sheet_col(resumo_ag_formulas, "Entrevistadores sel.")
+
+  expect_true(all(grepl("diarias_entrevistador_max", entrev_formulas, fixed = TRUE)))
+  # Must reference the "Diárias sel." column (T), not "Km total sel." (Q)
+  expect_true(all(grepl("ROUNDUP\\(T[0-9]+/diarias_entrevistador_max", entrev_formulas)))
+  expect_false(any(grepl("ROUNDUP\\(Q[0-9]+/diarias_entrevistador_max", entrev_formulas)))
 })
 
 test_that("Parâmetros sheet includes transport and staffing parameters", {
