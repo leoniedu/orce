@@ -60,6 +60,7 @@ ranges na aba Parâmetros:
 \item \code{dias_coleta_entrevistador_max}: capacidade por entrevistador
 \item \code{diarias_entrevistador_max}: limite de diárias por entrevistador
 \item \code{n_entrevistadores_min}: mínimo de entrevistadores por agência ativa
+\item \code{remuneracao_entrevistador}: remuneração fixa por entrevistador (R$); padrão 0
 }
 
 Os custos de jurisdição e otimizada já refletem custos fixos, treinamento e

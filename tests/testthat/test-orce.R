@@ -103,6 +103,31 @@ test_that("Alocação de UCs com períodos de coleta", {
 
 })
 
+test_that("custo_litro_combustivel por agência substitui o valor global", {
+  f <- function(...) orce(..., use_cache = FALSE)
+
+  r_global <- do.call(f, modifyList(params_0, list(custo_litro_combustivel = 6)))
+
+  # Per-agency fuel cost = 3 (half of global) should halve custo_combustivel
+  r_agencia <- do.call(f, modifyList(params_0, list(
+    custo_litro_combustivel = 6,
+    agencias = params_0$agencias |> dplyr::mutate(custo_litro_combustivel = 3)
+  )))
+
+  # jurisdicao is deterministic (no optimization) — same assignments, different cost
+  expect_equal(
+    r_agencia$resultado_agencias_jurisdicao$custo_combustivel,
+    r_global$resultado_agencias_jurisdicao$custo_combustivel / 2
+  )
+
+  # Without column, global parameter is used
+  r_no_col <- do.call(f, modifyList(params_0, list(custo_litro_combustivel = 6)))
+  expect_equal(
+    r_no_col$resultado_agencias_jurisdicao$custo_combustivel,
+    r_global$resultado_agencias_jurisdicao$custo_combustivel
+  )
+})
+
 test_that("fixar_atribuicoes fixa UCs nas agências especificadas", {
   f <- function(...) orce(..., use_cache = FALSE)
 

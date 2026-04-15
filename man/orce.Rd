@@ -56,6 +56,7 @@ orce(
 \item \code{n_entrevistadores_agencia_max}: Número máximo de entrevistadores por agência. Junto com \code{dias_coleta_entrevistador_max},
 determina o número máximo de dias de coleta que a agência pode realizar (n_entrevistadores_agencia_max * dias_coleta_entrevistador_max).
 \item \code{custo_fixo}: Custo fixo associado à agência (soma de todos os períodos).
+\item \code{custo_litro_combustivel}: (Opcional) Custo do combustível por litro específico da agência. Quando presente, sobrepõe o parâmetro global \code{custo_litro_combustivel} para essa agência.
 }}
 
 \item{alocar_por}{Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em \code{ucs} para agrupar as UCs antes da alocação (e.g., "setor", "municipio"). Padrão: "uc".}

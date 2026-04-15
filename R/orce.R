@@ -18,6 +18,7 @@
 #'   \item `n_entrevistadores_agencia_max`: Número máximo de entrevistadores por agência. Junto com `dias_coleta_entrevistador_max`,
 #'         determina o número máximo de dias de coleta que a agência pode realizar (n_entrevistadores_agencia_max * dias_coleta_entrevistador_max).
 #'   \item `custo_fixo`: Custo fixo associado à agência (soma de todos os períodos).
+#'   \item `custo_litro_combustivel`: (Opcional) Custo do combustível por litro específico da agência. Quando presente, sobrepõe o parâmetro global `custo_litro_combustivel` para essa agência.
 #' }
 #' @param alocar_por Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em `ucs` para agrupar as UCs antes da alocação (e.g., "setor", "municipio"). Padrão: "uc".
 #' @param custo_litro_combustivel Custo do combustível por litro (em R$). Padrão: 6.
@@ -293,9 +294,16 @@ orce <- function(ucs,
 
   agencias <- agencias |>
     dplyr::ungroup() |>
-    sf::st_drop_geometry()|>
-    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo, diaria_valor) |>
+    sf::st_drop_geometry() |>
+    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo, diaria_valor,
+                  dplyr::any_of("custo_litro_combustivel")) |>
     dplyr::mutate(j = 1:dplyr::n())
+
+  if ("custo_litro_combustivel" %in% names(agencias)) {
+    agencias <- dplyr::rename(agencias, custo_litro_combustivel_agencia = custo_litro_combustivel)
+  } else {
+    agencias$custo_litro_combustivel_agencia <- NA_real_
+  }
 
   stopifnot(dplyr::n_distinct(agencias$agencia_codigo) == nrow(agencias))
   distancias_ucs <- distancias_ucs |>
@@ -412,7 +420,7 @@ orce <- function(ucs,
       custo_diarias = total_diarias * diaria_valor,
       distancia_total_km = trechos * distancia_km,
       duracao_total_horas = trechos * duracao_horas,
-      custo_combustivel = ((distancia_total_km / kml) * custo_litro_combustivel),
+      custo_combustivel = ((distancia_total_km / kml) * dplyr::coalesce(custo_litro_combustivel_agencia, custo_litro_combustivel)),
       custo_horas_viagem = (trechos * duracao_horas) * custo_hora_viagem,
       custo_troca_jurisdicao = dplyr::if_else(agencia_codigo != agencia_codigo_jurisdicao, adicional_troca_jurisdicao, 0),
       custo_deslocamento = custo_combustivel + custo_horas_viagem + custo_diarias,
