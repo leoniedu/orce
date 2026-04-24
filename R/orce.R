@@ -184,6 +184,208 @@ orce <- function(ucs,
   }
 }
 
+# .orce_costs: prepare transport cost matrices for one agency set.
+# Called by .orce_impl and orce_joint. Returns a named list.
+# `ucs` must already have required columns; `agencias` must have
+# agencia_codigo, n_entrevistadores_agencia_max, custo_fixo, diaria_valor.
+#' @keywords internal
+.orce_costs <- function(
+    ucs, agencias, distancias_ucs, distancias_agencias = NULL,
+    alocar_por = "uc",
+    custo_litro_combustivel = 6, kml = 10, custo_hora_viagem = 10,
+    entrevistadores_por_uc = 1L, adicional_troca_jurisdicao = 0,
+    dias_treinamento = 0, agencias_treinadas = NULL,
+    agencias_treinamento = NULL) {
+
+  ucs <- ucs |>
+    dplyr::ungroup() |>
+    sf::st_drop_geometry() |>
+    dplyr::mutate(i = vctrs::vec_group_id(!!rlang::sym(alocar_por)))
+
+  agencias <- agencias |>
+    dplyr::ungroup() |>
+    sf::st_drop_geometry() |>
+    dplyr::select("agencia_codigo", "n_entrevistadores_agencia_max",
+                  "custo_fixo", "diaria_valor",
+                  dplyr::any_of("custo_litro_combustivel")) |>
+    dplyr::mutate(j = seq_len(dplyr::n()))
+
+  if ("custo_litro_combustivel" %in% names(agencias)) {
+    agencias <- dplyr::rename(agencias,
+                               custo_litro_combustivel_agencia = custo_litro_combustivel)
+  } else {
+    agencias$custo_litro_combustivel_agencia <- NA_real_
+  }
+
+  distancias_ucs <- distancias_ucs |>
+    dplyr::ungroup() |>
+    sf::st_drop_geometry()
+
+  if (alocar_por != "uc") {
+    distancias_ucs <- distancias_ucs |>
+      dplyr::left_join(
+        ucs |> dplyr::select(dplyr::all_of(c("uc", alocar_por))),
+        by = "uc"
+      )
+  }
+
+  # Training costs
+  if (dias_treinamento > 0) {
+    agencias_t <- agencias |>
+      dplyr::left_join(
+        distancias_agencias |>
+          dplyr::select("agencia_codigo_orig", "agencia_codigo_dest",
+                        "distancia_km", "duracao_horas") |>
+          dplyr::filter(.data$agencia_codigo_dest %in% agencias_treinamento) |>
+          dplyr::rename(agencia_codigo_treinamento = "agencia_codigo_dest"),
+        by = c("agencia_codigo" = "agencia_codigo_orig")
+      ) |>
+      dplyr::group_by(.data$agencia_codigo) |>
+      dplyr::arrange(.data$distancia_km) |>
+      dplyr::slice(1) |>
+      dplyr::rename(
+        distancia_km_agencia_treinamento     = "distancia_km",
+        duracao_horas_agencia_treinamento_km = "duracao_horas"
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::arrange(.data$j)
+    treinamento_com_diaria <-
+      !substr(agencias_t$agencia_codigo, 1, 7) %in%
+      substr(agencias_treinamento, 1, 7)
+    custo_treinamento <- round(
+      dplyr::if_else(treinamento_com_diaria, 2, dias_treinamento) *
+        (agencias_t$distancia_km_agencia_treinamento / kml) *
+        custo_litro_combustivel
+    ) + agencias_t$diaria_valor * dias_treinamento * treinamento_com_diaria
+    custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
+  } else {
+    agencias_t <- agencias |>
+      dplyr::mutate(distancia_km_agencia_treinamento     = NA_real_,
+                    duracao_horas_agencia_treinamento_km = NA_real_)
+    custo_treinamento <- rep(0, nrow(agencias_t))
+  }
+  agencias_t$custo_treinamento_por_entrevistador <- custo_treinamento
+
+  indice_t <- ucs |>
+    dplyr::ungroup() |>
+    dplyr::distinct(.data$data) |>
+    dplyr::arrange(.data$data) |>
+    dplyr::mutate(t = seq_len(dplyr::n()))
+
+  ucs_i <- ucs |>
+    dplyr::arrange(.data$uc) |>
+    dplyr::transmute(.data$i, .data$data, .data$uc,
+                     agencia_codigo_jurisdicao = .data$agencia_codigo,
+                     .data$dias_coleta, .data$viagens, .data$diaria_valor) |>
+    dplyr::left_join(indice_t, by = "data")
+
+  ag_mun_grid <- tidyr::expand_grid(
+    agencias_t |>
+      dplyr::transmute(municipio_codigo_agencia = substr(.data$agencia_codigo, 1, 7),
+                       .data$agencia_codigo),
+    ucs_i
+  )
+
+  distancias_ucs_1 <- ag_mun_grid |>
+    dplyr::left_join(distancias_ucs, by = c("uc", "agencia_codigo")) |>
+    dplyr::select("i", "t", "uc", "agencia_codigo", "agencia_codigo_jurisdicao",
+                  "viagens", "dias_coleta", "distancia_km", "duracao_horas",
+                  "diaria_municipio", "diaria_pernoite", "diaria_valor")
+
+  stopifnot(sum(is.na(distancias_ucs_1$distancia_km)) == 0)
+  stopifnot(nrow(distancias_ucs_1) == nrow(ucs_i) * nrow(agencias_t))
+
+  dist_uc_agencias <- distancias_ucs_1 |>
+    dplyr::left_join(agencias_t |> dplyr::select(-"diaria_valor"),
+                     by = "agencia_codigo") |>
+    dplyr::transmute(
+      .data$i, .data$t, .data$uc, .data$j, .data$agencia_codigo,
+      .data$agencia_codigo_jurisdicao,
+      .data$distancia_km, .data$duracao_horas, .data$dias_coleta,
+      diaria = .data$diaria_municipio,
+      diaria = dplyr::if_else(.data$diaria_pernoite, TRUE, .data$diaria),
+      meia_diaria = (!.data$diaria_pernoite) & .data$diaria,
+      trechos = dplyr::if_else(
+        .data$diaria & (!.data$meia_diaria),
+        .data$viagens * 2,
+        .data$dias_coleta * 2
+      ),
+      total_diarias = dplyr::if_else(
+        .data$diaria,
+        calcula_diarias(.data$dias_coleta, .data$meia_diaria),
+        0
+      ) * entrevistadores_por_uc,
+      custo_diarias       = .data$total_diarias * .data$diaria_valor,
+      distancia_total_km  = .data$trechos * .data$distancia_km,
+      duracao_total_horas = .data$trechos * .data$duracao_horas,
+      custo_combustivel   = (.data$distancia_total_km / kml) *
+        dplyr::coalesce(.data$custo_litro_combustivel_agencia,
+                        custo_litro_combustivel),
+      custo_horas_viagem  = (.data$trechos * .data$duracao_horas) * custo_hora_viagem,
+      custo_troca_jurisdicao = dplyr::if_else(
+        .data$agencia_codigo != .data$agencia_codigo_jurisdicao,
+        adicional_troca_jurisdicao, 0
+      ),
+      custo_deslocamento          = .data$custo_combustivel + .data$custo_horas_viagem +
+        .data$custo_diarias,
+      custo_deslocamento_com_troca = .data$custo_deslocamento + .data$custo_troca_jurisdicao
+    )
+
+  dist_i_agencias <- dist_uc_agencias |>
+    dplyr::select(-"t") |>
+    dplyr::group_by(.data$i, .data$j, .data$agencia_codigo) |>
+    dplyr::summarise(
+      agencia_codigo_jurisdicao = names(which.max(table(.data$agencia_codigo_jurisdicao))),
+      dplyr::across(dplyr::where(is.numeric), sum),
+      n_ucs = dplyr::n(),
+      .groups = "drop"
+    )
+
+  stopifnot(all(!is.na(dist_i_agencias$distancia_km)))
+
+  make_i_j <- function(x, col) {
+    x |>
+      dplyr::ungroup() |>
+      dplyr::select(dplyr::all_of(c("i", "j", col))) |>
+      tidyr::pivot_wider(id_cols = "i", names_from = "j",
+                         values_from = dplyr::all_of(col),
+                         names_sort = TRUE) |>
+      dplyr::arrange(as.numeric(.data$i)) |>
+      dplyr::select(-"i") |>
+      as.matrix()
+  }
+
+  transport_cost_i_j <- make_i_j(dist_i_agencias, "custo_deslocamento_com_troca")
+  fuel_cost_i_j      <- make_i_j(dist_i_agencias, "custo_combustivel")
+  diarias_i_j        <- make_i_j(dist_i_agencias, "total_diarias")
+
+  dias_coleta_ijt_df <- dist_uc_agencias |>
+    dplyr::group_by(.data$i, .data$j, .data$t) |>
+    dplyr::summarise(dias_coleta = sum(.data$dias_coleta, na.rm = TRUE),
+                     .groups = "drop")
+
+  n <- max(ucs$i)
+  m <- max(agencias_t$j)
+  p <- max(indice_t$t)
+
+  dias_coleta_arr <- array(0, dim = c(n, m, p))
+  dias_coleta_arr[as.matrix(dplyr::select(dias_coleta_ijt_df, "i", "j", "t"))] <-
+    dias_coleta_ijt_df$dias_coleta * entrevistadores_por_uc
+
+  list(
+    ucs_i              = ucs_i,
+    agencias_t         = agencias_t,
+    indice_t           = indice_t,
+    dist_uc_agencias   = dist_uc_agencias,
+    dist_i_agencias    = dist_i_agencias,
+    transport_cost_i_j = transport_cost_i_j,
+    fuel_cost_i_j      = fuel_cost_i_j,
+    diarias_i_j        = diarias_i_j,
+    dias_coleta_arr    = dias_coleta_arr,
+    n = n, m = m, p = p
+  )
+}
+
 #' @keywords internal
 .orce_impl <- function(ucs,
                              agencias,
@@ -284,194 +486,22 @@ orce <- function(ucs,
     distancias_agencias <- distancias_agencias |> dplyr::select(agencia_codigo_orig, agencia_codigo_dest, distancia_km, duracao_horas)
   }
 
+  prep <- .orce_costs(
+    ucs = ucs, agencias = agencias, distancias_ucs = distancias_ucs,
+    distancias_agencias = distancias_agencias, alocar_por = alocar_por,
+    custo_litro_combustivel = custo_litro_combustivel,
+    kml = kml, custo_hora_viagem = custo_hora_viagem,
+    entrevistadores_por_uc = entrevistadores_por_uc,
+    adicional_troca_jurisdicao = adicional_troca_jurisdicao,
+    dias_treinamento = dias_treinamento,
+    agencias_treinadas = agencias_treinadas,
+    agencias_treinamento = agencias_treinamento
+  )
+  list2env(prep, envir = environment())
   ucs <- ucs |>
     dplyr::ungroup() |>
     sf::st_drop_geometry() |>
     dplyr::mutate(i = vctrs::vec_group_id(!!rlang::sym(alocar_por)))
-  n_ucs <- nrow(ucs)
-
-  stopifnot(dplyr::n_distinct(ucs$uc) == n_ucs)
-
-  agencias <- agencias |>
-    dplyr::ungroup() |>
-    sf::st_drop_geometry() |>
-    dplyr::select(agencia_codigo, n_entrevistadores_agencia_max, custo_fixo, diaria_valor,
-                  dplyr::any_of("custo_litro_combustivel")) |>
-    dplyr::mutate(j = 1:dplyr::n())
-
-  if ("custo_litro_combustivel" %in% names(agencias)) {
-    agencias <- dplyr::rename(agencias, custo_litro_combustivel_agencia = custo_litro_combustivel)
-  } else {
-    agencias$custo_litro_combustivel_agencia <- NA_real_
-  }
-
-  stopifnot(dplyr::n_distinct(agencias$agencia_codigo) == nrow(agencias))
-  distancias_ucs <- distancias_ucs |>
-    dplyr::ungroup() |>
-    sf::st_drop_geometry()
-
-  dcount <- distancias_ucs |>
-    dplyr::count(agencia_codigo, uc)
-
-  stopifnot(all(dcount$n == 1))
-
-  if (alocar_por != "uc") {
-    # Ajustar distancias_ucs para a nova agregação
-    distancias_ucs <- distancias_ucs |>
-      dplyr::left_join(ucs |> dplyr::select(dplyr::all_of(c("uc", alocar_por))), by = "uc")
-  }
-
-  # Selecionar agência de treinamento mais próxima das agências de coleta
-  if (dias_treinamento > 0) {
-    agencias_t <- agencias |>
-      dplyr::left_join(
-        distancias_agencias |>
-          dplyr::select(agencia_codigo_orig, agencia_codigo_dest, distancia_km, duracao_horas) |>
-          dplyr::filter(agencia_codigo_dest %in% agencias_treinamento) |>
-          dplyr::rename(agencia_codigo_treinamento = agencia_codigo_dest),
-        by = c("agencia_codigo" = "agencia_codigo_orig")
-      ) |>
-      dplyr::group_by(agencia_codigo) |>
-      dplyr::arrange(distancia_km) |>
-      dplyr::slice(1) |>
-      dplyr::rename(
-        distancia_km_agencia_treinamento = distancia_km,
-        duracao_horas_agencia_treinamento_km = duracao_horas
-      ) |>
-      dplyr::ungroup() |>
-      dplyr::arrange(j)
-  } else {
-    agencias_t <- agencias |>
-      dplyr::mutate(distancia_km_agencia_treinamento = NA_real_,
-                     duracao_horas_agencia_treinamento_km = NA_real_)
-  }
-
-  # Calcular custo de treinamento
-  if (dias_treinamento == 0) {
-    custo_treinamento <- rep(0, nrow(agencias_t))
-  } else {
-    # Custos de treinamento com base na distância e se a agência já foi treinada
-    treinamento_com_diaria <- !substr(agencias_t$agencia_codigo, 1, 7) %in% substr(agencias_treinamento, 1, 7)
-    # Com diária (pernoite): apenas 1 ida + 1 volta (fator 2) para todo o treinamento.
-    # Sem diária (mesmo município): vai-e-volta a cada dia de treinamento (fator dias_treinamento).
-    custo_treinamento <- round(
-      dplyr::if_else(treinamento_com_diaria, 2, dias_treinamento) *
-        (agencias_t$distancia_km_agencia_treinamento / kml) *
-        custo_litro_combustivel
-    ) + agencias_t$diaria_valor * dias_treinamento * treinamento_com_diaria
-    custo_treinamento[agencias_t$agencia_codigo %in% agencias_treinadas] <- 0
-  }
-
-  agencias_t$custo_treinamento_por_entrevistador <- custo_treinamento
-
-  # ... (rest of the code remains the same)
-  # Criar índice para datas
-  indice_t <- ucs |>
-    dplyr::ungroup() |>
-    dplyr::distinct(data) |>
-    dplyr::arrange(data) |>
-    dplyr::mutate(t = 1:dplyr::n())
-
-  # Combinar informações de UCs e datas
-  ucs_i <- ucs |>
-    dplyr::arrange(uc) |>
-    dplyr::transmute(i, data, uc, agencia_codigo_jurisdicao = agencia_codigo,
-                     dias_coleta, viagens, diaria_valor) |>
-    dplyr::left_join(indice_t, by = "data")
-
-  # Criar grid de agências e UCs
-  ag_mun_grid <- tidyr::expand_grid(
-    agencias_t |>
-      dplyr::transmute(municipio_codigo_agencia = substr(agencia_codigo, 1, 7), agencia_codigo),
-    ucs_i
-  )
-
-  # Combinar informações de distâncias com o grid
-  distancias_ucs_1 <- ag_mun_grid |>
-    dplyr::left_join(distancias_ucs, by = c('uc', 'agencia_codigo')) |>
-    dplyr::select(i, t, uc, agencia_codigo, agencia_codigo_jurisdicao,
-                  viagens, dias_coleta, distancia_km, duracao_horas,
-                  diaria_municipio,
-                  diaria_pernoite, diaria_valor)
-
-  # Ensure there are no missing values in distances
-  stopifnot(sum(is.na(distancias_ucs_1$distancia_km)) == 0)
-  stopifnot(nrow(distancias_ucs_1) == (nrow(ucs_i) * nrow(agencias_t)))
-
-  # Compute transport costs
-  dist_uc_agencias <- distancias_ucs_1 |>
-    dplyr::left_join(agencias_t |> dplyr::select(-diaria_valor), by = "agencia_codigo") |>
-    dplyr::transmute(
-      i, t, uc,
-      j, agencia_codigo,
-      agencia_codigo_jurisdicao,
-      distancia_km, duracao_horas, dias_coleta,
-      diaria = diaria_municipio,
-      diaria = dplyr::if_else(diaria_pernoite, TRUE, diaria),
-      meia_diaria = (!diaria_pernoite) & diaria,
-      ## se com diaria inteira
-      trechos = dplyr::if_else(diaria & (!meia_diaria),
-                               # é uma ida e uma volta por viagem
-                               viagens * 2,
-                               # sem diária ou com meia diária
-                               dias_coleta * 2
-      ),
-      total_diarias = dplyr::if_else(diaria, calcula_diarias(dias_coleta, meia_diaria), 0) * entrevistadores_por_uc,
-      custo_diarias = total_diarias * diaria_valor,
-      distancia_total_km = trechos * distancia_km,
-      duracao_total_horas = trechos * duracao_horas,
-      custo_combustivel = ((distancia_total_km / kml) * dplyr::coalesce(custo_litro_combustivel_agencia, custo_litro_combustivel)),
-      custo_horas_viagem = (trechos * duracao_horas) * custo_hora_viagem,
-      custo_troca_jurisdicao = dplyr::if_else(agencia_codigo != agencia_codigo_jurisdicao, adicional_troca_jurisdicao, 0),
-      custo_deslocamento = custo_combustivel + custo_horas_viagem + custo_diarias,
-      custo_deslocamento_com_troca = custo_deslocamento + custo_troca_jurisdicao
-    )
-
-  # Agregar custos por i e j
-  dist_i_agencias <- dist_uc_agencias |>
-    dplyr::select(-t) |>
-    dplyr::group_by(i, j, agencia_codigo) |>
-    dplyr::summarise(
-      agencia_codigo_jurisdicao = names(which.max(table(agencia_codigo_jurisdicao))),
-      dplyr::across(dplyr::where(is.numeric), sum),
-      n_ucs = dplyr::n()
-    ) |>
-    dplyr::ungroup()
-
-  stopifnot(all(!is.na(dist_i_agencias$distancia_km)))
-
-  # Verificar se há apenas um valor para cada par i,j
-  u_dist_i_agencias <- dist_i_agencias |>
-    dplyr::ungroup() |>
-    dplyr::count(i, j)
-  stopifnot(all(u_dist_i_agencias$n == 1))
-
-  # Função auxiliar para criar matriz de custos
-  make_i_j <- function(x, col) {
-    x |>
-      dplyr::ungroup() |>
-      dplyr::select(dplyr::all_of(c("i", "j", col)))|>
-      tidyr::pivot_wider(id_cols = i, names_from = j, values_from = dplyr::all_of(col), names_sort = TRUE)|>
-      dplyr::arrange(as.numeric(i)) |>
-      dplyr::select(-i) |>
-      as.matrix()
-  }
-  # Criar matrizes de custos
-  transport_cost_i_j <- make_i_j(x = dist_i_agencias, col = "custo_deslocamento_com_troca")
-  diarias_i_j <- make_i_j(x = dist_i_agencias, col = "total_diarias")
-
-
-  dias_coleta_ijt_df <- dist_uc_agencias |>
-    dplyr::group_by(i, j, t) |>
-    dplyr::summarise(dias_coleta = sum(dias_coleta, na.rm = TRUE), .groups = "drop")
-
-  # Criar modelo de otimização
-  n <- max(ucs$i)
-  m <- max(agencias_t$j)
-  p <- max(indice_t$t)
-  # 3D array for O(1) lookup in model constraints
-  dias_coleta_arr <- array(0, dim = c(n, m, p))
-  dias_coleta_arr[as.matrix(dplyr::select(dias_coleta_ijt_df, i, j, t))] <- dias_coleta_ijt_df$dias_coleta * entrevistadores_por_uc
   dias_coleta_ijt <- function(ii, jj, tt) dias_coleta_arr[ii, jj, tt]
   # Índices para TSP multi-depósitos: primeiros m nós são as agências (bases),
   # nós m+1..m+n são as UCs.
