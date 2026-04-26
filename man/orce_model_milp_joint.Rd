@@ -2,7 +2,7 @@
 % Please edit documentation in R/orce_model_milp_joint.R
 \name{orce_model_milp_joint}
 \alias{orce_model_milp_joint}
-\title{Construtor do MILP para otimização conjunta masculino/feminino}
+\title{Construtor do MILP conjunto masculino/feminino}
 \usage{
 orce_model_milp_joint(env)
 }
@@ -13,43 +13,31 @@ orce_model_milp_joint(env)
 Um \code{ompr::MILPModel} pronto para ser resolvido.
 }
 \description{
-Variante de \code{\link[=orce_model_milp]{orce_model_milp()}} que otimiza a atribuição de entrevistadores
-de ambos os gêneros simultaneamente, eliminando as infeasibilidades que surgem
-na abordagem sequencial quando \code{remuneracao_entrevistador} é baixo. Não
-suporta TSP (\code{peso_tsp} é ignorado).
-}
-\details{
-O modelo usa variáveis separadas por gênero: \code{xm[i,jm]} / \code{xf[i,jf]} para
-atribuição, \code{wm[jm]} / \code{wf[jf]} para número de entrevistadores e
-\code{ym[jm]} / \code{yf[jf]} para ativação de agências. Para agências com ambos os
-gêneros, \code{ya[jb]} garante que o custo fixo seja pago uma única vez, e
-\code{s[i,jb]} captura o compartilhamento de veículo (economia de combustível).
+Constrói um único MILP que otimiza a alocação de entrevistadores de ambos os
+gêneros simultaneamente. Usa um único espaço de índices \verb{j = 1..m} para todas
+as agências; o bloqueio de atribuições inválidas (e.g. masculino numa agência
+só-feminina) emerge implicitamente da restrição de capacidade:
+\code{wm[j] <= n_masculino[j]} → quando \code{n_masculino[j] = 0}, \code{wm[j] = 0} →
+\code{ym[j] = 0} → \code{xm[i,j] = 0}. Não suporta TSP.
 }
 \section{Variáveis do ambiente \code{env}}{
 
-
-Além dos parâmetros escalares do modelo (\code{n_entrevistadores_min},
-\code{dias_coleta_entrevistador_max}, \code{diarias_entrevistador_max},
-\code{remuneracao_entrevistador}, \code{n_entrevistadores_tipo}), \code{env} deve conter:
 \itemize{
-\item \code{n}, \code{m_m}, \code{m_f}, \code{m_b}, \code{p}: dimensões.
-\item \code{transport_m} (\verb{n × m_m}), \code{transport_f} (\verb{n × m_f}): custo total de
-deslocamento por UC-agência (todos os períodos).
-\item \code{fuel_saving} (\verb{n × m_b}): economia de combustível por UC-agência
-bilateral = \code{(fuel_m + fuel_f) / 2}.
+\item \code{n}, \code{m}, \code{p}: dimensões (UCs, agências, períodos).
+\item \code{transport} (\verb{n × m}): custo total de deslocamento UC-agência (igual para
+ambos os gêneros — mesma viagem).
+\item \code{fuel} (\verb{n × m}): custo de combustível UC-agência (para economia de
+veículo compartilhado).
+\item \code{diarias} (\verb{n × m}): total de diárias UC-agência.
 \item \code{dias_arr} (\verb{n × p}): dias de coleta por UC e período.
-\item \code{diarias_m} (\verb{n × m_m}), \code{diarias_f} (\verb{n × m_f}): total de diárias.
-\item \code{n_max_m} (\code{m_m}), \code{n_max_f} (\code{m_f}): capacidade por agência e gênero.
-\item \code{fixed_cost_m_coef} (\code{m_m}): custo fixo para agências masculinas; 0 para
-agências com ambos os gêneros (cobrado via \code{custo_fixo_full}).
-\item \code{fixed_cost_f_coef} (\code{m_f}): idem para agências femininas.
-\item \code{custo_fixo_full} (\code{m_b}): custo fixo das agências com ambos os gêneros.
-\item \code{training_m} (\code{m_m}), \code{training_f} (\code{m_f}): custo de treinamento por
-entrevistador.
-\item \code{full_jm} (\code{m_b}), \code{full_jf} (\code{m_b}): índices jm e jf das agências com
-ambos os gêneros.
-\item \code{fix_m}, \code{fix_f}: listas com \verb{$fix} e \verb{$blk} (data.frames \code{i}/\code{j}) com
-atribuições forçadas e bloqueadas para cada gênero.
+\item \code{n_masculino} (\code{m}): capacidade masculina por agência (0 = sem masculinos).
+\item \code{n_feminino} (\code{m}): capacidade feminina por agência (0 = sem femininas).
+\item \code{custo_fixo} (\code{m}): custo fixo por agência (cobrado via \code{y[j]} — uma vez).
+\item \code{training_m} (\code{m}), \code{training_f} (\code{m}): custo de treinamento por entrev.
+\item \code{fix_m}, \code{fix_f}: listas com \verb{$fix} e \verb{$blk} (data.frames \code{i}/\code{j}).
+\item Escalares: \code{n_entrevistadores_min}, \code{dias_coleta_entrevistador_max},
+\code{diarias_entrevistador_max}, \code{remuneracao_entrevistador},
+\code{n_entrevistadores_tipo}.
 }
 }
 

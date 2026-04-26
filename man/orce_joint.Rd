@@ -33,68 +33,13 @@ orce_joint(
   ...
 )
 }
-\arguments{
-\item{ucs}{\code{tibble} com colunas requeridas por \code{\link[=orce]{orce()}}.}
-
-\item{agencias}{\code{tibble} com colunas requeridas por \code{\link[=orce]{orce()}} mais
-\code{n_masculino} e \code{n_feminino} (número de entrevistadores por gênero).}
-
-\item{distancias_ucs}{\code{tibble} com distâncias UC-agência.}
-
-\item{distancias_agencias}{\code{tibble} com distâncias agência-agência (para treinamento).}
-
-\item{alocar_por}{Coluna de agrupamento de UCs. Padrão: \code{"uc"}.}
-
-\item{custo_litro_combustivel}{Custo do litro de combustível (R$). Padrão: 6.}
-
-\item{kml}{Consumo do veículo (km/l). Padrão: 10.}
-
-\item{custo_hora_viagem}{Custo por hora de viagem (R$). Padrão: 10.}
-
-\item{diarias_entrevistador_max}{Máximo de diárias por entrevistador. Padrão: \code{Inf}.}
-
-\item{remuneracao_entrevistador}{Remuneração mensal por entrevistador (R$). Padrão: 3000.}
-
-\item{n_entrevistadores_min}{Mínimo de entrevistadores por agência ativa. Padrão: 1.}
-
-\item{n_entrevistadores_tipo}{\code{"continuous"} ou \code{"integer"}. Padrão: \code{"continuous"}.}
-
-\item{dias_coleta_entrevistador_max}{Máximo de dias de coleta por entrevistador por período. Padrão: 100.}
-
-\item{dias_treinamento}{Dias de treinamento. Padrão: 0.}
-
-\item{agencias_treinadas}{Vetor de agências já treinadas.}
-
-\item{agencias_treinamento}{Vetor de agências de treinamento.}
-
-\item{entrevistadores_por_uc}{Entrevistadores necessários por UC. Padrão: 1.}
-
-\item{adicional_troca_jurisdicao}{Custo adicional por troca de jurisdição (R$). Padrão: 0.}
-
-\item{fixar_atribuicoes_masculino}{\code{data.frame} com \code{uc}, \code{agencia_codigo} e
-opcionalmente \code{valor} (1=forçar, 0=bloquear) para o sub-problema masculino.}
-
-\item{fixar_atribuicoes_feminino}{Idem para o sub-problema feminino.}
-
-\item{solver}{Nome do solver ROI. Padrão: \code{"highs"}.}
-
-\item{rel_tol}{Tolerância relativa de otimalidade. Padrão: \code{1e-4}.}
-
-\item{max_time}{Tempo máximo de solver (segundos). Padrão: 3600.}
-
-\item{seed}{Semente aleatória opcional.}
-
-\item{resultado_completo}{Se \code{TRUE}, inclui \code{ucs_agencias_todas} em cada resultado.}
-
-\item{...}{Argumentos adicionais passados ao solver.}
-}
 \value{
-Lista com \code{alocacao}, \code{res_masculino}, \code{res_feminino} e \code{res_base},
-compatível com a saída de \code{\link[pns.zonas:orce_hibrido]{pns.zonas::orce_hibrido()}}.
+Lista com \code{alocacao}, \code{res_masculino}, \code{res_feminino} e \code{res_base}.
 }
 \description{
-Variante de \code{\link[pns.zonas:orce_hibrido]{pns.zonas::orce_hibrido()}} que elimina as infeasibilidades do método
-sequencial ao otimizar a alocação de entrevistadores de ambos os gêneros
-simultaneamente em um único modelo MILP. Retorna estrutura compatível com
-\code{\link[pns.zonas:orce_hibrido]{pns.zonas::orce_hibrido()}}.
+Resolve a alocação de entrevistadores de ambos os gêneros simultaneamente
+em um único MILP, eliminando as inviabilidades da abordagem sequencial.
+Usa um único espaço de índices \code{j} para todas as agências; o bloqueio
+implícito via capacidade (\code{wm[j] <= n_masculino[j]}) dispensa mapeamentos
+bilaterais. Retorna estrutura compatível com \code{\link[pns.zonas:orce_hibrido]{pns.zonas::orce_hibrido()}}.
 }
