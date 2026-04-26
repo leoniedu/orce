@@ -35,7 +35,7 @@ veículo compartilhado).
 \item \code{custo_fixo} (\code{m}): custo fixo por agência (cobrado via \code{y[j]} — uma vez).
 \item \code{training_m} (\code{m}), \code{training_f} (\code{m}): custo de treinamento por entrev.
 \item \code{fix_m}, \code{fix_f}: listas com \verb{$fix} e \verb{$blk} (data.frames \code{i}/\code{j}).
-\item Escalares: \code{n_entrevistadores_min}, \code{dias_coleta_entrevistador_max},
+\item Escalares: \code{n_entrevistadores_min_m}, \code{n_entrevistadores_min_f}, \code{dias_coleta_entrevistador_max},
 \code{diarias_entrevistador_max}, \code{remuneracao_entrevistador},
 \code{n_entrevistadores_tipo}.
 }

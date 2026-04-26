@@ -6,7 +6,11 @@
 #' implícito via capacidade (`wm[j] <= n_masculino[j]`) dispensa mapeamentos
 #' bilaterais. Retorna estrutura compatível com [pns.zonas::orce_hibrido()].
 #'
-#' @inheritParams orce_joint
+#' @inheritParams orce
+#' @param fixar_atribuicoes_masculino `data.frame` com colunas `uc`,
+#'   `agencia_codigo`, `valor` para fixar atribuições masculinas.
+#' @param fixar_atribuicoes_feminino Idem para atribuições femininas.
+#' @param use_cache Lógico. Quando `TRUE`, usa cache em disco.
 #' @return Lista com `alocacao`, `res_masculino`, `res_feminino` e `res_base`.
 #' @export
 orce_joint <- function(
@@ -21,6 +25,92 @@ orce_joint <- function(
     diarias_entrevistador_max  = Inf,
     remuneracao_entrevistador  = 3000,
     n_entrevistadores_min      = 1L,
+    n_entrevistadores_min_m    = NULL,
+    n_entrevistadores_min_f    = NULL,
+    n_entrevistadores_tipo     = "continuous",
+    dias_coleta_entrevistador_max = 100,
+    dias_treinamento           = 0,
+    agencias_treinadas         = NULL,
+    agencias_treinamento       = NULL,
+    entrevistadores_por_uc     = 1L,
+    adicional_troca_jurisdicao = 0,
+    fixar_atribuicoes_masculino = NULL,
+    fixar_atribuicoes_feminino  = NULL,
+    fixar_atribuicoes           = NULL,
+    solver                     = "highs",
+    rel_tol                    = 1e-4,
+    max_time                   = 3600,
+    seed                       = NULL,
+    resultado_completo         = FALSE,
+    use_cache                  = TRUE,
+    ...) {
+
+  if (!is.null(fixar_atribuicoes)) {
+    cli::cli_abort(
+      "{.arg fixar_atribuicoes} não é suportado em {.fn orce_joint}.",
+      "i" = "Use {.arg fixar_atribuicoes_masculino} e {.arg fixar_atribuicoes_feminino} separadamente."
+    )
+  }
+
+  args <- list(
+    ucs                           = ucs,
+    agencias                      = agencias,
+    distancias_ucs                = distancias_ucs,
+    distancias_agencias           = distancias_agencias,
+    alocar_por                    = alocar_por,
+    custo_litro_combustivel       = custo_litro_combustivel,
+    kml                           = kml,
+    custo_hora_viagem             = custo_hora_viagem,
+    diarias_entrevistador_max     = diarias_entrevistador_max,
+    remuneracao_entrevistador     = remuneracao_entrevistador,
+    n_entrevistadores_min         = n_entrevistadores_min,
+    n_entrevistadores_min_m       = n_entrevistadores_min_m,
+    n_entrevistadores_min_f       = n_entrevistadores_min_f,
+    n_entrevistadores_tipo        = n_entrevistadores_tipo,
+    dias_coleta_entrevistador_max = dias_coleta_entrevistador_max,
+    dias_treinamento              = dias_treinamento,
+    agencias_treinadas            = agencias_treinadas,
+    agencias_treinamento          = agencias_treinamento,
+    entrevistadores_por_uc        = entrevistadores_por_uc,
+    adicional_troca_jurisdicao    = adicional_troca_jurisdicao,
+    fixar_atribuicoes_masculino   = fixar_atribuicoes_masculino,
+    fixar_atribuicoes_feminino    = fixar_atribuicoes_feminino,
+    solver                        = solver,
+    rel_tol                       = rel_tol,
+    max_time                      = max_time,
+    seed                          = seed,
+    resultado_completo            = resultado_completo
+  )
+  args <- c(args, list(...))
+
+  if (use_cache) {
+    is_cached <- do.call(memoise::has_cache(orce_joint_mem), args)
+    if (is_cached) {
+      cli::cli_alert_success("Usando resultado em cache para estes parâmetros.")
+    } else {
+      cli::cli_alert_info("Calculando e armazenando resultado em cache.")
+    }
+    do.call(orce_joint_mem, args)
+  } else {
+    cli::cli_alert_info("Calculando sem usar cache.")
+    do.call(.orce_joint_impl, args)
+  }
+}
+
+.orce_joint_impl <- function(
+    ucs,
+    agencias,
+    distancias_ucs,
+    distancias_agencias        = NULL,
+    alocar_por                 = "uc",
+    custo_litro_combustivel    = 6,
+    kml                        = 10,
+    custo_hora_viagem          = 10,
+    diarias_entrevistador_max  = Inf,
+    remuneracao_entrevistador  = 3000,
+    n_entrevistadores_min      = 1L,
+    n_entrevistadores_min_m    = NULL,
+    n_entrevistadores_min_f    = NULL,
     n_entrevistadores_tipo     = "continuous",
     dias_coleta_entrevistador_max = 100,
     dias_treinamento           = 0,
@@ -94,14 +184,25 @@ orce_joint <- function(
   n_feminino  <- agencias_full$n_feminino[ag_order]
 
   # ── 2. Assemble MILP environment ─────────────────────────────────────────────
+  min_per_gender <- as.integer(ceiling(n_entrevistadores_min / 2))
+  n_entrevistadores_min_m <- n_entrevistadores_min_m %||% min_per_gender
+  n_entrevistadores_min_f <- n_entrevistadores_min_f %||% min_per_gender
+
   fix_m <- .joint_translate_fixar(fixar_atribuicoes_masculino,
-                                   prep$ucs_i, prep$agencias_t)
+                                   prep$ucs_i, prep$agencias_t,
+                                   cap = n_masculino, gender = "masculino")
   fix_f <- .joint_translate_fixar(fixar_atribuicoes_feminino,
-                                   prep$ucs_i, prep$agencias_t)
+                                   prep$ucs_i, prep$agencias_t,
+                                   cap = n_feminino,  gender = "feminino")
 
   transport  <- prep$transport_cost_i_j
   fuel       <- prep$fuel_cost_i_j
   diarias    <- prep$diarias_i_j
+  # dias_coleta is a UC-level property identical across agencies; assert before slicing.
+  stopifnot(
+    "dias_coleta_arr must be uniform across j (same value for all agencies per UC×period)" =
+      all(apply(prep$dias_coleta_arr, c(1L, 3L), function(x) diff(range(x)) < 1e-9))
+  )
   dias_arr   <- matrix(prep$dias_coleta_arr[, 1L, ], nrow = n, ncol = p)
   custo_fixo <- prep$agencias_t$custo_fixo
   training_m <- prep$agencias_t$custo_treinamento_por_entrevistador
@@ -251,13 +352,14 @@ orce_joint <- function(
 }
 # Translate fixar_atribuicoes to {fix, blk} index lists for orce_model_milp_joint.
 #' @keywords internal
-.joint_translate_fixar <- function(fixar, ucs_i, agencias_t) {
+.joint_translate_fixar <- function(fixar, ucs_i, agencias_t,
+                                    cap = NULL, gender = NULL) {
   empty <- data.frame(i = integer(0), j = integer(0))
   if (is.null(fixar) || nrow(fixar) == 0L) {
     return(list(fix = empty, blk = empty))
   }
   if (!"valor" %in% names(fixar)) fixar$valor <- 1L
-  fi <- match(fixar$uc,           ucs_i$uc)
+  fi <- match(fixar$uc,             ucs_i$uc)
   fj <- match(fixar$agencia_codigo, agencias_t$agencia_codigo)
   valid <- !is.na(fi) & !is.na(fj)
   if (!any(valid)) return(list(fix = empty, blk = empty))
@@ -266,6 +368,18 @@ orce_joint <- function(
     j     = agencias_t$j[fj[valid]],
     valor = fixar$valor[valid]
   ) |> unique()
+  # Validate: fixed assignments (valor=1) to zero-capacity agencies are infeasible.
+  if (!is.null(cap) && !is.null(gender)) {
+    bad <- df[df$valor == 1L & cap[df$j] == 0, , drop = FALSE]
+    if (nrow(bad) > 0) {
+      bad_agencies <- agencias_t$agencia_codigo[bad$j]
+      cli::cli_abort(c(
+        "fixar_atribuicoes_{gender} força UC(s) para agência(s) sem capacidade {gender}:",
+        "i" = "Agência(s) com capacidade zero: {.val {unique(bad_agencies)}}",
+        "i" = "Corrija os dados de n_{gender} ou remova essas linhas de fixar_atribuicoes_{gender}."
+      ))
+    }
+  }
   list(
     fix = df[df$valor == 1L, c("i", "j"), drop = FALSE],
     blk = df[df$valor == 0L, c("i", "j"), drop = FALSE]

@@ -34,7 +34,8 @@ limpar_cache_orce <- function(force = FALSE) {
     }
 
     # Apaga o cache
-    memoise::forget(orce)
+    memoise::forget(orce_mem)
+    memoise::forget(orce_joint_mem)
     message(sprintf("Cache limpo. Espaço em disco liberado."))
     return(invisible(TRUE))
   } else {

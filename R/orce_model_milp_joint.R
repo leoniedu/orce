@@ -21,7 +21,7 @@
 #' - `custo_fixo` (`m`): custo fixo por agência (cobrado via `y[j]` — uma vez).
 #' - `training_m` (`m`), `training_f` (`m`): custo de treinamento por entrev.
 #' - `fix_m`, `fix_f`: listas com `$fix` e `$blk` (data.frames `i`/`j`).
-#' - Escalares: `n_entrevistadores_min`, `dias_coleta_entrevistador_max`,
+#' - Escalares: `n_entrevistadores_min_m`, `n_entrevistadores_min_f`, `dias_coleta_entrevistador_max`,
 #'   `diarias_entrevistador_max`, `remuneracao_entrevistador`,
 #'   `n_entrevistadores_tipo`.
 #'
@@ -75,9 +75,9 @@ orce_model_milp_joint <- function(env) {
       ompr::add_constraint(y[j] >= ym[j], j = 1:m) |>
       ompr::add_constraint(y[j] >= yf[j], j = 1:m) |>
       ompr::add_constraint(y[j] <= ym[j] + yf[j], j = 1:m) |>
-      # Min interviewers when active
-      ompr::add_constraint(ym[j] * n_entrevistadores_min <= wm[j], j = 1:m) |>
-      ompr::add_constraint(yf[j] * n_entrevistadores_min <= wf[j], j = 1:m) |>
+      # Min interviewers when active (separate per gender)
+      ompr::add_constraint(ym[j] * n_entrevistadores_min_m <= wm[j], j = 1:m) |>
+      ompr::add_constraint(yf[j] * n_entrevistadores_min_f <= wf[j], j = 1:m) |>
       # Gender capacity bounds — implicitly block zero-capacity assignments
       ompr::add_constraint(wm[j] <= ompr::colwise(n_masculino[j]), j = 1:m) |>
       ompr::add_constraint(wf[j] <= ompr::colwise(n_feminino[j]),  j = 1:m) |>

@@ -16,6 +16,8 @@ orce_joint(
   diarias_entrevistador_max = Inf,
   remuneracao_entrevistador = 3000,
   n_entrevistadores_min = 1L,
+  n_entrevistadores_min_m = NULL,
+  n_entrevistadores_min_f = NULL,
   n_entrevistadores_tipo = "continuous",
   dias_coleta_entrevistador_max = 100,
   dias_treinamento = 0,
@@ -25,13 +27,110 @@ orce_joint(
   adicional_troca_jurisdicao = 0,
   fixar_atribuicoes_masculino = NULL,
   fixar_atribuicoes_feminino = NULL,
+  fixar_atribuicoes = NULL,
   solver = "highs",
   rel_tol = 1e-04,
   max_time = 3600,
   seed = NULL,
   resultado_completo = FALSE,
+  use_cache = TRUE,
   ...
 )
+}
+\arguments{
+\item{ucs}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as UCs, incluindo:
+\itemize{
+\item \code{uc}: Código único da UC.
+\item \code{agencia_codigo}: Código da agência à qual a UC está atualmente alocada.
+\item \code{dias_coleta}: Número de dias de coleta na UC, por período.
+\item \code{viagens}: Número de viagens necessárias para a coleta na UC, por período.
+\item \code{data}: Um identificador único para o período de coleta (e.g., "2024-01", "2024-02").
+\item \code{diaria_valor}: Valor da diária para a UC.
+\item \code{alocar_por}: Uma coluna adicional para agrupar as UCs antes da alocação (e.g., "setor", "municipio").
+}}
+
+\item{agencias}{Um \code{tibble} ou \code{data.frame} contendo informações sobre as agências selecionáveis, incluindo:
+\itemize{
+\item \code{agencia_codigo}: Código único da agência.
+\item \code{n_entrevistadores_agencia_max}: Número máximo de entrevistadores por agência. Junto com \code{dias_coleta_entrevistador_max},
+determina o número máximo de dias de coleta que a agência pode realizar (n_entrevistadores_agencia_max * dias_coleta_entrevistador_max).
+\item \code{custo_fixo}: Custo fixo associado à agência (soma de todos os períodos).
+\item \code{custo_litro_combustivel}: (Opcional) Custo do combustível por litro específico da agência. Quando presente, sobrepõe o parâmetro global \code{custo_litro_combustivel} para essa agência.
+}}
+
+\item{distancias_ucs}{Um \code{tibble} ou \code{data.frame} com as distâncias entre UCs e agências, incluindo:
+\itemize{
+\item \code{uc}: Código da UC.
+\item \code{agencia_codigo}: Código da agência.
+\item \code{distancia_km}: Distância em quilômetros entre a UC e a agência.
+\item \code{duracao_horas}: Duração da viagem em horas entre a UC e a agência.
+\item \code{diaria_municipio}: Indica se é necessária uma diária para deslocamento entre a UC e a agência, considerando o município da UC.
+\item \code{diaria_pernoite}: Indica se é necessária uma diária com pernoite para deslocamento entre a UC e a agência.
+}}
+
+\item{distancias_agencias}{Um \code{tibble} ou \code{data.frame} com as distâncias entre as agências, incluindo:
+\itemize{
+\item \code{agencia_codigo_orig}: Código da agência de origem.
+\item \code{agencia_codigo_dest}: Código da agência de destino.
+\item \code{distancia_km}: Distância em quilômetros entre a agência de origem e a de destino.
+\item \code{duracao_horas}: Duração da viagem em horas entre a agência de origem e a de destino.
+}}
+
+\item{alocar_por}{Uma string especificando como alocar as UCs: "uc" para alocar cada UC individualmente, ou o nome de uma coluna em \code{ucs} para agrupar as UCs antes da alocação (e.g., "setor", "municipio"). Padrão: "uc".}
+
+\item{custo_litro_combustivel}{Custo do combustível por litro (em R$). Padrão: 6.}
+
+\item{kml}{Consumo médio de combustível do veículo (em km/l). Padrão: 10.}
+
+\item{custo_hora_viagem}{Custo de cada hora de viagem (em R$). Padrão: 10.}
+
+\item{diarias_entrevistador_max}{Total máximo de diárias que um entrevistador pode receber, somando todos os períodos. Padrão: \code{Inf}.}
+
+\item{remuneracao_entrevistador}{Remuneração total por entrevistador para todos os períodos. Padrão: 0.}
+
+\item{n_entrevistadores_min}{Número mínimo de entrevistadores por agência. Padrão: 1.}
+
+\item{dias_coleta_entrevistador_max}{Número máximo de dias de coleta por entrevistador por período.}
+
+\item{dias_treinamento}{Número de dias/diárias para treinamento. Padrão: 0 (nenhum treinamento).}
+
+\item{agencias_treinadas}{(Opcional) Um vetor de caracteres com os códigos das agências que já foram treinadas e não terão custo de treinamento. Padrão: NULL.}
+
+\item{agencias_treinamento}{Código da(s) agência(s) onde o treinamento será realizado.}
+
+\item{entrevistadores_por_uc}{Número de entrevistadores que trabalham juntos em cada UC
+(e.g., dupla masculino/feminino). Afeta o cálculo de diárias (multiplicadas pelo
+número de entrevistadores) e a capacidade (dias_coleta é multiplicado internamente
+por este valor para obter o consumo em entrevistador-dias). O custo de combustível
+não é afetado (assume-se veículo compartilhado). Padrão: 1.}
+
+\item{adicional_troca_jurisdicao}{Custo adicional quando há troca de agência de coleta. Padrão: 0.}
+
+\item{fixar_atribuicoes_masculino}{\code{data.frame} com colunas \code{uc},
+\code{agencia_codigo}, \code{valor} para fixar atribuições masculinas.}
+
+\item{fixar_atribuicoes_feminino}{Idem para atribuições femininas.}
+
+\item{fixar_atribuicoes}{(Opcional) Data frame com colunas \code{uc},
+\code{agencia_codigo} e opcionalmente \code{valor} (1 ou 0). Quando \code{valor = 1}
+(padrão se coluna ausente), fixa a atribuição via \code{x[i,j] == 1}.
+Quando \code{valor = 0}, bloqueia a atribuição via \code{x[i,j] == 0}.
+Padrão: \code{NULL}.}
+
+\item{solver}{Qual ferramenta para solução do modelo de otimização utilizar. Padrão: "highs". Outras opções: "glpk", "symphony" (instalação manual).}
+
+\item{rel_tol}{Tolerância relativa para a otimização. Valores menores levam a soluções mais precisas, mas podem aumentar o tempo de execução. Padrão: 0.005.}
+
+\item{max_time}{Tempo máximo de execução (em segundos) permitido para o solver. Padrão: 30*60 (30 minutos).}
+
+\item{seed}{Semente para o gerador de números aleatórios, garantindo
+reprodutibilidade. Padrão: \code{42L}. Use \code{NULL} para não definir semente.}
+
+\item{resultado_completo}{(Opcional) Um valor lógico indicando se deve ser retornado um resultado mais completo, incluindo informações sobre todas as combinações de UCs e agências. Padrão: FALSE.}
+
+\item{use_cache}{Lógico. Quando \code{TRUE}, usa cache em disco.}
+
+\item{...}{Opções adicionais para o solver.}
 }
 \value{
 Lista com \code{alocacao}, \code{res_masculino}, \code{res_feminino} e \code{res_base}.
