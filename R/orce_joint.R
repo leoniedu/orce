@@ -249,3 +249,101 @@ orce_joint <- function(
     res_base      = res_base
   )
 }
+# Translate fixar_atribuicoes to {fix, blk} index lists for orce_model_milp_joint.
+#' @keywords internal
+.joint_translate_fixar <- function(fixar, ucs_i, agencias_t) {
+  empty <- data.frame(i = integer(0), j = integer(0))
+  if (is.null(fixar) || nrow(fixar) == 0L) {
+    return(list(fix = empty, blk = empty))
+  }
+  if (!"valor" %in% names(fixar)) fixar$valor <- 1L
+  fi <- match(fixar$uc,           ucs_i$uc)
+  fj <- match(fixar$agencia_codigo, agencias_t$agencia_codigo)
+  valid <- !is.na(fi) & !is.na(fj)
+  if (!any(valid)) return(list(fix = empty, blk = empty))
+  df <- data.frame(
+    i     = ucs_i$i[fi[valid]],
+    j     = agencias_t$j[fj[valid]],
+    valor = fixar$valor[valid]
+  ) |> unique()
+  list(
+    fix = df[df$valor == 1L, c("i", "j"), drop = FALSE],
+    blk = df[df$valor == 0L, c("i", "j"), drop = FALSE]
+  )
+}
+
+# Build orce-compatible resultado list from joint MILP solution for one gender.
+#' @keywords internal
+.joint_build_resultado <- function(xij, workers, prep, ucs_alocar,
+                                    remuneracao_entrevistador,
+                                    resultado_completo = FALSE) {
+  ags_group_vars <- c(names(prep$agencias_t), "entrevistadores")
+
+  resultado_ucs <- prep$dist_uc_agencias |>
+    dplyr::inner_join(xij, by = c("i", "j")) |>
+    dplyr::left_join(ucs_alocar, by = "uc") |>
+    dplyr::left_join(prep$indice_t, by = "t") |>
+    dplyr::select(-"i", -"j", -"t", -"custo_deslocamento_com_troca")
+
+  resultado_agencias <- prep$agencias_t |>
+    dplyr::inner_join(resultado_ucs, by = "agencia_codigo") |>
+    dplyr::select(-"data") |>
+    dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
+    dplyr::summarise(
+      dplyr::across(dplyr::where(is.numeric), sum),
+      n_trocas_jurisdicao = sum(.data$agencia_codigo != .data$agencia_codigo_jurisdicao),
+      n_ucs = dplyr::n(),
+      .groups = "drop"
+    ) |>
+    dplyr::select(-dplyr::any_of("n_ucs")) |>
+    dplyr::left_join(workers, by = "j") |>
+    dplyr::select(-"j") |>
+    dplyr::mutate(
+      custo_total_entrevistadores =
+        .data$entrevistadores * remuneracao_entrevistador +
+        .data$entrevistadores * .data$custo_treinamento_por_entrevistador
+    )
+
+  # Jurisdiction assignment: each UC → its jurisdiction agency (if in the set)
+  juris_matching <- prep$ucs_i |>
+    dplyr::distinct(.data$i, .data$agencia_codigo_jurisdicao) |>
+    dplyr::left_join(
+      prep$agencias_t |> dplyr::select("agencia_codigo", j_juris = "j"),
+      by = c("agencia_codigo_jurisdicao" = "agencia_codigo")
+    ) |>
+    dplyr::filter(!is.na(.data$j_juris)) |>
+    dplyr::select(i = "i", j = "j_juris")
+
+  resultado_ucs_juris <- prep$dist_uc_agencias |>
+    dplyr::inner_join(juris_matching, by = c("i", "j")) |>
+    dplyr::left_join(ucs_alocar, by = "uc") |>
+    dplyr::left_join(prep$indice_t, by = "t") |>
+    dplyr::select(-"i", -"j", -"t", -"custo_deslocamento_com_troca")
+
+  resultado_agencias_juris <- prep$agencias_t |>
+    dplyr::inner_join(resultado_ucs_juris, by = "agencia_codigo") |>
+    dplyr::select(-"data") |>
+    dplyr::group_by(dplyr::pick(dplyr::any_of(ags_group_vars))) |>
+    dplyr::summarise(
+      dplyr::across(dplyr::where(is.numeric), sum),
+      n_trocas_jurisdicao = sum(.data$agencia_codigo != .data$agencia_codigo_jurisdicao),
+      n_ucs = dplyr::n(),
+      .groups = "drop"
+    ) |>
+    dplyr::select(-dplyr::any_of("n_ucs")) |>
+    dplyr::mutate(
+      entrevistadores = NA_real_,
+      custo_total_entrevistadores = NA_real_
+    )
+
+  res <- list(
+    resultado_ucs_otimo          = resultado_ucs,
+    resultado_ucs_jurisdicao     = resultado_ucs_juris,
+    resultado_agencias_otimo     = resultado_agencias,
+    resultado_agencias_jurisdicao = resultado_agencias_juris
+  )
+  if (resultado_completo) {
+    res$ucs_agencias_todas <- prep$dist_uc_agencias
+  }
+  res
+}
