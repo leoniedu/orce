@@ -18,16 +18,16 @@
 #'
 #' @examples
 #' # Único município (Brasília)
-#' valor_diaria_get("5300108")  # Retorna 425
+#' diaria_valor_get("5300108")  # Retorna 425
 #'
 #' # Múltiplos municípios
-#' valor_diaria_get(c("5300108", "1302603", "1200013"))  # Retorna c(425, 380, 335)
+#' diaria_valor_get(c("5300108", "1302603", "1200013"))  # Retorna c(425, 380, 335)
 #'
 #' # Usando valores personalizados
-#' valor_diaria_get("5300108", c(500, 450, 400))  # Retorna 500
+#' diaria_valor_get("5300108", c(500, 450, 400))  # Retorna 500
 #'
 #' # Vetor de municípios com valores personalizados
-#' valor_diaria_get(
+#' diaria_valor_get(
 #'   c("5300108", "1302603", "1200013"),
 #'   c(500, 450, 400)
 #' )  # Retorna c(500, 450, 400)

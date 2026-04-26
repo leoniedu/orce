@@ -98,29 +98,17 @@ orce_joint2 <- function(
   fix_f <- .joint_translate_fixar(fixar_atribuicoes_feminino,
                                    prep$ucs_i, prep$agencias_t)
 
-  env <- list2env(list(
-    n = n, m = m, p = p,
-    transport                      = prep$transport_cost_i_j,
-    fuel                           = prep$fuel_cost_i_j,
-    diarias                        = prep$diarias_i_j,
-    dias_arr                       = prep$dias_coleta_arr[, 1L, ],
-    n_masculino                    = n_masculino,
-    n_feminino                     = n_feminino,
-    custo_fixo                     = prep$agencias_t$custo_fixo,
-    training_m                     = prep$agencias_t$custo_treinamento_por_entrevistador,
-    training_f                     = prep$agencias_t$custo_treinamento_por_entrevistador,
-    fix_m                          = fix_m,
-    fix_f                          = fix_f,
-    n_entrevistadores_min          = n_entrevistadores_min,
-    dias_coleta_entrevistador_max  = dias_coleta_entrevistador_max,
-    diarias_entrevistador_max      = diarias_entrevistador_max,
-    remuneracao_entrevistador      = remuneracao_entrevistador,
-    n_entrevistadores_tipo         = n_entrevistadores_tipo
-  ), parent = emptyenv())
+  transport  <- prep$transport_cost_i_j
+  fuel       <- prep$fuel_cost_i_j
+  diarias    <- prep$diarias_i_j
+  dias_arr   <- matrix(prep$dias_coleta_arr[, 1L, ], nrow = n, ncol = p)
+  custo_fixo <- prep$agencias_t$custo_fixo
+  training_m <- prep$agencias_t$custo_treinamento_por_entrevistador
+  training_f <- prep$agencias_t$custo_treinamento_por_entrevistador
 
   # ── 3. Build and solve ────────────────────────────────────────────────────────
   cli::cli_progress_step("Construindo modelo MILP conjunto (v2)")
-  model <- orce_model_milp_joint2(env)
+  model <- orce_model_milp_joint2(environment())
 
   cli::cli_progress_step("Otimizando...")
   if (solver == "symphony") {
@@ -243,13 +231,14 @@ orce_joint2 <- function(
     dias_treinamento           = dias_treinamento,
     agencias_treinadas         = agencias_treinadas,
     agencias_treinamento       = agencias_treinamento,
-    entrevistadores_por_uc     = 2L,
-    n_entrevistadores_min      = 2L,
-    adicional_troca_jurisdicao = adicional_troca_jurisdicao,
-    resultado_completo         = TRUE,
-    solver                     = solver,
-    rel_tol                    = rel_tol,
-    max_time                   = max_time
+    entrevistadores_por_uc        = 2L,
+    n_entrevistadores_min         = 2L,
+    dias_coleta_entrevistador_max = dias_coleta_entrevistador_max,
+    adicional_troca_jurisdicao    = adicional_troca_jurisdicao,
+    resultado_completo            = TRUE,
+    solver                        = solver,
+    rel_tol                       = rel_tol,
+    max_time                      = max_time
   )
 
   list(

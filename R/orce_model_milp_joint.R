@@ -69,30 +69,34 @@ orce_model_milp_joint <- function(env) {
     }
 
     # ── Objective ─────────────────────────────────────────────────────────────
-    obj <-
-      # Transport costs
-      ompr::sum_expr(ompr::colwise(tm(i, jm)) * xm[i, jm], i = 1:n, jm = 1:m_m) +
-      ompr::sum_expr(ompr::colwise(tf(i, jf)) * xf[i, jf], i = 1:n, jf = 1:m_f) +
-      # Salary
-      remuneracao_entrevistador * ompr::sum_expr(wm[jm], jm = 1:m_m) +
-      remuneracao_entrevistador * ompr::sum_expr(wf[jf], jf = 1:m_f) +
-      # Training
-      ompr::sum_expr(ompr::colwise(training_m[jm]) * wm[jm], jm = 1:m_m) +
-      ompr::sum_expr(ompr::colwise(training_f[jf]) * wf[jf], jf = 1:m_f) +
-      # Fixed costs: male agencies (0 for full-gender, charged via ya below)
-      ompr::sum_expr(ompr::colwise(fixed_cost_m_coef[jm]) * ym[jm], jm = 1:m_m) +
-      # Fixed costs: female agencies (0 for full-gender)
-      ompr::sum_expr(ompr::colwise(fixed_cost_f_coef[jf]) * yf[jf], jf = 1:m_f)
-
+    # sum_expr must be inlined into set_objective — it cannot be pre-computed.
     if (m_b > 0) {
-      obj <- obj +
-        # Fixed cost for full-gender agencies: once, regardless of gender mix
+      model <- model |> ompr::set_objective(
+        ompr::sum_expr(ompr::colwise(tm(i, jm)) * xm[i, jm], i = 1:n, jm = 1:m_m) +
+        ompr::sum_expr(ompr::colwise(tf(i, jf)) * xf[i, jf], i = 1:n, jf = 1:m_f) +
+        remuneracao_entrevistador * ompr::sum_expr(wm[jm], jm = 1:m_m) +
+        remuneracao_entrevistador * ompr::sum_expr(wf[jf], jf = 1:m_f) +
+        ompr::sum_expr(ompr::colwise(training_m[jm]) * wm[jm], jm = 1:m_m) +
+        ompr::sum_expr(ompr::colwise(training_f[jf]) * wf[jf], jf = 1:m_f) +
+        ompr::sum_expr(ompr::colwise(fixed_cost_m_coef[jm]) * ym[jm], jm = 1:m_m) +
+        ompr::sum_expr(ompr::colwise(fixed_cost_f_coef[jf]) * yf[jf], jf = 1:m_f) +
         ompr::sum_expr(ompr::colwise(custo_fixo_full[jb]) * ya[jb], jb = 1:m_b) -
-        # Fuel saving for non-hybrid UCs (shared vehicle)
-        ompr::sum_expr(ompr::colwise(fs(i, jb)) * s[i, jb], i = 1:n, jb = 1:m_b)
+        ompr::sum_expr(ompr::colwise(fs(i, jb)) * s[i, jb], i = 1:n, jb = 1:m_b),
+        sense = "min"
+      )
+    } else {
+      model <- model |> ompr::set_objective(
+        ompr::sum_expr(ompr::colwise(tm(i, jm)) * xm[i, jm], i = 1:n, jm = 1:m_m) +
+        ompr::sum_expr(ompr::colwise(tf(i, jf)) * xf[i, jf], i = 1:n, jf = 1:m_f) +
+        remuneracao_entrevistador * ompr::sum_expr(wm[jm], jm = 1:m_m) +
+        remuneracao_entrevistador * ompr::sum_expr(wf[jf], jf = 1:m_f) +
+        ompr::sum_expr(ompr::colwise(training_m[jm]) * wm[jm], jm = 1:m_m) +
+        ompr::sum_expr(ompr::colwise(training_f[jf]) * wf[jf], jf = 1:m_f) +
+        ompr::sum_expr(ompr::colwise(fixed_cost_m_coef[jm]) * ym[jm], jm = 1:m_m) +
+        ompr::sum_expr(ompr::colwise(fixed_cost_f_coef[jf]) * yf[jf], jf = 1:m_f),
+        sense = "min"
+      )
     }
-
-    model <- model |> ompr::set_objective(obj, sense = "min")
 
     # ── Constraints ───────────────────────────────────────────────────────────
     model <- model |>
@@ -136,32 +140,21 @@ orce_model_milp_joint <- function(env) {
     }
 
     if (m_b > 0) {
-      model <- model |>
-        ompr::add_constraint(
-          ya[jb] >= ym[ompr::colwise(full_jm[jb])], jb = 1:m_b
-        ) |>
-        ompr::add_constraint(
-          ya[jb] >= yf[ompr::colwise(full_jf[jb])], jb = 1:m_b
-        ) |>
-        ompr::add_constraint(
-          ya[jb] <=
-            ym[ompr::colwise(full_jm[jb])] + yf[ompr::colwise(full_jf[jb])],
-          jb = 1:m_b
-        ) |>
-        # s[i,jb] = xm[i,full_jm[jb]] AND xf[i,full_jf[jb]]
-        ompr::add_constraint(
-          s[i, jb] >= xm[i, ompr::colwise(full_jm[jb])] +
-            xf[i, ompr::colwise(full_jf[jb])] - 1,
-          i = 1:n, jb = 1:m_b
-        ) |>
-        ompr::add_constraint(
-          s[i, jb] <= xm[i, ompr::colwise(full_jm[jb])],
-          i = 1:n, jb = 1:m_b
-        ) |>
-        ompr::add_constraint(
-          s[i, jb] <= xf[i, ompr::colwise(full_jf[jb])],
-          i = 1:n, jb = 1:m_b
-        )
+      # ompr does not support colwise as a variable subscript, so we add
+      # bilateral constraints using concrete integer indices in a for loop.
+      for (jb_val in seq_len(m_b)) {
+        jm_val <- full_jm[jb_val]
+        jf_val <- full_jf[jb_val]
+        model <- model |>
+          ompr::add_constraint(ya[jb_val] >= ym[jm_val]) |>
+          ompr::add_constraint(ya[jb_val] >= yf[jf_val]) |>
+          ompr::add_constraint(ya[jb_val] <= ym[jm_val] + yf[jf_val]) |>
+          ompr::add_constraint(
+            s[i, jb_val] >= xm[i, jm_val] + xf[i, jf_val] - 1, i = 1:n
+          ) |>
+          ompr::add_constraint(s[i, jb_val] <= xm[i, jm_val], i = 1:n) |>
+          ompr::add_constraint(s[i, jb_val] <= xf[i, jf_val], i = 1:n)
+      }
     }
 
     if (!is.null(fix_m$fix) && nrow(fix_m$fix) > 0)

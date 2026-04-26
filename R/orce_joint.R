@@ -136,8 +136,8 @@ orce_joint <- function(
   m_f <- prep_f$m
   p   <- prep_m$p
 
-  # days per UC per period (constant across agencies)
-  dias_arr <- prep_m$dias_coleta_arr[, 1L, ]
+  # days per UC per period (constant across agencies); ensure n×p matrix
+  dias_arr <- matrix(prep_m$dias_coleta_arr[, 1L, ], nrow = n, ncol = p)
 
   # ── 2. Bilateral agencies (both genders) ─────────────────────────────────────
   ag_m   <- prep_m$agencias_t$agencia_codigo
@@ -171,35 +171,14 @@ orce_joint <- function(
   fix_f <- .joint_translate_fixar(fixar_atribuicoes_feminino,
                                    prep_f$ucs_i, prep_f$agencias_t)
 
-  env <- list2env(list(
-    n = n, m_m = m_m, m_f = m_f, m_b = m_b, p = p,
-    transport_m          = transport_m,
-    transport_f          = transport_f,
-    fuel_saving          = fuel_saving,
-    dias_arr             = dias_arr,
-    diarias_m            = diarias_m,
-    diarias_f            = diarias_f,
-    n_max_m              = prep_m$agencias_t$n_entrevistadores_agencia_max,
-    n_max_f              = prep_f$agencias_t$n_entrevistadores_agencia_max,
-    fixed_cost_m_coef    = fixed_cost_m_coef,
-    fixed_cost_f_coef    = fixed_cost_f_coef,
-    custo_fixo_full      = custo_fixo_full,
-    training_m           = prep_m$agencias_t$custo_treinamento_por_entrevistador,
-    training_f           = prep_f$agencias_t$custo_treinamento_por_entrevistador,
-    full_jm              = full_jm,
-    full_jf              = full_jf,
-    fix_m                = fix_m,
-    fix_f                = fix_f,
-    n_entrevistadores_min          = n_entrevistadores_min,
-    dias_coleta_entrevistador_max  = dias_coleta_entrevistador_max,
-    diarias_entrevistador_max      = diarias_entrevistador_max,
-    remuneracao_entrevistador      = remuneracao_entrevistador,
-    n_entrevistadores_tipo         = n_entrevistadores_tipo
-  ), parent = emptyenv())
+  n_max_m  <- prep_m$agencias_t$n_entrevistadores_agencia_max
+  n_max_f  <- prep_f$agencias_t$n_entrevistadores_agencia_max
+  training_m <- prep_m$agencias_t$custo_treinamento_por_entrevistador
+  training_f <- prep_f$agencias_t$custo_treinamento_por_entrevistador
 
   # ── 4. Build and solve joint MILP ────────────────────────────────────────────
   cli::cli_progress_step("Construindo modelo MILP conjunto")
-  model <- orce_model_milp_joint(env)
+  model <- orce_model_milp_joint(environment())
 
   cli::cli_progress_step("Otimizando...")
   if (solver == "symphony") {
@@ -324,13 +303,14 @@ orce_joint <- function(
     dias_treinamento           = dias_treinamento,
     agencias_treinadas         = agencias_treinadas,
     agencias_treinamento       = agencias_treinamento,
-    entrevistadores_por_uc     = 2L,
-    n_entrevistadores_min      = 2L,
-    adicional_troca_jurisdicao = adicional_troca_jurisdicao,
-    resultado_completo         = TRUE,
-    solver                     = solver,
-    rel_tol                    = rel_tol,
-    max_time                   = max_time
+    entrevistadores_por_uc        = 2L,
+    n_entrevistadores_min         = 2L,
+    dias_coleta_entrevistador_max = dias_coleta_entrevistador_max,
+    adicional_troca_jurisdicao    = adicional_troca_jurisdicao,
+    resultado_completo            = TRUE,
+    solver                        = solver,
+    rel_tol                       = rel_tol,
+    max_time                      = max_time
   )
 
   list(
