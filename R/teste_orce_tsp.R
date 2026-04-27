@@ -1,5 +1,5 @@
-#' @keywords internal
 #' Teste da função orce com dados simulados incluindo TSP
+#' @keywords internal
 #'
 #' @param n_agencias Número de agências a criar. Padrão: 10.
 #' @param n_ucs Número de UCs a criar. Padrão: 30.

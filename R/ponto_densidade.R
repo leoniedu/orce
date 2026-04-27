@@ -14,7 +14,7 @@
 #'   (`lon`, `lat`) do ponto de maior densidade para cada unidade.
 #'
 #' @details
-#' Delega o cálculo de densidade para [pns.zonas::density_point()], que usa
+#' Delega o cálculo de densidade para `pns.zonas::density_point()`, que usa
 #' estimativa de densidade por kernel gaussiano (pacote `spatstat`) com
 #' largura de banda `sigma = max(10% da amplitude, 30 m)`. Unidades com um
 #' único ponto são retornadas diretamente.

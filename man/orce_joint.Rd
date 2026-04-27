@@ -140,5 +140,5 @@ Resolve a alocação de entrevistadores de ambos os gêneros simultaneamente
 em um único MILP, eliminando as inviabilidades da abordagem sequencial.
 Usa um único espaço de índices \code{j} para todas as agências; o bloqueio
 implícito via capacidade (\code{wm[j] <= n_masculino[j]}) dispensa mapeamentos
-bilaterais. Retorna estrutura compatível com \code{\link[pns.zonas:orce_hibrido]{pns.zonas::orce_hibrido()}}.
+bilaterais. Retorna estrutura compatível com \code{\link[pns.zonas:orce_conjunto]{pns.zonas::orce_conjunto()}}.
 }

@@ -4,7 +4,7 @@
 #' em um único MILP, eliminando as inviabilidades da abordagem sequencial.
 #' Usa um único espaço de índices `j` para todas as agências; o bloqueio
 #' implícito via capacidade (`wm[j] <= n_masculino[j]`) dispensa mapeamentos
-#' bilaterais. Retorna estrutura compatível com [pns.zonas::orce_hibrido()].
+#' bilaterais. Retorna estrutura compatível com [pns.zonas::orce_conjunto()].
 #'
 #' @inheritParams orce
 #' @param fixar_atribuicoes_masculino `data.frame` com colunas `uc`,

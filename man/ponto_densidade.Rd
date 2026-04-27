@@ -24,7 +24,7 @@ Calcula o ponto de maior densidade populacional para cada unidade espacial
 de pesos \code{n} (e.g., número de estabelecimentos).
 }
 \details{
-Delega o cálculo de densidade para \code{\link[pns.zonas:density_point]{pns.zonas::density_point()}}, que usa
+Delega o cálculo de densidade para \code{pns.zonas::density_point()}, que usa
 estimativa de densidade por kernel gaussiano (pacote \code{spatstat}) com
 largura de banda \verb{sigma = max(10\% da amplitude, 30 m)}. Unidades com um
 único ponto são retornadas diretamente.
