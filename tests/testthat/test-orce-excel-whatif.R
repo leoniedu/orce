@@ -124,24 +124,26 @@ test_that("UPAs sheet uses agency names for selection and formulas for derived c
   upas_formulas <- read_sheet(ctx$wb, "UPAs", show_formula = TRUE)
 
   expect_true(all(c(
-    "Ag. selecionada",
-    "Cód. ag. selecionada",
+    "Ag. selecionada M",
+    "Cód. ag. selecionada M",
     "Custo desloc. selecionada (R$)",
-    "Realocada"
+    "Realocada M"
   ) %in% names(upas_formulas)))
 
-  expect_equal(sheet_col(upas, "Ag. selecionada"), sheet_col(upas, "Ag. otimizada"))
-  expect_false(any(grepl("^[0-9]+$", sheet_col(upas, "Ag. selecionada"))))
-  expect_true(all(grepl("INDEX\\('Agências'!\\$A\\$2", sheet_col(upas_formulas, "Cód. ag. selecionada"))))
+  expect_equal(sheet_col(upas, "Ag. selecionada M"), sheet_col(upas, "Ag. otimizada M"))
+  expect_false(any(grepl("^[0-9]+$", sheet_col(upas, "Ag. selecionada M"))))
+  expect_true(all(grepl("INDEX\\('Agências'!\\$A\\$2", sheet_col(upas_formulas, "Cód. ag. selecionada M"))))
   expect_true(all(grepl("\\+", sheet_col(upas_formulas, "Custo desloc. selecionada (R$)"))))
-  expect_true(all(grepl("IF\\(M", sheet_col(upas_formulas, "Realocada"))))
+  expect_true(all(grepl("IF\\(T", sheet_col(upas_formulas, "Realocada M"))))
 })
 
-test_that("UPAs worksheet validates the selected agency by name", {
+test_that("UPAs worksheet validates the selected agency by name (both M and F cols)", {
   ctx <- build_whatif_wb()
   upas_xml <- read_sheet_xml(ctx$out, 1)
 
-  expect_match(upas_xml, "<formula1>=agencia_selecao_lista</formula1>", fixed = TRUE)
+  # Data validation list should appear for both J (sel M) and K (sel F)
+  matches <- gregexpr("<formula1>=agencia_selecao_lista</formula1>", upas_xml, fixed = TRUE)
+  expect_gte(length(regmatches(upas_xml, matches)[[1]]), 2L)
 })
 
 test_that("Resumo por agência keeps static totals and exposes the new selected formulas", {
@@ -184,6 +186,8 @@ test_that("Resumo por agência keeps static totals and exposes the new selected 
   expect_true(all(grepl("^IF\\(AB", sheet_col(resumo_ag_formulas, "% aumento custo total sel. vs ótimo"))))
   expect_true(all(grepl("^H[0-9]+\\*remuneracao_entrevistador", sheet_col(resumo_ag_formulas, "Remuneração sel. (R$)"))))
   expect_true(all(grepl("^W[0-9]+\\+Z", sheet_col(resumo_ag_formulas, "Custo total sel. (R$)"))))
+  # Dual-SUMIF: selecionada costs reference both M (T col) and F (U col) codes
+  expect_true(all(grepl("SUMIF.*\\$T\\$.*SUMIF.*\\$U\\$", sheet_col(resumo_ag_formulas, "Diárias sel."))))
 })
 
 test_that("Resumo sheet summarizes the three scenarios with formulas over Resumo por agência", {
@@ -245,46 +249,52 @@ test_that("Agências sheet prefers agency names when x/y columns are present", {
 })
 
 test_that("Entrevistadores sel. equals Entrevistadores otim. at initial state", {
-  # At initial state selected == optimized, so the formula must reproduce the
-  # solver's integer entrevistadores. We evaluate the formula logic in R since
-  # openxlsx2 can't evaluate Excel formulas.
-  verify_entrev <- function(params_test) {
-    ctx <- build_whatif_wb(params = params_test)
-    resumo_ag <- read_sheet(ctx$wb, "Resumo por agência")
-    upas <- read_sheet(ctx$wb, "UPAs")
+  # At initial state selected == optimized. Simulate the non-pooled formula in R.
+  # Wide format: M and F each have their own carga column (carga_m, carga_f)
+  # and agency code columns (Cód. ag. otimizada M, Cód. ag. otimizada F).
+  verify_entrev <- function(params_test, resultado_test = resultado_default,
+                             ucs_test = uc_default) {
+    out <- tempfile(fileext = ".xlsx")
+    orce_excel_whatif(resultado = resultado_test, distancias_ucs = fixture$dists,
+                      ucs = ucs_test, agencias = ag_default, file = out, params = params_test)
+    wb      <- openxlsx2::wb_load(out)
+    resumo  <- read_sheet(wb, "Resumo por agência")
+    upas    <- read_sheet(wb, "UPAs")
 
-    entrev_otim <- sheet_col(resumo_ag, "Entrevistadores otim.")
-    ag_codes <- sheet_col(resumo_ag, "Cód. agência")
-    selected_codes <- sheet_col(upas, "Cód. ag. otimizada")
-    carga <- sheet_col(upas, "carga_entrevistador")
-    periodo <- sheet_col(upas, "periodo_key")
-    diarias <- sheet_col(resumo_ag, "Diárias otim.")
+    entrev_otim <- sheet_col(resumo, "Entrevistadores otim.")
+    ag_codes    <- sheet_col(resumo, "Cód. agência")
+    cod_m       <- sheet_col(upas, "Cód. ag. otimizada M")
+    cod_f       <- sheet_col(upas, "Cód. ag. otimizada F")
+    carga_m     <- sheet_col(upas, "carga_m")
+    carga_f     <- sheet_col(upas, "carga_f")
+    periodo     <- sheet_col(upas, "periodo_key")
+    diarias     <- sheet_col(resumo, "Diárias otim.")
+    max_dias    <- params_test$dias_coleta_entrevistador_max
 
     entrev_formula <- vapply(seq_along(ag_codes), function(idx) {
-      ag <- ag_codes[idx]
-      mask <- selected_codes == ag
-      if (!any(mask)) return(0)
-      periods <- unique(periodo[mask])
-      period_terms <- vapply(periods, function(p) {
-        ceiling(sum(carga[mask & periodo == p]) / params_test$dias_coleta_entrevistador_max)
+      ag   <- ag_codes[idx]
+      mask_m <- !is.na(cod_m) & cod_m == ag
+      mask_f <- !is.na(cod_f) & cod_f == ag
+      if (!any(mask_m) && !any(mask_f)) return(0)
+      periods <- unique(c(periodo[mask_m], periodo[mask_f]))
+      period_terms <- vapply(periods, function(pv) {
+        ceiling(sum(carga_m[mask_m & periodo == pv], na.rm = TRUE) / max_dias) +
+          ceiling(sum(carga_f[mask_f & periodo == pv], na.rm = TRUE) / max_dias)
       }, numeric(1))
       diarias_term <- if (is.finite(params_test$diarias_entrevistador_max)) {
         ceiling(diarias[idx] / params_test$diarias_entrevistador_max)
-      } else {
-        0
-      }
-      n_min_term <- params_test$n_entrevistadores_min * (sum(mask) > 0)
-      max(period_terms, diarias_term, n_min_term, 0)
+      } else 0
+      n_min_term <- params_test$n_entrevistadores_min * (any(mask_m) || any(mask_f))
+      max(max(period_terms), diarias_term, n_min_term, 0)
     }, numeric(1))
 
     expect_equal(unname(entrev_formula), entrev_otim,
-                 label = paste("params:", paste(names(params_test), params_test, sep = "=", collapse = ", ")))
+                 label = paste("params:", paste(names(params_test), params_test,
+                                                sep = "=", collapse = ", ")))
   }
 
-  # Default params (dias_coleta_max=14, diarias=Inf, n_min=1)
   verify_entrev(params_default)
 
-  # Production-like params: need consistent resultado
   params2 <- list(
     custo_litro_combustivel = 6, kml = 10, custo_hora_viagem = 10,
     dias_coleta_entrevistador_max = 14, diarias_entrevistador_max = 40,
@@ -296,36 +306,7 @@ test_that("Entrevistadores sel. equals Entrevistadores otim. at initial state", 
     n_entrevistadores_min = 2,
     custo_litro_combustivel = 6, kml = 10, custo_hora_viagem = 10, use_cache = FALSE
   )
-  out2 <- tempfile(fileext = ".xlsx")
-  orce_excel_whatif(
-    resultado = res2, distancias_ucs = fixture$dists,
-    ucs = uc_default, agencias = ag_default, file = out2, params = params2
-  )
-  wb2 <- openxlsx2::wb_load(out2)
-  resumo2 <- read_sheet(wb2, "Resumo por agência")
-  upas2 <- read_sheet(wb2, "UPAs")
-
-  entrev_otim2 <- sheet_col(resumo2, "Entrevistadores otim.")
-  ag_codes2 <- sheet_col(resumo2, "Cód. agência")
-  selected_codes2 <- sheet_col(upas2, "Cód. ag. otimizada")
-  carga2 <- sheet_col(upas2, "carga_entrevistador")
-  periodo2 <- sheet_col(upas2, "periodo_key")
-  diarias2 <- sheet_col(resumo2, "Diárias otim.")
-
-  entrev_formula2 <- vapply(seq_along(ag_codes2), function(idx) {
-    ag <- ag_codes2[idx]
-    mask <- selected_codes2 == ag
-    if (!any(mask)) return(0)
-    periods <- unique(periodo2[mask])
-    period_terms <- vapply(periods, function(p) {
-      ceiling(sum(carga2[mask & periodo2 == p]) / params2$dias_coleta_entrevistador_max)
-    }, numeric(1))
-    diarias_term <- ceiling(diarias2[idx] / params2$diarias_entrevistador_max)
-    n_min_term <- params2$n_entrevistadores_min * (sum(mask) > 0)
-    max(period_terms, diarias_term, n_min_term, 0)
-  }, numeric(1))
-
-  expect_equal(unname(entrev_formula2), entrev_otim2)
+  verify_entrev(params2, resultado_test = res2)
 })
 
 test_that("fallback interviewer formula used when dias_coleta_entrevistador_max is Inf", {
@@ -426,4 +407,94 @@ test_that("roundtrip: per-UPA cost components reconstructed from xlsx matrices m
 
   compare_scenario(resultado_default$resultado_ucs_jurisdicao)
   compare_scenario(resultado_default$resultado_ucs_otimo)
+})
+
+test_that("orce_excel_whatif accepts an orce_conjunto result via res_base (wide format)", {
+  # Simulate orce_conjunto result: same agencies for M and F (non-hybrid UCs).
+  # Build a minimal alocacao from resultado_default.
+  ucs_ot <- resultado_default$resultado_ucs_otimo
+  alocacao_sim <- ucs_ot |>
+    dplyr::transmute(
+      uc,
+      agencia_codigo_m          = agencia_codigo,
+      agencia_codigo_f          = agencia_codigo,
+      hibrido                   = FALSE,
+      custo_combustivel_m       = custo_combustivel / 2,
+      custo_combustivel_f       = custo_combustivel / 2,
+      distancia_total_km_m      = distancia_total_km / 2,
+      distancia_total_km_f      = distancia_total_km / 2,
+      duracao_total_horas_m     = duracao_total_horas / 2,
+      duracao_total_horas_f     = duracao_total_horas / 2,
+      trechos_m                 = trechos / 2,
+      trechos_f                 = trechos / 2,
+      custo_horas_viagem_m      = custo_horas_viagem / 2,
+      custo_horas_viagem_f      = custo_horas_viagem / 2,
+      total_diarias_m           = total_diarias / 2,
+      total_diarias_f           = total_diarias / 2,
+      custo_diarias_m           = custo_diarias / 2,
+      custo_diarias_f           = custo_diarias / 2,
+      custo_deslocamento        = custo_deslocamento
+    )
+
+  conjunto_result <- list(
+    res_base      = resultado_default,
+    res_masculino = resultado_default,
+    res_feminino  = resultado_default,
+    alocacao      = alocacao_sim
+  )
+
+  n_ucs <- length(unique(resultado_default$resultado_ucs_otimo$uc))
+  ucs_no_entrev <- uc_default |> dplyr::select(-"entrevistadores_por_uc")
+  params_hybrid <- c(params_default, list(n_entrevistadores_min = 2))
+
+  out <- tempfile(fileext = ".xlsx")
+  expect_no_error(
+    orce_excel_whatif(
+      resultado      = conjunto_result,
+      distancias_ucs = fixture$dists,
+      ucs            = ucs_no_entrev,
+      agencias       = ag_default,
+      file           = out,
+      params         = params_hybrid
+    )
+  )
+  expect_true(file.exists(out))
+
+  wb      <- openxlsx2::wb_load(out)
+  upas_df <- read_sheet(wb, "UPAs")
+
+  # Wide format: one row per UC (not doubled)
+  expect_equal(nrow(upas_df), n_ucs)
+
+  # Wide format has separate M and F agency columns, no Gênero column
+  expect_true("Ag. otimizada M" %in% names(upas_df))
+  expect_true("Ag. otimizada F" %in% names(upas_df))
+  expect_false("Gênero" %in% names(upas_df))
+
+  # Since M and F use same resultado_default, Ag. oti M == Ag. oti F
+  expect_equal(upas_df[["Ag. otimizada M"]], upas_df[["Ag. otimizada F"]])
+  expect_true(all(nchar(upas_df[["Ag. otimizada M"]]) > 0))
+
+  # carga_m and carga_f both = dias_coleta (1 interviewer each in hybrid mode)
+  expect_true("carga_m" %in% names(upas_df))
+  expect_true("carga_f" %in% names(upas_df))
+  expect_equal(upas_df[["carga_m"]], upas_df[["carga_f"]])
+
+  # Entrevistadores otim.: non-pooled, each gender rounds up independently
+  resumo_df   <- read_sheet(wb, "Resumo por agência")
+  entrev_otim <- resumo_df[["Entrevistadores otim."]]
+  max_dias    <- params_default$dias_coleta_entrevistador_max
+  n_min       <- 2L
+  ag_codes    <- resumo_df[["Cód. agência"]]
+  expected    <- vapply(ag_codes, function(ag) {
+    mask_m <- !is.na(upas_df[["Cód. ag. otimizada M"]]) & upas_df[["Cód. ag. otimizada M"]] == ag
+    mask_f <- !is.na(upas_df[["Cód. ag. otimizada F"]]) & upas_df[["Cód. ag. otimizada F"]] == ag
+    if (!any(mask_m) && !any(mask_f)) return(0L)
+    as.integer(max(
+      ceiling(sum(upas_df[["carga_m"]][mask_m], na.rm = TRUE) / max_dias) +
+        ceiling(sum(upas_df[["carga_f"]][mask_f], na.rm = TRUE) / max_dias),
+      n_min
+    ))
+  }, integer(1L))
+  expect_equal(entrev_otim, unname(expected))
 })

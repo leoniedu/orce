@@ -109,6 +109,22 @@
 #' @export
 orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, params = list()) {
   checkmate::assert_list(resultado)
+  alocacao_hibrido  <- NULL
+  ag_ot_m           <- NULL
+  ag_ot_f           <- NULL
+  hibrido           <- FALSE
+  if (!is.null(resultado$res_base)) {
+    hibrido          <- TRUE
+    alocacao_hibrido <- resultado$alocacao
+    ag_ot_m <- resultado$res_masculino$resultado_ucs_otimo |>
+      dplyr::select("uc", agencia_otimizada_m = "agencia_codigo") |>
+      dplyr::distinct(.data$uc, .keep_all = TRUE)
+    ag_ot_f <- resultado$res_feminino$resultado_ucs_otimo |>
+      dplyr::select("uc", agencia_otimizada_f = "agencia_codigo") |>
+      dplyr::distinct(.data$uc, .keep_all = TRUE)
+    resultado <- resultado$res_base
+    if (!"entrevistadores_por_uc" %in% names(ucs)) ucs$entrevistadores_por_uc <- 2L
+  }
   required_results <- c(
     "resultado_ucs_otimo",
     "resultado_ucs_jurisdicao",
@@ -153,18 +169,43 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
 
   agencias_norm <- .normalize_agencias_whatif(agencias, resultado)
   agency_codes <- sort(unique(agencias_norm$agencia_codigo))
-  upa_data <- .prepare_upa_data(ucs, resultado, agencias_norm)
+  upa_data <- .prepare_upa_data(ucs, resultado, agencias_norm,
+                                 ag_ot_m = ag_ot_m, ag_ot_f = ag_ot_f,
+                                 alocacao = alocacao_hibrido)
   resumo_agencia <- .prepare_resumo_por_agencia(resultado, agencias_norm, agency_codes)
+  if (hibrido) {
+    # Rebuild _ot columns from alocacao (true hybrid optimum with fuel sharing).
+    # res_base _ot values use a non-hybrid allocation and may include agencies
+    # absent from the M+F allocation.
+    resumo_agencia <- .rebuild_hybrid_ot(
+      resumo_agencia, upa_data, alocacao_hibrido, agencias_norm, p
+    )
+  }
   n_upas <- nrow(upa_data)
 
   wb <- openxlsx2::wb_workbook()
-  .init_workbook_sheets(wb)
+  .init_workbook_sheets(wb, hibrido = hibrido)
   .write_parametros(wb, p)
   .write_agencias(wb, agencias_norm, agency_codes)
   .write_matrices(wb, distancias_ucs, upa_data, agency_codes)
   .write_upas(wb, upa_data, n_upas, length(agency_codes))
   n_resumo_agencia <- .write_resumo_por_agencia(wb, resumo_agencia, upa_data, p)
   .write_resumo_geral(wb, n_resumo_agencia)
+  if (hibrido) {
+    wb$add_data(
+      sheet = "Notas",
+      x = data.frame(
+        `Atenção` = paste0(
+          "Modo híbrido: a planilha usa colunas M e F para cada UC. ",
+          "Quando M e F vão à mesma agência (compartilha=TRUE), ",
+          "km e combustível são divididos por 2 por entrevistador. ",
+          "Tempo de viagem NÃO é dividido (cada entrevistador viaja)."
+        ),
+        check.names = FALSE
+      )
+    )
+    wb$set_col_widths(sheet = "Notas", cols = 1L, widths = 120)
+  }
   wb <- .format_workbook(wb, n_upas, n_resumo_agencia)
 
   tmp <- tempfile(fileext = ".xlsx")
@@ -234,40 +275,85 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     dplyr::arrange(.data$agencia_codigo)
 }
 
-.prepare_upa_data <- function(ucs, resultado, agencias) {
+.prepare_upa_data <- function(ucs, resultado, agencias, ag_ot_m = NULL, ag_ot_f = NULL,
+                               alocacao = NULL) {
   ucs_jur <- resultado$resultado_ucs_otimo |>
     dplyr::select("uc", agencia_otimizada = "agencia_codigo", "agencia_codigo_jurisdicao") |>
     dplyr::distinct(.data$uc, .keep_all = TRUE)
 
+  # Per-UC jurisdiction and optimized displacement costs (static R values)
+  custo_jur_lookup <- resultado$resultado_ucs_jurisdicao |>
+    dplyr::select("uc", custo_jur = "custo_deslocamento") |>
+    dplyr::distinct(.data$uc, .keep_all = TRUE)
+
+  custo_oti_lookup <- if (!is.null(alocacao)) {
+    # Hybrid: use alocacao which applies fuel-sharing logic correctly
+    alocacao |>
+      dplyr::select("uc", custo_oti = "custo_deslocamento") |>
+      dplyr::distinct(.data$uc, .keep_all = TRUE)
+  } else {
+    resultado$resultado_ucs_otimo |>
+      dplyr::select("uc", custo_oti = "custo_deslocamento") |>
+      dplyr::distinct(.data$uc, .keep_all = TRUE)
+  }
+
   agency_label_lookup <- stats::setNames(agencias$agencia_selecao, agencias$agencia_codigo)
   has_data <- "data" %in% names(ucs)
+  hibrido <- !is.null(ag_ot_m)
 
-  base_cols <- c(
-    "uc", "municipio_codigo", "municipio_nome", "dias_coleta",
-    "viagens", "entrevistadores_por_uc", "diaria_valor"
-  )
+  base_cols <- c("uc", "municipio_codigo", "municipio_nome", "dias_coleta",
+                 "viagens", "entrevistadores_por_uc", "diaria_valor")
   if (has_data) base_cols <- c(base_cols, "data")
 
   upa_data <- ucs |>
     dplyr::select(dplyr::all_of(base_cols)) |>
     dplyr::distinct(.data$uc, .keep_all = TRUE) |>
     dplyr::left_join(ucs_jur, by = "uc") |>
-    dplyr::rename(agencia_jurisdicao = "agencia_codigo_jurisdicao")
+    dplyr::rename(agencia_jurisdicao = "agencia_codigo_jurisdicao") |>
+    dplyr::left_join(custo_jur_lookup, by = "uc") |>
+    dplyr::left_join(custo_oti_lookup, by = "uc")
 
   period_key <- if (has_data) as.character(upa_data$data) else rep("Total", nrow(upa_data))
 
+  upa_data <- upa_data |>
+    dplyr::mutate(periodo_key = period_key)
+
+  # --- M/F agency columns ---
+  if (hibrido) {
+    upa_data <- upa_data |>
+      dplyr::left_join(ag_ot_m, by = "uc") |>
+      dplyr::left_join(ag_ot_f, by = "uc") |>
+      dplyr::mutate(
+        agencia_otimizada_m = dplyr::coalesce(.data$agencia_otimizada_m, .data$agencia_otimizada),
+        agencia_otimizada_f = dplyr::coalesce(.data$agencia_otimizada_f, .data$agencia_otimizada)
+      )
+  } else {
+    upa_data <- upa_data |>
+      dplyr::mutate(
+        agencia_otimizada_m = .data$agencia_otimizada,
+        agencia_otimizada_f = dplyr::if_else(.data$entrevistadores_por_uc >= 2L,
+                                              .data$agencia_otimizada, NA_character_)
+      )
+  }
+
+  mk_label <- function(code) {
+    lbl <- unname(agency_label_lookup[code])
+    dplyr::coalesce(lbl, code)
+  }
+
   upa_data |>
     dplyr::mutate(
-      periodo_key = period_key,
-      agencia_jurisdicao_label = unname(agency_label_lookup[.data$agencia_jurisdicao]),
-      agencia_otimizada_label = unname(agency_label_lookup[.data$agencia_otimizada]),
-      agencia_selecionada_label = .data$agencia_otimizada_label,
-      carga_entrevistador = .data$dias_coleta * .data$entrevistadores_por_uc
-    ) |>
-    dplyr::mutate(
-      agencia_jurisdicao_label = dplyr::coalesce(.data$agencia_jurisdicao_label, .data$agencia_jurisdicao),
-      agencia_otimizada_label = dplyr::coalesce(.data$agencia_otimizada_label, .data$agencia_otimizada),
-      agencia_selecionada_label = dplyr::coalesce(.data$agencia_selecionada_label, .data$agencia_otimizada)
+      agencia_jurisdicao_label      = mk_label(.data$agencia_jurisdicao),
+      agencia_otimizada_m_label     = mk_label(.data$agencia_otimizada_m),
+      agencia_otimizada_f_label     = dplyr::if_else(
+        is.na(.data$agencia_otimizada_f), NA_character_,
+        mk_label(.data$agencia_otimizada_f)
+      ),
+      agencia_sel_m_label           = .data$agencia_otimizada_m_label,
+      agencia_sel_f_label           = .data$agencia_otimizada_f_label,
+      # Each gender has 1 interviewer's workload; F is 0 when ent=1 (non-hybrid)
+      carga_m = .data$dias_coleta,
+      carga_f = dplyr::if_else(!is.na(.data$agencia_otimizada_f), .data$dias_coleta, 0L)
     )
 }
 
@@ -314,7 +400,102 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     )
 }
 
-.init_workbook_sheets <- function(wb) {
+.rebuild_hybrid_ot <- function(resumo_agencia, upa_data, alocacao, agencias_norm, p) {
+  cl <- openxlsx2::int2col
+  # n_ucs_ot: distinct UCs served by each agency (via M or F allocation)
+  nm <- upa_data |>
+    dplyr::count(agencia_codigo = as.character(.data$agencia_otimizada_m), name = "n_m")
+  nf <- upa_data |>
+    dplyr::count(agencia_codigo = as.character(.data$agencia_otimizada_f), name = "n_f")
+  nb <- upa_data |>
+    dplyr::filter(!is.na(.data$agencia_otimizada_f),
+                  .data$agencia_otimizada_m == .data$agencia_otimizada_f) |>
+    dplyr::count(agencia_codigo = as.character(.data$agencia_otimizada_m), name = "n_both")
+  n_ucs_ot <- nm |>
+    dplyr::full_join(nf, by = "agencia_codigo") |>
+    dplyr::full_join(nb, by = "agencia_codigo") |>
+    dplyr::mutate(
+      dplyr::across(dplyr::where(is.numeric), ~ tidyr::replace_na(.x, 0L)),
+      n_ucs_ot = .data$n_m + .data$n_f - .data$n_both
+    ) |>
+    dplyr::select("agencia_codigo", "n_ucs_ot")
+
+  # Per-agency costs: pivot alocacao to per-gender-agency rows, apply sharing logic
+  cost_long <- dplyr::bind_rows(
+    alocacao |> dplyr::transmute(
+      agencia_codigo         = as.character(.data$agencia_codigo_m),
+      distancia_total_km     = dplyr::if_else(.data$hibrido, .data$distancia_total_km_m,
+                                               .data$distancia_total_km_m / 2),
+      custo_combustivel      = dplyr::if_else(.data$hibrido, .data$custo_combustivel_m,
+                                               .data$custo_combustivel_m / 2),
+      total_diarias          = .data$total_diarias_m,
+      custo_diarias          = .data$custo_diarias_m
+    ),
+    alocacao |> dplyr::transmute(
+      agencia_codigo         = as.character(.data$agencia_codigo_f),
+      distancia_total_km     = dplyr::if_else(.data$hibrido, .data$distancia_total_km_f,
+                                               .data$distancia_total_km_f / 2),
+      custo_combustivel      = dplyr::if_else(.data$hibrido, .data$custo_combustivel_f,
+                                               .data$custo_combustivel_f / 2),
+      total_diarias          = .data$total_diarias_f,
+      custo_diarias          = .data$custo_diarias_f
+    )
+  ) |>
+    dplyr::summarise(
+      distancia_total_km_ot = sum(.data$distancia_total_km),
+      custo_combustivel_ot  = sum(.data$custo_combustivel),
+      total_diarias_ot      = sum(.data$total_diarias),
+      custo_diarias_ot      = sum(.data$custo_diarias),
+      .by = "agencia_codigo"
+    )
+
+  # entrevistadores_ot: non-pooled (each gender rounds up separately)
+  treinamento_lookup <- agencias_norm |>
+    dplyr::select("agencia_codigo", "custo_treinamento_por_entrevistador")
+
+  enti_ot <- if (is.finite(p$dias_coleta_entrevistador_max)) {
+    carga_m_ag <- upa_data |>
+      dplyr::summarise(carga_m = sum(.data$carga_m), .by = "agencia_otimizada_m") |>
+      dplyr::rename(agencia_codigo = "agencia_otimizada_m")
+    carga_f_ag <- upa_data |>
+      dplyr::filter(!is.na(.data$agencia_otimizada_f)) |>
+      dplyr::summarise(carga_f = sum(.data$carga_f), .by = "agencia_otimizada_f") |>
+      dplyr::rename(agencia_codigo = "agencia_otimizada_f")
+    carga_m_ag |>
+      dplyr::full_join(carga_f_ag, by = "agencia_codigo") |>
+      dplyr::mutate(
+        dplyr::across(dplyr::where(is.numeric), ~ tidyr::replace_na(.x, 0)),
+        entrevistadores_ot = pmax(
+          ceiling(.data$carga_m / p$dias_coleta_entrevistador_max) +
+            ceiling(.data$carga_f / p$dias_coleta_entrevistador_max),
+          if (is.finite(p$n_entrevistadores_min)) p$n_entrevistadores_min else 0L
+        )
+      ) |>
+      dplyr::select("agencia_codigo", "entrevistadores_ot")
+  } else {
+    data.frame(agencia_codigo = character(0), entrevistadores_ot = integer(0))
+  }
+
+  combined_ot <- n_ucs_ot |>
+    dplyr::left_join(cost_long, by = "agencia_codigo") |>
+    dplyr::left_join(enti_ot, by = "agencia_codigo") |>
+    dplyr::left_join(treinamento_lookup, by = "agencia_codigo") |>
+    dplyr::mutate(
+      dplyr::across(dplyr::where(is.numeric), ~ tidyr::replace_na(.x, 0)),
+      entrevistadores_ot   = tidyr::replace_na(.data$entrevistadores_ot, 0L),
+      custo_treinamento_ot = .data$entrevistadores_ot * .data$custo_treinamento_por_entrevistador
+    ) |>
+    dplyr::select(-"custo_treinamento_por_entrevistador")
+
+  ot_cols <- grep("_ot$", names(resumo_agencia), value = TRUE)
+  resumo_agencia |>
+    dplyr::select(-dplyr::all_of(ot_cols)) |>
+    dplyr::left_join(combined_ot, by = "agencia_codigo") |>
+    dplyr::mutate(dplyr::across(dplyr::where(is.numeric), ~ tidyr::replace_na(.x, 0)))
+}
+
+.init_workbook_sheets <- function(wb, hibrido = FALSE) {
+  if (hibrido) wb$add_worksheet("Notas")
   for (sheet_name in c(
     "UPAs",
     "Resumo",
@@ -416,7 +597,7 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   wb$freeze_pane(sheet = "Durações", first_row = TRUE)
 
   if (!"municipio_codigo" %in% names(dists)) {
-    mun_lookup <- upa_data |> dplyr::select("uc", "municipio_codigo")
+    mun_lookup <- upa_data |> dplyr::select("uc", "municipio_codigo") |> dplyr::distinct(.data$uc, .keep_all = TRUE)
     dists <- dists |> dplyr::left_join(mun_lookup, by = "uc")
   }
   dm_data <- dists |>
@@ -435,76 +616,124 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
 }
 
 .write_upas <- function(wb, upa_data, n_upas, n_agencies) {
+  # Unified wide-format layout (hybrid and non-hybrid):
+  # Visible  1-16: UPA, Cód.Mun(hidden), Município, Dias, Viagens, Val.Diária,
+  #                Ag.jur, Ag.oti.M, Ag.oti.F, Ag.sel.M(J), Ag.sel.F(K),
+  #                Custo jur(L,static), Custo oti(M,static), Custo sel(N,formula),
+  #                Realocada M(O), Realocada F(P)
+  # Hidden support 17-25 (Q-Y): Cód.jur, Cód.oti.M, Cód.oti.F,
+  #                Cód.sel.M(T,formula), Cód.sel.F(U,formula),
+  #                compartilha(V), periodo_key(W), carga_m(X), carga_f(Y)
+  # Hidden sel M   26-37 (Z-AK): dist,dur,dm,dp,diaria,meia,trechos,td,cd,dtk,cc,chv
+  # Hidden sel F   38-49 (AL-AW): same for F
+  inter_labels <- c("dist", "dur", "dm", "dp", "diaria", "meia",
+                    "trechos", "td", "cd", "dtk", "cc", "chv")
   headers <- c(
-    "UPA", "Cód. Município", "Município", "Dias coleta",
-    "Viagens", "Entrevistadores", "Valor diária (R$)",
-    "Ag. jurisdição", "Ag. otimizada", "Ag. selecionada",
-    "Cód. ag. jurisdição", "Cód. ag. otimizada", "Cód. ag. selecionada",
-    "Custo desloc. jurisdição (R$)",
-    "Custo desloc. otimizada (R$)",
-    "Custo desloc. selecionada (R$)",
-    "Realocada",
-    "periodo_key", "carga_entrevistador"
+    "UPA", "Cód. Município", "Município", "Dias coleta", "Viagens", "Valor diária (R$)",
+    "Ag. jurisdição", "Ag. otimizada M", "Ag. otimizada F",
+    "Ag. selecionada M", "Ag. selecionada F",
+    "Custo desloc. jurisdição (R$)", "Custo desloc. otimizada (R$)",
+    "Custo desloc. selecionada (R$)", "Realocada M", "Realocada F",
+    "Cód. ag. jurisdição", "Cód. ag. otimizada M", "Cód. ag. otimizada F",
+    "Cód. ag. selecionada M", "Cód. ag. selecionada F",
+    "compartilha", "periodo_key", "carga_m", "carga_f",
+    paste0("sel_m_", inter_labels),
+    paste0("sel_f_", inter_labels)
   )
-  inter_labels <- c(
-    "distancia_km", "duracao_horas", "diaria_municipio",
-    "diaria_pernoite", "diaria", "meia_diaria", "trechos",
-    "total_diarias", "custo_diarias", "distancia_total_km",
-    "custo_combustivel", "custo_horas_viagem"
-  )
-  for (prefix in c("jur", "oti", "sel")) {
-    headers <- c(headers, paste0(prefix, "_", inter_labels))
-  }
+  wb$add_data(sheet = "UPAs", x = matrix(headers, nrow = 1L),
+              col_names = FALSE, start_row = 1, start_col = 1)
 
-  wb$add_data(
-    sheet = "UPAs",
-    x = matrix(headers, nrow = 1L),
-    col_names = FALSE,
-    start_row = 1,
-    start_col = 1
-  )
-
+  # Static visible data (cols 1-13: UPA through Custo oti)
   fixed_df <- data.frame(
-    upa = upa_data$uc,
-    mun_cod = upa_data$municipio_codigo,
-    mun_nome = upa_data$municipio_nome,
-    dias_coleta = upa_data$dias_coleta,
-    viagens = upa_data$viagens,
-    entrevistadores = upa_data$entrevistadores_por_uc,
+    upa          = upa_data$uc,
+    mun_cod      = upa_data$municipio_codigo,
+    mun_nome     = upa_data$municipio_nome,
+    dias_coleta  = upa_data$dias_coleta,
+    viagens      = upa_data$viagens,
     diaria_valor = upa_data$diaria_valor,
-    ag_jur = upa_data$agencia_jurisdicao_label,
-    ag_oti = upa_data$agencia_otimizada_label,
-    ag_sel = upa_data$agencia_selecionada_label,
-    cod_jur = upa_data$agencia_jurisdicao,
-    cod_oti = upa_data$agencia_otimizada,
+    ag_jur       = upa_data$agencia_jurisdicao_label,
+    ag_oti_m     = upa_data$agencia_otimizada_m_label,
+    ag_oti_f     = tidyr::replace_na(upa_data$agencia_otimizada_f_label, ""),
+    ag_sel_m     = upa_data$agencia_sel_m_label,
+    ag_sel_f     = tidyr::replace_na(upa_data$agencia_sel_f_label, ""),
+    custo_jur    = upa_data$custo_jur,
+    custo_oti    = upa_data$custo_oti,
     stringsAsFactors = FALSE
   )
   wb$add_data(sheet = "UPAs", x = fixed_df, col_names = FALSE, start_row = 2, start_col = 1)
 
-  support_df <- data.frame(
-    periodo_key = upa_data$periodo_key,
-    carga_entrevistador = upa_data$carga_entrevistador
+  # Static hidden support (cols 17-19, 23-25)
+  codes_df <- data.frame(
+    cod_jur   = upa_data$agencia_jurisdicao,
+    cod_oti_m = upa_data$agencia_otimizada_m,
+    cod_oti_f = tidyr::replace_na(upa_data$agencia_otimizada_f, ""),
+    stringsAsFactors = FALSE
   )
-  wb$add_data(sheet = "UPAs", x = support_df, col_names = FALSE, start_row = 2, start_col = 18)
+  wb$add_data(sheet = "UPAs", x = codes_df, col_names = FALSE, start_row = 2, start_col = 17)
+
+  carga_df <- data.frame(
+    periodo_key = upa_data$periodo_key,
+    carga_m     = upa_data$carga_m,
+    carga_f     = upa_data$carga_f
+  )
+  wb$add_data(sheet = "UPAs", x = carga_df, col_names = FALSE, start_row = 2, start_col = 23)
 
   rows <- seq_len(n_upas) + 1L
-  selected_code_formulas <- paste0(
-    "IFERROR(INDEX('Agências'!$A$2:$A$9999,MATCH(J", rows,
-    ",'Agências'!$G$2:$G$9999,0)),\"\")"
+  last_row <- n_upas + 1L
+
+  # Col T (20): Cód.sel.M from J
+  wb$add_formula(sheet = "UPAs",
+    x = paste0("IFERROR(INDEX('Agências'!$A$2:$A$9999,MATCH(J", rows,
+               ",'Agências'!$G$2:$G$9999,0)),\"\")"),
+    dims = paste0("T2:T", last_row))
+
+  # Col U (21): Cód.sel.F from K (empty K → empty code)
+  wb$add_formula(sheet = "UPAs",
+    x = paste0("IF(K", rows, "=\"\",\"\",IFERROR(INDEX('Agências'!$A$2:$A$9999,MATCH(K", rows,
+               ",'Agências'!$G$2:$G$9999,0)),\"\"))"),
+    dims = paste0("U2:U", last_row))
+
+  # Col V (22): compartilha — TRUE when both have the same non-empty agency
+  wb$add_formula(sheet = "UPAs",
+    x = paste0("AND(T", rows, "<>\"\",U", rows, "<>\"\",T", rows, "=U", rows, ")"),
+    dims = paste0("V2:V", last_row))
+
+  # Sel M (agency=col20=T, hidden_start=26), Sel F (agency=col21=U, hidden_start=38)
+  # compartilha_col=22 halves km/fuel when sharing
+  .write_agency_formulas(wb, n_upas, n_agencies, agency_col = 20, hidden_start = 26,
+                          compartilha_col = 22)
+  .write_agency_formulas(wb, n_upas, n_agencies, agency_col = 21, hidden_start = 38,
+                          compartilha_col = 22)
+
+  # Col O (15): Realocada M
+  wb$add_formula(sheet = "UPAs",
+    x = paste0("IF(T", rows, "=\"\",FALSE,T", rows, "<>R", rows, ")"),
+    dims = paste0("O2:O", last_row))
+
+  # Col P (16): Realocada F
+  wb$add_formula(sheet = "UPAs",
+    x = paste0("IF(U", rows, "=\"\",FALSE,U", rows, "<>S", rows, ")"),
+    dims = paste0("P2:P", last_row))
+
+  # Col N (14): Custo sel = M(cd+cc+chv) + F(cd+cc+chv)
+  # M: cd=AH(34), cc=AJ(36), chv=AK(37)
+  # F: cd=AT(46), cc=AV(48), chv=AW(49)
+  cl <- openxlsx2::int2col
+  cost_sel_f <- paste0(
+    cl(34), rows, "+", cl(36), rows, "+", cl(37), rows, "+",
+    cl(46), rows, "+", cl(48), rows, "+", cl(49), rows
   )
-  wb$add_formula(sheet = "UPAs", x = selected_code_formulas, dims = paste0("M2:M", n_upas + 1L))
+  wb$add_formula(sheet = "UPAs", x = cost_sel_f, dims = paste0("N2:N", last_row))
 
-  .write_agency_formulas(wb, n_upas, n_agencies, agency_col = 11, hidden_start = 20, cost_col = 14)
-  .write_agency_formulas(wb, n_upas, n_agencies, agency_col = 12, hidden_start = 32, cost_col = 15)
-  .write_agency_formulas(wb, n_upas, n_agencies, agency_col = 13, hidden_start = 44, cost_col = 16)
-
-  realocada_formulas <- paste0("IF(M", rows, "=\"\",FALSE,M", rows, "<>K", rows, ")")
-  wb$add_formula(sheet = "UPAs", x = realocada_formulas, dims = paste0("Q2:Q", n_upas + 1L))
   wb$freeze_pane(sheet = "UPAs", first_row = TRUE)
-  wb$add_filter(sheet = "UPAs", rows = 1, cols = 1:17)
+  wb$add_filter(sheet = "UPAs", rows = 1, cols = 1:16)
 }
 
-.write_agency_formulas <- function(wb, n_upas, n_agencies, agency_col, hidden_start, cost_col) {
+# agency_col: column index of the agency code (T=20 for M, U=21 for F)
+# hidden_start: first column of the 12-col hidden calculation block
+# compartilha_col: column index of the compartilha flag (V=22); halves dtk when TRUE
+.write_agency_formulas <- function(wb, n_upas, n_agencies, agency_col, hidden_start,
+                                    compartilha_col = NULL) {
   cl <- openxlsx2::int2col
   h <- function(offset) cl(hidden_start + offset)
   ag <- cl(agency_col)
@@ -514,11 +743,10 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
 
   upa_cell <- paste0("A", rows)
   mun_cell <- paste0("B", rows)
-  ag_cell <- paste0(ag, rows)
-  d_cell <- paste0("D", rows)
-  e_cell <- paste0("E", rows)
-  f_cell <- paste0("F", rows)
-  g_cell <- paste0("G", rows)
+  ag_cell  <- paste0(ag, rows)
+  d_cell   <- paste0("D", rows)
+  e_cell   <- paste0("E", rows)
+  f_cell   <- paste0("F", rows)   # Valor diária
 
   dist_f <- paste0(
     "IF(", ag_cell, "=\"\",0,IFERROR(INDEX('Distâncias'!$B$2:$", last_data_col, "$", last_upa_row,
@@ -540,43 +768,44 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     ",MATCH(", upa_cell, ",'Diária Pernoite'!$A$2:$A$", last_upa_row, ",0)",
     ",MATCH(", ag_cell, ",'Diária Pernoite'!$B$1:$", last_data_col, "$1,0)),FALSE))"
   )
-  diaria_f <- paste0("OR(", h(2), rows, ",", h(3), rows, ")")
-  meia_f <- paste0("AND(", h(2), rows, ",NOT(", h(3), rows, "))")
-  trechos_f <- paste0(
-    "IF(AND(", h(4), rows, ",NOT(", h(5), rows, ")),",
-    e_cell, "*2,", d_cell, "*2)"
-  )
+  diaria_f  <- paste0("OR(", h(2), rows, ",", h(3), rows, ")")
+  meia_f    <- paste0("AND(", h(2), rows, ",NOT(", h(3), rows, "))")
+  trechos_f <- paste0("IF(AND(", h(4), rows, ",NOT(", h(5), rows, ")),",
+                       e_cell, "*2,", d_cell, "*2)")
+  # td = n_diarias (1 interviewer per gender, no * entrevistadores)
   td_f <- paste0(
     "IF(", h(4), rows, ",",
     "IF(", d_cell, "=0,0,",
     "IF(", h(5), rows, ",", d_cell, "*0.5,",
-    "IF(", d_cell, "=1,1.5,", d_cell, "-0.5))),0)*", f_cell
+    "IF(", d_cell, "=1,1.5,", d_cell, "-0.5))),0)"
   )
-  cd_f <- paste0(h(7), rows, "*", g_cell)
-  dtk_f <- paste0(h(6), rows, "*", h(0), rows)
-  cc_f <- paste0("(", h(9), rows, "/kml)*custo_litro_combustivel")
+  cd_f  <- paste0(h(7), rows, "*", f_cell)
+  # dtk: halve km/fuel when sharing the same vehicle
+  if (is.null(compartilha_col)) {
+    dtk_f <- paste0(h(6), rows, "*", h(0), rows)
+  } else {
+    comp <- cl(compartilha_col)
+    dtk_f <- paste0(h(6), rows, "*", h(0), rows, "*IF(", comp, rows, ",0.5,1)")
+  }
+  cc_f  <- paste0("(", h(9), rows, "/kml)*custo_litro_combustivel")
   chv_f <- paste0(h(6), rows, "*", h(1), rows, "*custo_hora_viagem")
-  cost_f <- paste0(h(8), rows, "+", h(10), rows, "+", h(11), rows)
 
-  wb$add_formula(sheet = "UPAs", x = dist_f, dims = paste0(h(0), "2:", h(0), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = dur_f, dims = paste0(h(1), "2:", h(1), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = dm_f, dims = paste0(h(2), "2:", h(2), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = dp_f, dims = paste0(h(3), "2:", h(3), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = diaria_f, dims = paste0(h(4), "2:", h(4), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = meia_f, dims = paste0(h(5), "2:", h(5), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = dist_f,    dims = paste0(h(0), "2:", h(0), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = dur_f,     dims = paste0(h(1), "2:", h(1), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = dm_f,      dims = paste0(h(2), "2:", h(2), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = dp_f,      dims = paste0(h(3), "2:", h(3), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = diaria_f,  dims = paste0(h(4), "2:", h(4), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = meia_f,    dims = paste0(h(5), "2:", h(5), last_upa_row))
   wb$add_formula(sheet = "UPAs", x = trechos_f, dims = paste0(h(6), "2:", h(6), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = td_f, dims = paste0(h(7), "2:", h(7), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = cd_f, dims = paste0(h(8), "2:", h(8), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = dtk_f, dims = paste0(h(9), "2:", h(9), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = cc_f, dims = paste0(h(10), "2:", h(10), last_upa_row))
-  wb$add_formula(sheet = "UPAs", x = chv_f, dims = paste0(h(11), "2:", h(11), last_upa_row))
-  wb$add_formula(
-    sheet = "UPAs",
-    x = cost_f,
-    dims = paste0(cl(cost_col), "2:", cl(cost_col), last_upa_row)
-  )
+  wb$add_formula(sheet = "UPAs", x = td_f,      dims = paste0(h(7), "2:", h(7), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = cd_f,      dims = paste0(h(8), "2:", h(8), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = dtk_f,     dims = paste0(h(9), "2:", h(9), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = cc_f,      dims = paste0(h(10), "2:", h(10), last_upa_row))
+  wb$add_formula(sheet = "UPAs", x = chv_f,     dims = paste0(h(11), "2:", h(11), last_upa_row))
 }
 
+# UPAs layout constants (wide format):
+#   T(20)=Cód.sel.M, U(21)=Cód.sel.F, W(23)=periodo_key, X(24)=carga_m, Y(25)=carga_f
 .build_selected_interviewers_formula <- function(summary_row, upa_last_row, period_values, p,
                                                   diarias_sel_col) {
   if (length(period_values) == 0L) period_values <- "Total"
@@ -591,13 +820,21 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
       !is.na(p$dias_coleta_entrevistador_max) &&
       p$dias_coleta_entrevistador_max > 0) {
     period_terms <- vapply(period_values, function(period_value) {
-      period_value <- gsub("\"", "\"\"", as.character(period_value), fixed = TRUE)
-      paste0(
-        "ROUNDUP(SUMIFS(UPAs!$S$2:$S$", upa_last_row,
-        ",UPAs!$M$2:$M$", upa_last_row, ",$A", summary_row,
-        ",UPAs!$R$2:$R$", upa_last_row, ",\"", period_value,
-        "\")/dias_coleta_entrevistador_max,0)"
+      pv <- gsub("\"", "\"\"", as.character(period_value), fixed = TRUE)
+      # Non-pooled: M and F round up independently
+      m_term <- paste0(
+        "ROUNDUP(SUMIFS(UPAs!$X$2:$X$", upa_last_row,
+        ",UPAs!$T$2:$T$", upa_last_row, ",$A", summary_row,
+        ",UPAs!$W$2:$W$", upa_last_row, ",\"", pv, "\"",
+        ")/dias_coleta_entrevistador_max,0)"
       )
+      f_term <- paste0(
+        "ROUNDUP(SUMIFS(UPAs!$Y$2:$Y$", upa_last_row,
+        ",UPAs!$U$2:$U$", upa_last_row, ",$A", summary_row,
+        ",UPAs!$W$2:$W$", upa_last_row, ",\"", pv, "\"",
+        ")/dias_coleta_entrevistador_max,0)"
+      )
+      paste0(m_term, "+", f_term)
     }, character(1))
     diarias_term <- if (is.finite(p$diarias_entrevistador_max)) {
       paste0("ROUNDUP(", diarias_sel_col, summary_row, "/diarias_entrevistador_max,0)")
@@ -607,9 +844,12 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     return(paste0("MAX(", paste(c(period_terms, diarias_term, active_term, "0"), collapse = ","), ")"))
   }
 
+  # Fallback when no max capacity: sum of carga_m (via M code) + carga_f (via F code)
   fallback <- paste0(
-    "SUMIF(UPAs!$M$2:$M$", upa_last_row,
-    ",$A", summary_row, ",UPAs!$F$2:$F$", upa_last_row, ")"
+    "SUMIF(UPAs!$T$2:$T$", upa_last_row, ",$A", summary_row,
+    ",UPAs!$X$2:$X$", upa_last_row, ")",
+    "+SUMIF(UPAs!$U$2:$U$", upa_last_row, ",$A", summary_row,
+    ",UPAs!$Y$2:$Y$", upa_last_row, ")"
   )
   paste0("MAX(", fallback, ",", active_term, ",0)")
 }
@@ -620,107 +860,117 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   cl <- openxlsx2::int2col
 
   resumo_df <- data.frame(
-    `Cód. agência` = resumo_agencia$agencia_codigo,
-    `Agência` = resumo_agencia$agencia_nome,
-    `UPAs jur.` = resumo_agencia$n_ucs_jur,
-    `UPAs otim.` = resumo_agencia$n_ucs_ot,
-    `UPAs sel.` = NA,
-    `Entrevistadores jur.` = resumo_agencia$entrevistadores_jur,
-    `Entrevistadores otim.` = resumo_agencia$entrevistadores_ot,
-    `Entrevistadores sel.` = NA,
-    `Custo treinamento jur. (R$)` = resumo_agencia$custo_treinamento_jur,
-    `Custo treinamento otim. (R$)` = resumo_agencia$custo_treinamento_ot,
-    `Custo treinamento sel. (R$)` = NA,
-    `Remuneração jur. (R$)` = resumo_agencia$entrevistadores_jur * p$remuneracao_entrevistador,
-    `Remuneração otim. (R$)` = resumo_agencia$entrevistadores_ot * p$remuneracao_entrevistador,
-    `Remuneração sel. (R$)` = NA,
-    `Km total jur.` = resumo_agencia$distancia_total_km_jur,
-    `Km total otim.` = resumo_agencia$distancia_total_km_ot,
-    `Km total sel.` = NA,
-    `Diárias jur.` = resumo_agencia$total_diarias_jur,
-    `Diárias otim.` = resumo_agencia$total_diarias_ot,
-    `Diárias sel.` = NA,
-    `Custo diárias jur. (R$)` = resumo_agencia$custo_diarias_jur,
-    `Custo diárias otim. (R$)` = resumo_agencia$custo_diarias_ot,
-    `Custo diárias sel. (R$)` = NA,
-    `Custo combust. jur. (R$)` = resumo_agencia$custo_combustivel_jur,
-    `Custo combust. otim. (R$)` = resumo_agencia$custo_combustivel_ot,
-    `Custo combust. sel. (R$)` = NA,
-    `Custo total jur. (R$)` = resumo_agencia$custo_diarias_jur +
+    `Cód. agência`                  = resumo_agencia$agencia_codigo,
+    `Agência`                       = resumo_agencia$agencia_nome,
+    `UPAs jur.`                     = resumo_agencia$n_ucs_jur,
+    `UPAs otim.`                    = resumo_agencia$n_ucs_ot,
+    `UPAs sel.`                     = NA,
+    `Entrevistadores jur.`          = resumo_agencia$entrevistadores_jur,
+    `Entrevistadores otim.`         = resumo_agencia$entrevistadores_ot,
+    `Entrevistadores sel.`          = NA,
+    `Custo treinamento jur. (R$)`   = resumo_agencia$custo_treinamento_jur,
+    `Custo treinamento otim. (R$)`  = resumo_agencia$custo_treinamento_ot,
+    `Custo treinamento sel. (R$)`   = NA,
+    `Remuneração jur. (R$)`         = resumo_agencia$entrevistadores_jur * p$remuneracao_entrevistador,
+    `Remuneração otim. (R$)`        = resumo_agencia$entrevistadores_ot * p$remuneracao_entrevistador,
+    `Remuneração sel. (R$)`         = NA,
+    `Km total jur.`                 = resumo_agencia$distancia_total_km_jur,
+    `Km total otim.`                = resumo_agencia$distancia_total_km_ot,
+    `Km total sel.`                 = NA,
+    `Diárias jur.`                  = resumo_agencia$total_diarias_jur,
+    `Diárias otim.`                 = resumo_agencia$total_diarias_ot,
+    `Diárias sel.`                  = NA,
+    `Custo diárias jur. (R$)`       = resumo_agencia$custo_diarias_jur,
+    `Custo diárias otim. (R$)`      = resumo_agencia$custo_diarias_ot,
+    `Custo diárias sel. (R$)`       = NA,
+    `Custo combust. jur. (R$)`      = resumo_agencia$custo_combustivel_jur,
+    `Custo combust. otim. (R$)`     = resumo_agencia$custo_combustivel_ot,
+    `Custo combust. sel. (R$)`      = NA,
+    `Custo total jur. (R$)`         = resumo_agencia$custo_diarias_jur +
       resumo_agencia$custo_combustivel_jur +
       resumo_agencia$entrevistadores_jur * p$remuneracao_entrevistador +
       resumo_agencia$custo_treinamento_jur,
-    `Custo total otim. (R$)` = resumo_agencia$custo_diarias_ot +
+    `Custo total otim. (R$)`        = resumo_agencia$custo_diarias_ot +
       resumo_agencia$custo_combustivel_ot +
       resumo_agencia$entrevistadores_ot * p$remuneracao_entrevistador +
       resumo_agencia$custo_treinamento_ot,
-    `Custo total sel. (R$)` = NA,
+    `Custo total sel. (R$)`         = NA,
     `% aumento custo total sel. vs ótimo` = NA,
     check.names = FALSE
   )
   wb$add_data(sheet = "Resumo por agência", x = resumo_df)
 
-  rows <- seq_len(n_resumo) + 1L
-  selected_code_range <- sprintf("UPAs!$M$2:$M$%d", upa_last_row)
-  selected_sum_formula <- function(target_col, upa_col) {
+  rows       <- seq_len(n_resumo) + 1L
+  last_row   <- n_resumo + 1L
+  # Wide layout: T(20)=Cód.sel.M, U(21)=Cód.sel.F
+  # Sel M block hidden_start=26: td=AG(33), cd=AH(34), dtk=AI(35), cc=AJ(36)
+  # Sel F block hidden_start=38: td=AS(45), cd=AT(46), dtk=AU(47), cc=AV(48)
+  t_col <- "UPAs!$T$2:$T$"  # Cód.sel.M
+  u_col <- "UPAs!$U$2:$U$"  # Cód.sel.F
+
+  dual_sumif <- function(target_col, m_upa_col, f_upa_col) {
     formulas <- paste0(
-      "SUMIF(", selected_code_range, ",$A", rows,
-      ",UPAs!$", upa_col, "$2:$", upa_col, "$", upa_last_row, ")"
+      "SUMIF(", t_col, upa_last_row, ",$A", rows,
+      ",UPAs!$", m_upa_col, "$2:$", m_upa_col, "$", upa_last_row, ")",
+      "+SUMIF(", u_col, upa_last_row, ",$A", rows,
+      ",UPAs!$", f_upa_col, "$2:$", f_upa_col, "$", upa_last_row, ")"
     )
-    wb$add_formula(
-      sheet = "Resumo por agência",
-      x = formulas,
-      dims = paste0(target_col, "2:", target_col, n_resumo + 1L)
-    )
+    wb$add_formula(sheet = "Resumo por agência", x = formulas,
+                   dims = paste0(target_col, "2:", target_col, last_row))
   }
 
-  wb$add_formula(
-    sheet = "Resumo por agência",
-    x = paste0("COUNTIF(", selected_code_range, ",A", rows, ")"),
-    dims = paste0("E2:E", n_resumo + 1L)
-  )
-  wb$add_formula(
-    sheet = "Resumo por agência",
-    x = vapply(
-      rows,
-      .build_selected_interviewers_formula,
-      character(1),
-      upa_last_row = upa_last_row,
-      period_values = unique(upa_data$periodo_key),
-      p = p,
-      diarias_sel_col = "T"  # "Diárias sel." column in "Resumo por agência"
-    ),
-    dims = paste0("H2:H", n_resumo + 1L)
-  )
+  # E: UPAs sel. — count unique UCs served via M or F
   wb$add_formula(
     sheet = "Resumo por agência",
     x = paste0(
-      "H", rows,
-      "*IFERROR(INDEX('Agências'!$F$2:$F$9999,MATCH($A", rows,
-      ",'Agências'!$A$2:$A$9999,0)),0)"
+      "COUNTIF(", t_col, upa_last_row, ",A", rows, ")",
+      "+COUNTIF(", u_col, upa_last_row, ",A", rows, ")",
+      "-COUNTIFS(", t_col, upa_last_row, ",A", rows,
+      ",", u_col, upa_last_row, ",A", rows, ")"
     ),
-    dims = paste0("K2:K", n_resumo + 1L)
+    dims = paste0("E2:E", last_row)
   )
+
+  # H: Entrevistadores sel. (non-pooled M+F ROUNDUP)
   wb$add_formula(
     sheet = "Resumo por agência",
-    x = paste0("H", rows, "*remuneracao_entrevistador"),
-    dims = paste0("N2:N", n_resumo + 1L)
+    x = vapply(rows, .build_selected_interviewers_formula, character(1),
+               upa_last_row = upa_last_row,
+               period_values = unique(upa_data$periodo_key),
+               p = p,
+               diarias_sel_col = "T"),
+    dims = paste0("H2:H", last_row)
   )
-  selected_sum_formula("Q", cl(53))
-  selected_sum_formula("T", cl(51))
-  selected_sum_formula("W", cl(52))
-  selected_sum_formula("Z", cl(54))
+
+  # K: Custo treinamento sel.
   wb$add_formula(
     sheet = "Resumo por agência",
-    x = paste0("W", rows, "+Z", rows, "+N", rows, "+K", rows),
-    dims = paste0("AC2:AC", n_resumo + 1L)
+    x = paste0("H", rows, "*IFERROR(INDEX('Agências'!$F$2:$F$9999,MATCH($A", rows,
+               ",'Agências'!$A$2:$A$9999,0)),0)"),
+    dims = paste0("K2:K", last_row)
   )
+  # N: Remuneração sel.
+  wb$add_formula(sheet = "Resumo por agência",
+                 x = paste0("H", rows, "*remuneracao_entrevistador"),
+                 dims = paste0("N2:N", last_row))
+
+  # Q: Km total sel.        — AI(35)=dtk_m, AU(47)=dtk_f
+  dual_sumif("Q", cl(35), cl(47))
+  # T: Diárias sel.         — AG(33)=td_m,  AS(45)=td_f
+  dual_sumif("T", cl(33), cl(45))
+  # W: Custo diárias sel.   — AH(34)=cd_m,  AT(46)=cd_f
+  dual_sumif("W", cl(34), cl(46))
+  # Z: Custo combust. sel.  — AJ(36)=cc_m,  AV(48)=cc_f
+  dual_sumif("Z", cl(36), cl(48))
+
+  wb$add_formula(sheet = "Resumo por agência",
+                 x = paste0("W", rows, "+Z", rows, "+N", rows, "+K", rows),
+                 dims = paste0("AC2:AC", last_row))
   wb$add_formula(
     sheet = "Resumo por agência",
-    x = paste0(
-      "IF(AB", rows, "=0,IF(AC", rows, "=0,0,NA()),(AC", rows, "-AB", rows, ")/AB", rows, ")"
-    ),
-    dims = paste0("AD2:AD", n_resumo + 1L)
+    x = paste0("IF(AB", rows, "=0,IF(AC", rows, "=0,0,NA()),(AC", rows,
+               "-AB", rows, ")/AB", rows, ")"),
+    dims = paste0("AD2:AD", last_row)
   )
 
   wb$freeze_pane(sheet = "Resumo por agência", first_row = TRUE)
@@ -784,37 +1034,32 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   percent_fmt <- "0.0%"
 
   wb$set_col_widths(sheet = "Agências", cols = 7, hidden = TRUE)
-  wb$set_col_widths(sheet = "UPAs", cols = c(2, 11:13, 18:55), widths = 8.43, hidden = TRUE)
+  # Wide format: col 2 (Cód.Mun), cols 17-49 (support + hidden formula blocks)
+  wb$set_col_widths(sheet = "UPAs", cols = c(2L, 17:49), widths = 8.43, hidden = TRUE)
 
-  wb <- openxlsx2::wb_add_fill(
-    wb,
-    sheet = "UPAs",
-    dims = paste0("J1:J", upa_last),
-    color = openxlsx2::wb_color(hex = "FFFFFFCC")
-  )
-  wb <- openxlsx2::wb_add_data_validation(
-    wb,
-    sheet = "UPAs",
-    dims = paste0("J2:J", upa_last),
-    type = "list",
-    value = "=agencia_selecao_lista"
-  )
-
-  for (mc in c(7L, 14:16, 28:31, 40:43, 52:55)) {
-    wb <- openxlsx2::wb_add_numfmt(
-      wb,
-      sheet = "UPAs",
-      dims = paste0(cl(mc), "2:", cl(mc), upa_last),
-      numfmt = money_fmt
+  for (sel_col in c("J1:J", "K1:K")) {
+    wb <- openxlsx2::wb_add_fill(
+      wb, sheet = "UPAs",
+      dims = paste0(sel_col, upa_last),
+      color = openxlsx2::wb_color(hex = "FFFFFFCC")
+    )
+    wb <- openxlsx2::wb_add_data_validation(
+      wb, sheet = "UPAs",
+      dims = paste0(sub("1:", "2:", sel_col), upa_last),
+      type = "list",
+      value = "=agencia_selecao_lista"
     )
   }
-  for (dc in c(27L, 39L, 51L)) {
-    wb <- openxlsx2::wb_add_numfmt(
-      wb,
-      sheet = "UPAs",
-      dims = paste0(cl(dc), "2:", cl(dc), upa_last),
-      numfmt = diarias_fmt
-    )
+
+  # Money: Valor diária(6), Custo jur/oti/sel(12-14), hidden cd/cc/chv for M(34,36,37) and F(46,48,49)
+  for (mc in c(6L, 12:14, 34L, 36L, 37L, 46L, 48L, 49L)) {
+    wb <- openxlsx2::wb_add_numfmt(wb, sheet = "UPAs",
+      dims = paste0(cl(mc), "2:", cl(mc), upa_last), numfmt = money_fmt)
+  }
+  # Diárias: td_m(33), td_f(45)
+  for (dc in c(33L, 45L)) {
+    wb <- openxlsx2::wb_add_numfmt(wb, sheet = "UPAs",
+      dims = paste0(cl(dc), "2:", cl(dc), upa_last), numfmt = diarias_fmt)
   }
 
   # Resumo por agência: cols 3-17 (C:Q = UPAs/Entrev/Trein/Remuner/Km),
@@ -868,8 +1113,8 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   for (sheet_name in c("Resumo", "Resumo por agência", "Parâmetros", "Agências")) {
     wb$set_col_widths(sheet = sheet_name, cols = seq_len(30L), widths = "auto")
   }
-  # UPAs: auto-width only the visible columns (hidden ones keep their hidden flag)
-  wb$set_col_widths(sheet = "UPAs", cols = c(1L, 3:10L, 14:17L), widths = "auto")
+  # UPAs: auto-width visible cols only (col 2 and 17+ are hidden)
+  wb$set_col_widths(sheet = "UPAs", cols = c(1L, 3:16L), widths = "auto")
 
   .set_tab_color <- function(wb, sheet_name, rgb_hex) {
     idx <- which(wb$sheet_names == sheet_name)
