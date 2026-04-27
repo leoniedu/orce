@@ -8,3 +8,4 @@ data-raw/*pof*
 docs/superpowers/
 output/
 *.png
+..Rcheck/
