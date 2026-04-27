@@ -190,7 +190,7 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   .write_matrices(wb, distancias_ucs, upa_data, agency_codes)
   .write_upas(wb, upa_data, n_upas, length(agency_codes))
   n_resumo_agencia <- .write_resumo_por_agencia(wb, resumo_agencia, upa_data, p)
-  .write_resumo_geral(wb, n_resumo_agencia)
+  .write_resumo_geral(wb, n_resumo_agencia, n_upas)
   if (hibrido) {
     wb$add_data(
       sheet = "Notas",
@@ -982,7 +982,7 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   n_resumo
 }
 
-.write_resumo_geral <- function(wb, n_resumo_agencia) {
+.write_resumo_geral <- function(wb, n_resumo_agencia, n_upas) {
   resumo_df <- data.frame(
     Cenário = c("Jurisdição", "Otimizada", "Selecionada"),
     `UPAs` = NA,
@@ -1025,6 +1025,12 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
   wb$add_formula(sheet = "Resumo", x = "IF(J3=0,IF(J2=0,0,NA()),(J2-J3)/J3)", dims = "K2")
   wb$add_formula(sheet = "Resumo", x = "0", dims = "K3")
   wb$add_formula(sheet = "Resumo", x = "IF(J3=0,IF(J4=0,0,NA()),(J4-J3)/J3)", dims = "K4")
+
+  # UPAs total is the distinct UC count from R — summing per-agency counts
+  # double-counts UCs split between agencies (M in one, F in another)
+  wb$add_data(sheet = "Resumo", x = n_upas, dims = "B2")
+  wb$add_data(sheet = "Resumo", x = n_upas, dims = "B3")
+  wb$add_data(sheet = "Resumo", x = n_upas, dims = "B4")
   wb$freeze_pane(sheet = "Resumo", first_row = TRUE)
 }
 

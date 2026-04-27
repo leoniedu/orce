@@ -195,7 +195,8 @@ test_that("Resumo sheet summarizes the three scenarios with formulas over Resumo
   resumo <- read_sheet(ctx$wb, "Resumo", show_formula = TRUE)
 
   expect_equal(sheet_col(resumo, "Cenário"), c("Jurisdição", "Otimizada", "Selecionada"))
-  expect_true(all(grepl("'Resumo por agência'!", sheet_col(resumo, "UPAs"), fixed = TRUE)))
+  expect_true(all(!grepl("'Resumo por agência'!", sheet_col(resumo, "UPAs"), fixed = TRUE)),
+              label = "UPAs totals come from R (static), not SUM over per-agency counts")
   expect_true(all(grepl("'Resumo por agência'!", sheet_col(resumo, "Custo total (R$)"), fixed = TRUE)))
   expect_equal(sheet_col(resumo, "% custo total sel. vs otim.")[[2]], "0")
 })
