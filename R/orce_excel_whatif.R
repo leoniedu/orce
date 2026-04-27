@@ -788,7 +788,12 @@ orce_excel_whatif <- function(resultado, distancias_ucs, ucs, agencias, file, pa
     dtk_f <- paste0(h(6), rows, "*", h(0), rows, "*IF(", comp, rows, ",0.5,1)")
   }
   cc_f  <- paste0("(", h(9), rows, "/kml)*custo_litro_combustivel")
-  chv_f <- paste0(h(6), rows, "*", h(1), rows, "*custo_hora_viagem")
+  if (is.null(compartilha_col)) {
+    chv_f <- paste0(h(6), rows, "*", h(1), rows, "*custo_hora_viagem")
+  } else {
+    comp <- cl(compartilha_col)
+    chv_f <- paste0(h(6), rows, "*", h(1), rows, "*custo_hora_viagem*IF(", comp, rows, ",0.5,1)")
+  }
 
   wb$add_formula(sheet = "UPAs", x = dist_f,    dims = paste0(h(0), "2:", h(0), last_upa_row))
   wb$add_formula(sheet = "UPAs", x = dur_f,     dims = paste0(h(1), "2:", h(1), last_upa_row))
