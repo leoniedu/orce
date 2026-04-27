@@ -17,34 +17,33 @@ orce_joint <- function(
     ucs,
     agencias,
     distancias_ucs,
-    distancias_agencias        = NULL,
-    alocar_por                 = "uc",
-    custo_litro_combustivel    = 6,
-    kml                        = 10,
-    custo_hora_viagem          = 10,
-    diarias_entrevistador_max  = Inf,
-    remuneracao_entrevistador  = 3000,
-    n_entrevistadores_min      = 1L,
-    n_entrevistadores_min_m    = NULL,
-    n_entrevistadores_min_f    = NULL,
-    n_entrevistadores_tipo     = "continuous",
+    distancias_agencias = NULL,
+    alocar_por = "uc",
+    custo_litro_combustivel = 6,
+    kml = 10,
+    custo_hora_viagem = 10,
+    diarias_entrevistador_max = Inf,
+    remuneracao_entrevistador = 3000,
+    n_entrevistadores_min = 1L,
+    n_entrevistadores_min_m = NULL,
+    n_entrevistadores_min_f = NULL,
+    n_entrevistadores_tipo = "continuous",
     dias_coleta_entrevistador_max = 100,
-    dias_treinamento           = 0,
-    agencias_treinadas         = NULL,
-    agencias_treinamento       = NULL,
-    entrevistadores_por_uc     = 1L,
+    dias_treinamento = 0,
+    agencias_treinadas = NULL,
+    agencias_treinamento = NULL,
+    entrevistadores_por_uc = 1L,
     adicional_troca_jurisdicao = 0,
     fixar_atribuicoes_masculino = NULL,
-    fixar_atribuicoes_feminino  = NULL,
-    fixar_atribuicoes           = NULL,
-    solver                     = "highs",
-    rel_tol                    = 1e-4,
-    max_time                   = 3600,
-    seed                       = NULL,
-    resultado_completo         = FALSE,
-    use_cache                  = TRUE,
+    fixar_atribuicoes_feminino = NULL,
+    fixar_atribuicoes = NULL,
+    solver = "highs",
+    rel_tol = 1e-4,
+    max_time = 3600,
+    seed = NULL,
+    resultado_completo = FALSE,
+    use_cache = TRUE,
     ...) {
-
   if (!is.null(fixar_atribuicoes)) {
     cli::cli_abort(
       "{.arg fixar_atribuicoes} não é suportado em {.fn orce_joint}.",
@@ -101,32 +100,31 @@ orce_joint <- function(
     ucs,
     agencias,
     distancias_ucs,
-    distancias_agencias        = NULL,
-    alocar_por                 = "uc",
-    custo_litro_combustivel    = 6,
-    kml                        = 10,
-    custo_hora_viagem          = 10,
-    diarias_entrevistador_max  = Inf,
-    remuneracao_entrevistador  = 3000,
-    n_entrevistadores_min      = 1L,
-    n_entrevistadores_min_m    = NULL,
-    n_entrevistadores_min_f    = NULL,
-    n_entrevistadores_tipo     = "continuous",
+    distancias_agencias = NULL,
+    alocar_por = "uc",
+    custo_litro_combustivel = 6,
+    kml = 10,
+    custo_hora_viagem = 10,
+    diarias_entrevistador_max = Inf,
+    remuneracao_entrevistador = 3000,
+    n_entrevistadores_min = 1L,
+    n_entrevistadores_min_m = NULL,
+    n_entrevistadores_min_f = NULL,
+    n_entrevistadores_tipo = "continuous",
     dias_coleta_entrevistador_max = 100,
-    dias_treinamento           = 0,
-    agencias_treinadas         = NULL,
-    agencias_treinamento       = NULL,
-    entrevistadores_por_uc     = 1L,
+    dias_treinamento = 0,
+    agencias_treinadas = NULL,
+    agencias_treinamento = NULL,
+    entrevistadores_por_uc = 1L,
     adicional_troca_jurisdicao = 0,
     fixar_atribuicoes_masculino = NULL,
-    fixar_atribuicoes_feminino  = NULL,
-    solver                     = "highs",
-    rel_tol                    = 1e-4,
-    max_time                   = 3600,
-    seed                       = NULL,
-    resultado_completo         = FALSE,
+    fixar_atribuicoes_feminino = NULL,
+    solver = "highs",
+    rel_tol = 1e-4,
+    max_time = 3600,
+    seed = NULL,
+    resultado_completo = FALSE,
     ...) {
-
   if (!is.null(seed)) set.seed(seed)
 
   required_cols <- c("n_masculino", "n_feminino")
@@ -136,19 +134,23 @@ orce_joint <- function(
   }
 
   rlang::check_installed(paste0("ROI.plugin.", solver),
-                         reason = "para usar o solver solicitado")
+    reason = "para usar o solver solicitado"
+  )
 
   tictoc::tic.clearlog()
   tictoc::tic("Tempo total da otimização", log = TRUE)
-  on.exit({
-    tictoc::toc(log = TRUE, quiet = TRUE)
-    .tempo <- tictoc::tic.log(format = FALSE)
-    if (length(.tempo) > 0) {
-      with(.tempo[[1]], cli::cli_alert_success(
-        paste0(msg, ": ", round(toc - tic), " segundos.")
-      ))
-    }
-  }, add = TRUE)
+  on.exit(
+    {
+      tictoc::toc(log = TRUE, quiet = TRUE)
+      .tempo <- tictoc::tic.log(format = FALSE)
+      if (length(.tempo) > 0) {
+        with(.tempo[[1]], cli::cli_alert_success(
+          paste0(msg, ": ", round(toc - tic), " segundos.")
+        ))
+      }
+    },
+    add = TRUE
+  )
 
   # ── All agencies with any capacity ───────────────────────────────────────────
   agencias_full <- agencias |>
@@ -162,16 +164,16 @@ orce_joint <- function(
   cli::cli_progress_step("Preparando matrizes de custo")
   prep <- .orce_costs(
     ucs = ucs, agencias = agencias_full, distancias_ucs = dist_full,
-    distancias_agencias        = distancias_agencias,
-    alocar_por                 = alocar_por,
-    custo_litro_combustivel    = custo_litro_combustivel,
-    kml                        = kml,
-    custo_hora_viagem          = custo_hora_viagem,
-    entrevistadores_por_uc     = entrevistadores_por_uc,
+    distancias_agencias = distancias_agencias,
+    alocar_por = alocar_por,
+    custo_litro_combustivel = custo_litro_combustivel,
+    kml = kml,
+    custo_hora_viagem = custo_hora_viagem,
+    entrevistadores_por_uc = entrevistadores_por_uc,
     adicional_troca_jurisdicao = adicional_troca_jurisdicao,
-    dias_treinamento           = dias_treinamento,
-    agencias_treinadas         = agencias_treinadas,
-    agencias_treinamento       = agencias_treinamento
+    dias_treinamento = dias_treinamento,
+    agencias_treinadas = agencias_treinadas,
+    agencias_treinamento = agencias_treinamento
   )
 
   n <- prep$n
@@ -181,7 +183,7 @@ orce_joint <- function(
   # Gender capacities aligned to prep$agencias_t order
   ag_order <- match(prep$agencias_t$agencia_codigo, agencias_full$agencia_codigo)
   n_masculino <- agencias_full$n_masculino[ag_order]
-  n_feminino  <- agencias_full$n_feminino[ag_order]
+  n_feminino <- agencias_full$n_feminino[ag_order]
 
   # ── 2. Assemble MILP environment ─────────────────────────────────────────────
   min_per_gender <- as.integer(ceiling(n_entrevistadores_min / 2))
@@ -189,21 +191,23 @@ orce_joint <- function(
   n_entrevistadores_min_f <- n_entrevistadores_min_f %||% min_per_gender
 
   fix_m <- .joint_translate_fixar(fixar_atribuicoes_masculino,
-                                   prep$ucs_i, prep$agencias_t,
-                                   cap = n_masculino, gender = "masculino")
+    prep$ucs_i, prep$agencias_t,
+    cap = n_masculino, gender = "masculino"
+  )
   fix_f <- .joint_translate_fixar(fixar_atribuicoes_feminino,
-                                   prep$ucs_i, prep$agencias_t,
-                                   cap = n_feminino,  gender = "feminino")
+    prep$ucs_i, prep$agencias_t,
+    cap = n_feminino, gender = "feminino"
+  )
 
-  transport  <- prep$transport_cost_i_j
-  fuel       <- prep$fuel_cost_i_j
-  diarias    <- prep$diarias_i_j
+  transport <- prep$transport_cost_i_j
+  fuel <- prep$fuel_cost_i_j
+  diarias <- prep$diarias_i_j
   # dias_coleta is a UC-level property identical across agencies; assert before slicing.
   stopifnot(
     "dias_coleta_arr must be uniform across j (same value for all agencies per UC×period)" =
       all(apply(prep$dias_coleta_arr, c(1L, 3L), function(x) diff(range(x)) < 1e-9))
   )
-  dias_arr   <- matrix(prep$dias_coleta_arr[, 1L, ], nrow = n, ncol = p)
+  dias_arr <- matrix(prep$dias_coleta_arr[, 1L, ], nrow = n, ncol = p)
   custo_fixo <- prep$agencias_t$custo_fixo
   training_m <- prep$agencias_t$custo_treinamento_por_entrevistador
   training_f <- prep$agencias_t$custo_treinamento_por_entrevistador
@@ -216,14 +220,18 @@ orce_joint <- function(
   if (solver == "symphony") {
     result <- ompr::solve_model(
       model,
-      ompr.roi::with_ROI(solver = solver, max_time = as.numeric(max_time),
-                         gap_limit = rel_tol * 100, ...)
+      ompr.roi::with_ROI(
+        solver = solver, max_time = as.numeric(max_time),
+        gap_limit = rel_tol * 100, ...
+      )
     )
   } else {
     result <- ompr::solve_model(
       model,
-      ompr.roi::with_ROI(solver = solver, max_time = as.numeric(max_time),
-                         rel_tol = rel_tol, ...)
+      ompr.roi::with_ROI(
+        solver = solver, max_time = as.numeric(max_time),
+        rel_tol = rel_tol, ...
+      )
     )
   }
   if (result$status == "error") {
@@ -264,23 +272,25 @@ orce_joint <- function(
   # ── 6. alocacao ───────────────────────────────────────────────────────────────
   uc_cols_m <- res_masculino$resultado_ucs_otimo |>
     dplyr::select("uc",
-                  custo_combustivel_m   = "custo_combustivel",
-                  distancia_total_km_m  = "distancia_total_km",
-                  duracao_total_horas_m = "duracao_total_horas",
-                  trechos_m             = "trechos",
-                  custo_horas_viagem_m  = "custo_horas_viagem",
-                  total_diarias_m       = "total_diarias",
-                  custo_diarias_m       = "custo_diarias")
+      custo_combustivel_m   = "custo_combustivel",
+      distancia_total_km_m  = "distancia_total_km",
+      duracao_total_horas_m = "duracao_total_horas",
+      trechos_m             = "trechos",
+      custo_horas_viagem_m  = "custo_horas_viagem",
+      total_diarias_m       = "total_diarias",
+      custo_diarias_m       = "custo_diarias"
+    )
 
   uc_cols_f <- res_feminino$resultado_ucs_otimo |>
     dplyr::select("uc",
-                  custo_combustivel_f   = "custo_combustivel",
-                  distancia_total_km_f  = "distancia_total_km",
-                  duracao_total_horas_f = "duracao_total_horas",
-                  trechos_f             = "trechos",
-                  custo_horas_viagem_f  = "custo_horas_viagem",
-                  total_diarias_f       = "total_diarias",
-                  custo_diarias_f       = "custo_diarias")
+      custo_combustivel_f   = "custo_combustivel",
+      distancia_total_km_f  = "distancia_total_km",
+      duracao_total_horas_f = "duracao_total_horas",
+      trechos_f             = "trechos",
+      custo_horas_viagem_f  = "custo_horas_viagem",
+      total_diarias_f       = "total_diarias",
+      custo_diarias_f       = "custo_diarias"
+    )
 
   alocacao <- res_masculino$resultado_ucs_otimo |>
     dplyr::select("uc", agencia_codigo_m = "agencia_codigo") |>
@@ -295,25 +305,34 @@ orce_joint <- function(
     dplyr::mutate(
       custo_combustivel = dplyr::if_else(.data$hibrido,
         .data$custo_combustivel_m + .data$custo_combustivel_f,
-        (.data$custo_combustivel_m + .data$custo_combustivel_f) / 2),
+        (.data$custo_combustivel_m + .data$custo_combustivel_f) / 2
+      ),
       distancia_total_km = dplyr::if_else(.data$hibrido,
         .data$distancia_total_km_m + .data$distancia_total_km_f,
-        (.data$distancia_total_km_m + .data$distancia_total_km_f) / 2),
+        (.data$distancia_total_km_m + .data$distancia_total_km_f) / 2
+      ),
       duracao_total_horas = dplyr::if_else(.data$hibrido,
         .data$duracao_total_horas_m + .data$duracao_total_horas_f,
-        (.data$duracao_total_horas_m + .data$duracao_total_horas_f) / 2),
+        (.data$duracao_total_horas_m + .data$duracao_total_horas_f) / 2
+      ),
       trechos = dplyr::if_else(.data$hibrido,
         .data$trechos_m + .data$trechos_f,
-        (.data$trechos_m + .data$trechos_f) / 2),
-      custo_horas_viagem = .data$custo_horas_viagem_m + .data$custo_horas_viagem_f,
-      total_diarias      = .data$total_diarias_m + .data$total_diarias_f,
-      custo_diarias      = .data$custo_diarias_m + .data$custo_diarias_f,
+        (.data$trechos_m + .data$trechos_f) / 2
+      ),
+      custo_horas_viagem = dplyr::if_else(.data$hibrido,
+        .data$custo_horas_viagem_m + .data$custo_horas_viagem_f,
+        .data$custo_horas_viagem_m
+      ),
+      total_diarias = .data$total_diarias_m + .data$total_diarias_f,
+      custo_diarias = .data$custo_diarias_m + .data$custo_diarias_f,
       custo_deslocamento = .data$custo_combustivel + .data$custo_horas_viagem +
         .data$custo_diarias,
       economia_combustivel = dplyr::if_else(.data$hibrido, 0,
-        (.data$custo_combustivel_m + .data$custo_combustivel_f) / 2),
+        (.data$custo_combustivel_m + .data$custo_combustivel_f) / 2
+      ),
       economia_km = dplyr::if_else(.data$hibrido, 0,
-        (.data$distancia_total_km_m + .data$distancia_total_km_f) / 2)
+        (.data$distancia_total_km_m + .data$distancia_total_km_f) / 2
+      )
     )
 
   # ── 7. res_base ───────────────────────────────────────────────────────────────
@@ -325,22 +344,22 @@ orce_joint <- function(
     agencias = agencias_base,
     distancias_ucs = distancias_ucs |>
       dplyr::filter(.data$agencia_codigo %in% agencias_base$agencia_codigo),
-    distancias_agencias        = distancias_agencias,
-    alocar_por                 = alocar_por,
-    custo_litro_combustivel    = custo_litro_combustivel,
-    kml                        = kml,
-    custo_hora_viagem          = custo_hora_viagem,
-    dias_treinamento           = dias_treinamento,
-    agencias_treinadas         = agencias_treinadas,
-    agencias_treinamento       = agencias_treinamento,
-    entrevistadores_por_uc        = 2L,
-    n_entrevistadores_min         = 2L,
+    distancias_agencias = distancias_agencias,
+    alocar_por = alocar_por,
+    custo_litro_combustivel = custo_litro_combustivel,
+    kml = kml,
+    custo_hora_viagem = custo_hora_viagem,
+    dias_treinamento = dias_treinamento,
+    agencias_treinadas = agencias_treinadas,
+    agencias_treinamento = agencias_treinamento,
+    entrevistadores_por_uc = 2L,
+    n_entrevistadores_min = 2L,
     dias_coleta_entrevistador_max = dias_coleta_entrevistador_max,
-    adicional_troca_jurisdicao    = adicional_troca_jurisdicao,
-    resultado_completo            = TRUE,
-    solver                        = solver,
-    rel_tol                       = rel_tol,
-    max_time                      = max_time
+    adicional_troca_jurisdicao = adicional_troca_jurisdicao,
+    resultado_completo = TRUE,
+    solver = solver,
+    rel_tol = rel_tol,
+    max_time = max_time
   )
 
   list(
@@ -353,16 +372,18 @@ orce_joint <- function(
 # Translate fixar_atribuicoes to {fix, blk} index lists for orce_model_milp_joint.
 #' @keywords internal
 .joint_translate_fixar <- function(fixar, ucs_i, agencias_t,
-                                    cap = NULL, gender = NULL) {
+                                   cap = NULL, gender = NULL) {
   empty <- data.frame(i = integer(0), j = integer(0))
   if (is.null(fixar) || nrow(fixar) == 0L) {
     return(list(fix = empty, blk = empty))
   }
   if (!"valor" %in% names(fixar)) fixar$valor <- 1L
-  fi <- match(fixar$uc,             ucs_i$uc)
+  fi <- match(fixar$uc, ucs_i$uc)
   fj <- match(fixar$agencia_codigo, agencias_t$agencia_codigo)
   valid <- !is.na(fi) & !is.na(fj)
-  if (!any(valid)) return(list(fix = empty, blk = empty))
+  if (!any(valid)) {
+    return(list(fix = empty, blk = empty))
+  }
   df <- data.frame(
     i     = ucs_i$i[fi[valid]],
     j     = agencias_t$j[fj[valid]],
@@ -389,8 +410,8 @@ orce_joint <- function(
 # Build orce-compatible resultado list from joint MILP solution for one gender.
 #' @keywords internal
 .joint_build_resultado <- function(xij, workers, prep, ucs_alocar,
-                                    remuneracao_entrevistador,
-                                    resultado_completo = FALSE) {
+                                   remuneracao_entrevistador,
+                                   resultado_completo = FALSE) {
   ags_group_vars <- c(names(prep$agencias_t), "entrevistadores")
 
   resultado_ucs <- prep$dist_uc_agencias |>
@@ -415,7 +436,7 @@ orce_joint <- function(
     dplyr::mutate(
       custo_total_entrevistadores =
         .data$entrevistadores * remuneracao_entrevistador +
-        .data$entrevistadores * .data$custo_treinamento_por_entrevistador
+          .data$entrevistadores * .data$custo_treinamento_por_entrevistador
     )
 
   # Jurisdiction assignment: each UC → its jurisdiction agency (if in the set)
@@ -451,9 +472,9 @@ orce_joint <- function(
     )
 
   res <- list(
-    resultado_ucs_otimo          = resultado_ucs,
-    resultado_ucs_jurisdicao     = resultado_ucs_juris,
-    resultado_agencias_otimo     = resultado_agencias,
+    resultado_ucs_otimo = resultado_ucs,
+    resultado_ucs_jurisdicao = resultado_ucs_juris,
+    resultado_agencias_otimo = resultado_agencias,
     resultado_agencias_jurisdicao = resultado_agencias_juris
   )
   if (resultado_completo) {
