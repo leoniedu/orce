@@ -9,3 +9,4 @@ docs/superpowers/
 output/
 *.png
 ..Rcheck/
+.DS_Store
