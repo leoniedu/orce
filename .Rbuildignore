@@ -6,3 +6,4 @@
 ^pkgdown$
 ^vignettes/articles$
 ^LICENSE\.md$
+^README\.Rmd$

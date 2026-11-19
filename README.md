@@ -1,32 +1,203 @@
-# orce:  <span style="color:red">O</span>timização de <span style="color:red">R</span>edes de <span style="color:red">C</span>oleta <span style="color:red">E</span>statística (Optimizing statistical data collection networks)
+Otimização de Redes de Coleta Estatística
+================
+Eduardo Leoni
+2026-11-19
 
-## English 
+# `orce`: <span style="color:red">O</span>timização da <span style="color:red">R</span>ede de <span style="color:red">C</span>oleta <span style="color:red">E</span>statística (Optimizing statistical data collection networks)
 
-The `orce` package is an R package designed to optimize the allocation of primary sampling units (PSUs), such as census tracts or health facilities, to IBGE (Brazilian Institute of Geography and Statistics) agencies. This allocation process is crucial for efficient and cost-effective data collection in large-scale surveys and censuses. The package addresses several challenges inherent to this process, including:
+## English
 
-1. **Routing and Geocoding**: Determining the optimal routes between PSUs and agencies requires accurate location data. The `orce` package leverages the CNEFE (National Register of Addresses for Statistical Purposes) database to obtain precise coordinates for each PSU, prioritizing high-density areas within census tracts to ensure accessibility and representativeness. The `ponto_setor_densidade` function aids in identifying these representative locations.
+The `orce` package is an R package designed to optimize the allocation
+of statistics collections units (UCs), such as census tracts or health
+facilities, to IBGE (Brazilian Institute of Geography and Statistics)
+agencies. This allocation process is crucial for efficient and
+cost-effective data collection in large-scale surveys and censuses. The
+package addresses several challenges inherent to this process,
+including:
 
-2. **Allocation Optimization**: The core of the `orce` package is its allocation optimization algorithm. It employs mixed-integer linear programming to minimize the overall cost of data collection, considering factors like travel distances, travel time, and fixed agency costs. The `alocar_upas` function implements this optimization, allowing for flexible constraints on agency capacity and location preferences.
+1.  **Routing and Geocoding**: Determining the optimal routes between
+    UCs and agencies requires accurate location data. The `orce` package
+    leverages the CNEFE (National Register of Addresses for Statistical
+    Purposes) database to obtain precise coordinates for each UC,
+    prioritizing high-density areas within census tracts to ensure
+    accessibility and representativeness. The `ponto_setor_densidade`
+    function aids in identifying these representative locations.
 
-3. **Cost Calculation**: Accurately estimating the cost of data collection involves more than just distances and travel time. The `orce` package incorporates knowledge of administrative boundaries to determine whether "diárias" (travel allowances) are applicable. This nuanced cost calculation ensures that the optimization results reflect the true financial implications of different allocation scenarios.
+2.  **Allocation Optimization**: The core of the `orce` package is its
+    allocation optimization algorithm. It employs mixed-integer linear
+    programming to minimize the overall cost of data collection,
+    considering factors like travel distances, travel time, and fixed
+    agency costs. The `orce` function implements this optimization,
+    allowing for flexible constraints on agency capacity and location
+    preferences.
 
-4. **Flexibility and Adaptability**: The `orce` package offers various customization options to accommodate the specific needs of different surveys and data collection efforts. Users can define parameters such as fuel costs, hourly travel costs, vehicle fuel efficiency, and agency-specific constraints. 
+3.  **Cost Calculation**: Accurately estimating the cost of data
+    collection involves more than just distances and travel time. The
+    `orce` package incorporates knowledge of administrative boundaries
+    to determine whether “diárias” (travel allowances) are applicable.
+    This nuanced cost calculation ensures that the optimization results
+    reflect the true financial implications of different allocation
+    scenarios.
 
-In summary, the `orce` package provides a powerful and versatile solution for optimizing the allocation of PSUs to IBGE agencies. By addressing challenges related to routing, geocoding, allocation optimization, and cost calculation, it enables efficient and cost-effective data collection strategies. Its flexibility and adaptability make it a valuable tool for a wide range of survey and census operations in Brazil. 
+4.  **Flexibility and Adaptability**: The `orce` package offers various
+    customization options to accommodate the specific needs of different
+    surveys and data collection efforts. Users can define parameters
+    such as fuel costs, hourly travel costs, vehicle fuel efficiency,
+    and agency-specific constraints.
+
+In summary, the `orce` package provides a powerful and versatile
+solution for optimizing the allocation of UCs to IBGE agencies. By
+addressing challenges related to routing, geocoding, allocation
+optimization, and cost calculation, it enables efficient and
+cost-effective data collection strategies. Its flexibility and
+adaptability make it a valuable tool for a wide range of survey and
+census operations in Brazil.
+
+------------------------------------------------------------------------
+
+# Example / Exemplo
+
+``` r
+library(testthat)
+library(orce)
+library(orcedata)
+library(dplyr)
+
+# instalar solver cbc
+#install.packages("pak")
+#pak("dirkschumacher/ROI.plugin.cbc")
+#pak("dirkschumacher/rcbc")
 
 
+# Carregar dados de teste
+data(agencias_bdo_mun)
+data(agencias_bdo)
+data(distancias_agencias_municipios_osrm)
+data(agencias_municipios_diaria)
 
----------
+# Criar dados de teste
+ucs_municipios <- agencias_bdo_mun |>
+  dplyr::filter(uf_codigo == 29) |>
+  dplyr::filter(agencia_codigo %in% unique(agencia_codigo)) |>
+  dplyr::group_by(agencia_codigo) |>
+  dplyr::slice(1:2) |>
+  dplyr::ungroup() |>
+  ## uma agencia por municipio
+  dplyr::distinct(municipio_codigo, .keep_all = TRUE) |>
+  dplyr::transmute(uc = municipio_codigo, municipio_codigo, agencia_codigo, dias_coleta = 10, viagens = 1, data = 1, diaria_valor = 335)
 
-## Português 
-O pacote orce é um pacote R projetado para otimizar a alocação de unidades primárias de amostragem (UPAs), como setores censitários ou estabelecimentos de saúde, às agências do IBGE (Instituto Brasileiro de Geografia e Estatística). Esse processo de alocação é crucial para a coleta de dados eficiente e econômica em pesquisas e censos de grande escala. O pacote aborda vários desafios inerentes a esse processo, incluindo:
+agencias <- agencias_bdo |>
+  dplyr::semi_join(ucs_municipios,by = dplyr::join_by(agencia_codigo)) |>
+  dplyr::transmute(agencia_codigo, n_entrevistadores_agencia_max = Inf, custo_fixo = 0, diaria_valor = 335) |>
+  sf::st_drop_geometry()
 
-Roteamento e Geocodificação: A determinação das rotas ideais entre as UPAs e as agências requer dados de localização precisos. O pacote orce utiliza o banco de dados do CNEFE (Cadastro Nacional de Endereços para Fins Estatísticos) para obter coordenadas precisas para cada UPA, priorizando áreas de alta densidade dentro dos setores censitários para garantir acessibilidade e representatividade. A função ponto_setor_densidade auxilia na identificação desses locais representativos.
+dists <- distancias_agencias_municipios_osrm |>
+  dplyr::left_join(agencias_municipios_diaria, by = dplyr::join_by(agencia_codigo, municipio_codigo)) |>
+  dplyr::semi_join(ucs_municipios, by = "municipio_codigo") |>
+  dplyr::semi_join(agencias, by = "agencia_codigo") |>
+  dplyr::mutate(diaria_pernoite = duracao_horas > 1.5, uc = municipio_codigo)
 
-Otimização da Alocação: O núcleo do pacote orce é seu algoritmo de otimização de alocação. Ele emprega programação linear inteira mista para minimizar o custo total da coleta de dados, considerando fatores como distâncias de viagem, tempo de viagem e custos fixos das agências. A função alocar_upas implementa essa otimização, permitindo restrições flexíveis na capacidade da agência e nas preferências de localização.
+m <- orce(ucs = ucs_municipios, agencias = agencias, dias_coleta_entrevistador_max = 14, distancias_ucs = dists, remuneracao_entrevistador = 0, rel_tol = 0.01)
 
-Cálculo de Custos: Estimar com precisão o custo da coleta de dados envolve mais do que apenas distâncias e tempo de viagem. O pacote orce incorpora o conhecimento das fronteiras administrativas para determinar se as "diárias" (ajudas de custo para viagens) são aplicáveis. Esse cálculo de custo diferenciado garante que os resultados da otimização reflitam as verdadeiras implicações financeiras de diferentes cenários de alocação.
+m$resultado_agencias_otimo |>
+  dplyr::select(agencia_codigo, n_ucs, entrevistadores, custo_deslocamento) |>
+  head()
+```
 
-Flexibilidade e Adaptabilidade: O pacote orce oferece várias opções de personalização para acomodar as necessidades específicas de diferentes pesquisas e esforços de coleta de dados. Os usuários podem definir parâmetros como custos de combustível, custos de viagem por hora, eficiência de combustível do veículo e restrições específicas da agência.
+    ## # A tibble: 6 × 4
+    ##   agencia_codigo n_ucs entrevistadores custo_deslocamento
+    ##   <chr>          <int>           <dbl>              <dbl>
+    ## 1 290070200          2               2              483. 
+    ## 2 290320100          2               2             1673. 
+    ## 3 290390400          2               2             3418. 
+    ## 4 290460500          2               2             3879. 
+    ## 5 290490200          1               1               29.0
+    ## 6 290570100          3               3              646.
 
-Em resumo, o pacote orce fornece uma solução poderosa e versátil para otimizar a alocação de UPAs às agências do IBGE. Ao abordar os desafios relacionados ao roteamento, geocodificação, otimização de alocação e cálculo de custos, ele permite estratégias de coleta de dados eficientes e econômicas. Sua flexibilidade e adaptabilidade o tornam uma ferramenta valiosa para uma ampla gama de operações de pesquisa e censo no Brasil.
+``` r
+# relatório completo (tabela gt)
+relatorio_planos(m)
+```
+
+------------------------------------------------------------------------
+
+## Português
+
+O pacote `orce` é um pacote R projetado para otimizar a alocação de
+unidades de coleta estatística (UCs), como setores censitários ou
+estabelecimentos de saúde, às agências do IBGE (Instituto Brasileiro de
+Geografia e Estatística). Esse processo de alocação é crucial para a
+coleta de dados eficiente e econômica em pesquisas e censos de grande
+escala. O pacote aborda vários desafios inerentes a esse processo,
+incluindo:
+
+1.  **Roteamento e Geocodificação**: A determinação das rotas ideais
+    entre as UCs e as agências requer dados de localização precisos. O
+    pacote `orce` utiliza o banco de dados do CNEFE (Cadastro Nacional
+    de Endereços para Fins Estatísticos) para obter coordenadas precisas
+    para cada UC, priorizando áreas de alta densidade dentro dos setores
+    censitários para garantir acessibilidade e representatividade. A
+    função ponto_setor_densidade auxilia na identificação desses locais
+    representativos.
+
+2.  **Otimização da Alocação** O núcleo do pacote `orce` é seu algoritmo
+    de otimização de alocação. Ele emprega programação linear inteira
+    mista para minimizar o custo total da coleta de dados, considerando
+    fatores como distâncias de viagem, tempo de viagem e custos fixos
+    das agências. A função orce implementa essa otimização, permitindo
+    restrições flexíveis na capacidade da agência e nas preferências de
+    localização.
+
+3.  **Cálculo de Custos** Estimar com precisão o custo da coleta de
+    dados envolve mais do que apenas distâncias e tempo de viagem. O
+    pacote `orce` incorpora o conhecimento das fronteiras
+    administrativas para determinar se as “diárias” (ajudas de custo
+    para viagens) são aplicáveis. Esse cálculo de custo diferenciado
+    garante que os resultados da otimização reflitam as verdadeiras
+    implicações financeiras de diferentes cenários de alocação.
+
+4.  **Flexibilidade e Adaptabilidade** O pacote `orce` oferece várias
+    opções de personalização para acomodar as necessidades específicas
+    de diferentes pesquisas e esforços de coleta de dados. Os usuários
+    podem definir parâmetros como custos de combustível, custos de
+    viagem por hora, eficiência de combustível do veículo e restrições
+    específicas da agência.
+
+Em resumo, o pacote `orce` fornece uma solução poderosa e versátil para
+otimizar a alocação de UCs às agências do IBGE. Ao abordar os desafios
+relacionados ao roteamento, geocodificação, otimização de alocação e
+cálculo de custos, ele permite estratégias de coleta de dados eficientes
+e econômicas. Sua flexibilidade e adaptabilidade o tornam uma ferramenta
+valiosa para uma ampla gama de operações de pesquisa e censo no Brasil.
+
+------------------------------------------------------------------------
+
+## AI use / Uso de IA
+
+**English.** The original allocation model, as it stood up to mid-2025,
+was designed and implemented by the author. That covers the
+mixed-integer formulation, the cost structure (fuel, travel time,
+*diárias*, training, interviewer capacity) and the jurisdiction
+comparison. It is built on the
+[`ompr`](https://github.com/dirkschumacher/ompr) modeling package and
+follows its facility-location examples. Later extensions were developed
+with substantial help from AI coding assistants (Claude Code), under the
+author’s direction and review. These include the MILP backends, TSP
+routing with subtour elimination, the joint allocation model,
+interactive constraints and the Shiny app. Commits that had AI
+assistance are marked with a `Co-Authored-By` trailer in the git
+history.
+
+**Português.** O modelo original de alocação, como estava até meados de
+2025, foi concebido e implementado pelo autor. Isso inclui a formulação
+de programação inteira mista, a estrutura de custos (combustível, tempo
+de viagem, diárias, treinamento, capacidade de entrevistadores) e a
+comparação com a jurisdição. Ele foi construído com o pacote de
+modelagem [`ompr`](https://github.com/dirkschumacher/ompr) e segue seus
+exemplos de localização de instalações. Extensões posteriores foram
+desenvolvidas com ajuda substancial de assistentes de programação com IA
+(Claude Code), sob direção e revisão do autor. Entre elas estão os
+backends MILP, o roteamento TSP com eliminação de subrotas, o modelo de
+alocação conjunta, as restrições interativas e o aplicativo Shiny. Os
+commits feitos com auxílio de IA estão marcados com `Co-Authored-By` no
+histórico do git.

@@ -2,11 +2,13 @@
 title: "Otimização de Redes de Coleta Estatística"
 author: "Eduardo Leoni"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  github_document:
+    html_preview: false
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
 ```
 
 # `orce`:  <span style="color:red">O</span>timização da <span style="color:red">R</span>ede de <span style="color:red">C</span>oleta <span style="color:red">E</span>statística (Optimizing statistical data collection networks)
@@ -33,6 +35,7 @@ In summary, the `orce` package provides a powerful and versatile solution for op
 ```{r}
 library(testthat)
 library(orce)
+library(orcedata)
 library(dplyr)
 
 # instalar solver cbc
@@ -56,11 +59,11 @@ ucs_municipios <- agencias_bdo_mun |>
   dplyr::ungroup() |>
   ## uma agencia por municipio
   dplyr::distinct(municipio_codigo, .keep_all = TRUE) |>
-  dplyr::transmute(uc = municipio_codigo, municipio_codigo, agencia_codigo, dias_coleta = 10, viagens = 1, data = 1)
+  dplyr::transmute(uc = municipio_codigo, municipio_codigo, agencia_codigo, dias_coleta = 10, viagens = 1, data = 1, diaria_valor = 335)
 
 agencias <- agencias_bdo |>
   dplyr::semi_join(ucs_municipios,by = dplyr::join_by(agencia_codigo)) |>
-  dplyr::transmute(agencia_codigo, dias_coleta_agencia_max = Inf, custo_fixo = 0) |>
+  dplyr::transmute(agencia_codigo, n_entrevistadores_agencia_max = Inf, custo_fixo = 0, diaria_valor = 335) |>
   sf::st_drop_geometry()
 
 dists <- distancias_agencias_municipios_osrm |>
@@ -71,7 +74,14 @@ dists <- distancias_agencias_municipios_osrm |>
 
 m <- orce(ucs = ucs_municipios, agencias = agencias, dias_coleta_entrevistador_max = 14, distancias_ucs = dists, remuneracao_entrevistador = 0, rel_tol = 0.01)
 
-report_plans(m)
+m$resultado_agencias_otimo |>
+  dplyr::select(agencia_codigo, n_ucs, entrevistadores, custo_deslocamento) |>
+  head()
+```
+
+```{r, eval = FALSE}
+# relatório completo (tabela gt)
+relatorio_planos(m)
 ```
 
 ---------
@@ -89,5 +99,10 @@ O pacote `orce` é um pacote R projetado para otimizar a alocação de unidades 
 
 Em resumo, o pacote `orce` fornece uma solução poderosa e versátil para otimizar a alocação de UCs às agências do IBGE. Ao abordar os desafios relacionados ao roteamento, geocodificação, otimização de alocação e cálculo de custos, ele permite estratégias de coleta de dados eficientes e econômicas. Sua flexibilidade e adaptabilidade o tornam uma ferramenta valiosa para uma ampla gama de operações de pesquisa e censo no Brasil.
 
+---------
 
+## AI use / Uso de IA
 
+**English.** The original allocation model, as it stood up to mid-2025, was designed and implemented by the author. That covers the mixed-integer formulation, the cost structure (fuel, travel time, *diárias*, training, interviewer capacity) and the jurisdiction comparison. It is built on the [`ompr`](https://github.com/dirkschumacher/ompr) modeling package and follows its facility-location examples. Later extensions were developed with substantial help from AI coding assistants (Claude Code), under the author's direction and review. These include the MILP backends, TSP routing with subtour elimination, the joint allocation model, interactive constraints and the Shiny app. Commits that had AI assistance are marked with a `Co-Authored-By` trailer in the git history.
+
+**Português.** O modelo original de alocação, como estava até meados de 2025, foi concebido e implementado pelo autor. Isso inclui a formulação de programação inteira mista, a estrutura de custos (combustível, tempo de viagem, diárias, treinamento, capacidade de entrevistadores) e a comparação com a jurisdição. Ele foi construído com o pacote de modelagem [`ompr`](https://github.com/dirkschumacher/ompr) e segue seus exemplos de localização de instalações. Extensões posteriores foram desenvolvidas com ajuda substancial de assistentes de programação com IA (Claude Code), sob direção e revisão do autor. Entre elas estão os backends MILP, o roteamento TSP com eliminação de subrotas, o modelo de alocação conjunta, as restrições interativas e o aplicativo Shiny. Os commits feitos com auxílio de IA estão marcados com `Co-Authored-By` no histórico do git.
